@@ -1,0 +1,26 @@
+# Development Override Configuration
+# This file is automatically loaded by docker-compose
+# Use for development-specific settings
+
+version: '3.8'
+
+services:
+  app:
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+      APP_URL: http://localhost:8080
+    volumes:
+      # Mount source code for live development
+      - .:/var/www/html
+      # Exclude vendor and node_modules
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+    # Keep container running for development
+    command: >
+      sh -c "
+        composer install &&
+        php artisan migrate --force &&
+        php artisan db:seed --force &&
+        apache2-foreground
+      "

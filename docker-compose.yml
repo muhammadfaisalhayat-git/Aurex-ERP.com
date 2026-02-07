@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: aurex-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: aurex_erp
+      POSTGRES_USER: aurex_user
+      POSTGRES_PASSWORD: aurex_password_2024
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - aurex-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aurex_user -d aurex_erp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: aurex-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - aurex-network
+
+  # Laravel Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aurex-app
+    restart: unless-stopped
+    environment:
+      APP_NAME: "Aurex ERP"
+      APP_ENV: production
+      APP_KEY: base64:8gqJ7zR8xKq4mXy9vBn2cDf3eGh5iJk6lMn7oPq8rSt9=
+      APP_DEBUG: false
+      APP_URL: http://localhost:8080
+      
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: aurex_erp
+      DB_USERNAME: aurex_user
+      DB_PASSWORD: aurex_password_2024
+      
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_DRIVER: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      
+      MAIL_MAILER: log
+      
+      # Default admin credentials
+      ADMIN_EMAIL: admin@aurex.com
+      ADMIN_PASSWORD: admin123
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    ports:
+      - "8080:80"
+    networks:
+      - aurex-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: >
+      sh -c "
+        php artisan config:cache &&
+        php artisan route:cache &&
+        php artisan view:cache &&
+        php artisan migrate --force &&
+        php artisan db:seed --force &&
+        apache2-foreground
+      "
+
+volumes:
+  postgres_data:
+
+networks:
+  aurex-network:
+    driver: bridge

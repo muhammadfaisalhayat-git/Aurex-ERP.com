@@ -1,0 +1,151 @@
+<?php
+
+namespace App\Http\Controllers\Sales;
+
+use App\Http\Controllers\Controller;
+use App\Models\Customer;
+use App\Models\CustomerGroup;
+use App\Models\Branch;
+use App\Models\User;
+use App\Models\AuditLog;
+use Illuminate\Http\Request;
+
+class CustomerController extends Controller
+{
+    public function index()
+    {
+        $customers = Customer::with(['group', 'branch', 'salesman'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('sales.customers.index', compact('customers'));
+    }
+
+    public function create()
+    {
+        $customerGroups = CustomerGroup::where('is_active', true)->get();
+        $branches = Branch::active()->get();
+        // Assuming salesmen have a specific role or just getting all users for now
+        $salesmen = User::where('is_active', true)->get();
+
+        return view('sales.customers.create', compact('customerGroups', 'branches', 'salesmen'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'code' => 'required|string|max:50|unique:customers,code',
+            'name_en' => 'required|string|max:255',
+            'name_ar' => 'required|string|max:255',
+            'group_id' => 'nullable|exists:customer_groups,id',
+            'branch_id' => 'nullable|exists:branches,id',
+            'salesman_id' => 'nullable|exists:users,id',
+            'contact_person' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'mobile' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:500',
+            'city' => 'nullable|string|max:100',
+            'region' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:20',
+            'tax_number' => 'nullable|string|max:50',
+            'commercial_registration' => 'nullable|string|max:50',
+            'credit_limit' => 'nullable|numeric|min:0',
+            'credit_days' => 'nullable|integer|min:0',
+            'opening_balance' => 'nullable|numeric',
+            'status' => 'required|in:active,inactive,blocked',
+            'notes' => 'nullable|string',
+        ]);
+
+        $customer = Customer::create($validated);
+
+        AuditLog::create([
+            'action' => 'create',
+            'entity_type' => 'customer',
+            'entity_id' => $customer->id,
+            'user_id' => auth()->id(),
+            'new_values' => $customer->toArray(),
+        ]);
+
+        return redirect()->route('sales.customers.index')
+            ->with('success', __('messages.customer_created'));
+    }
+
+    public function show(Customer $customer)
+    {
+        $customer->load(['group', 'branch', 'salesman', 'quotations', 'salesInvoices']);
+        return view('sales.customers.show', compact('customer'));
+    }
+
+    public function edit(Customer $customer)
+    {
+        $customerGroups = CustomerGroup::where('is_active', true)->get();
+        $branches = Branch::active()->get();
+        $salesmen = User::where('is_active', true)->get();
+
+        return view('sales.customers.edit', compact('customer', 'customerGroups', 'branches', 'salesmen'));
+    }
+
+    public function update(Request $request, Customer $customer)
+    {
+        $validated = $request->validate([
+            'code' => 'required|string|max:50|unique:customers,code,' . $customer->id,
+            'name_en' => 'required|string|max:255',
+            'name_ar' => 'required|string|max:255',
+            'group_id' => 'nullable|exists:customer_groups,id',
+            'branch_id' => 'nullable|exists:branches,id',
+            'salesman_id' => 'nullable|exists:users,id',
+            'contact_person' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'mobile' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:500',
+            'city' => 'nullable|string|max:100',
+            'region' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:20',
+            'tax_number' => 'nullable|string|max:50',
+            'commercial_registration' => 'nullable|string|max:50',
+            'credit_limit' => 'nullable|numeric|min:0',
+            'credit_days' => 'nullable|integer|min:0',
+            'opening_balance' => 'nullable|numeric',
+            'status' => 'required|in:active,inactive,blocked',
+            'notes' => 'nullable|string',
+        ]);
+
+        $oldValues = $customer->toArray();
+        $customer->update($validated);
+
+        AuditLog::create([
+            'action' => 'update',
+            'entity_type' => 'customer',
+            'entity_id' => $customer->id,
+            'user_id' => auth()->id(),
+            'old_values' => $oldValues,
+            'new_values' => $customer->toArray(),
+        ]);
+
+        return redirect()->route('sales.customers.index')
+            ->with('success', __('messages.customer_updated'));
+    }
+
+    public function destroy(Customer $customer)
+    {
+        if ($customer->quotations()->exists() || $customer->salesInvoices()->exists()) {
+            return back()->with('error', __('messages.cannot_delete_customer_with_transactions'));
+        }
+
+        $oldValues = $customer->toArray();
+        $customer->delete();
+
+        AuditLog::create([
+            'action' => 'delete',
+            'entity_type' => 'customer',
+            'entity_id' => $customer->id,
+            'user_id' => auth()->id(),
+            'old_values' => $oldValues,
+        ]);
+
+        return redirect()->route('sales.customers.index')
+            ->with('success', __('messages.customer_deleted'));
+    }
+}

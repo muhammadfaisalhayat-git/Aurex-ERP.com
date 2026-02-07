@@ -1,0 +1,99 @@
+@extends('layouts.app')
+
+@section('title', __('messages.quotations'))
+
+@section('content')
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">{{ __('messages.quotations') }}</h1>
+            @can('create quotations')
+                <a href="{{ route('sales.quotations.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> {{ __('messages.create') }}
+                </a>
+            @endcan
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>{{ __('messages.document_number') }}</th>
+                                <th>{{ __('messages.date') }}</th>
+                                <th>{{ __('messages.customer') }}</th>
+                                <th>{{ __('messages.total') }}</th>
+                                <th>{{ __('messages.status') }}</th>
+                                <th>{{ __('messages.actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($quotations as $quotation)
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('sales.quotations.show', $quotation) }}">
+                                            {{ $quotation->document_number }}
+                                        </a>
+                                        @if($quotation->version > 1)
+                                            <span class="badge bg-secondary">v{{ $quotation->version }}</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        {{ $quotation->quotation_date->format('Y-m-d') }}
+                                        <br>
+                                        <small class="text-muted">{{ __('messages.expiry_date') }}:
+                                            {{ $quotation->expiry_date->format('Y-m-d') }}</small>
+                                    </td>
+                                    <td>{{ $quotation->customer->name ?? '-' }}</td>
+                                    <td>{{ number_format($quotation->total_amount, 2) }}</td>
+                                    <td>
+                                        @php
+                                            $statusClass = [
+                                                'draft' => 'secondary',
+                                                'sent' => 'info',
+                                                'accepted' => 'success',
+                                                'rejected' => 'danger',
+                                                'converted' => 'primary',
+                                                'expired' => 'warning',
+                                            ][$quotation->status] ?? 'secondary';
+                                        @endphp
+                                        <span class="badge bg-{{ $statusClass }}">
+                                            {{ __('messages.' . $quotation->status) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ route('sales.quotations.show', $quotation) }}"
+                                                class="btn btn-sm btn-info" title="{{ __('messages.view') }}">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if($quotation->status === 'draft')
+                                                @can('edit quotations')
+                                                    <a href="{{ route('sales.quotations.edit', $quotation) }}"
+                                                        class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                @endcan
+                                            @endif
+                                            <a href="{{ route('sales.quotations.pdf', $quotation) }}"
+                                                class="btn btn-sm btn-secondary" title="{{ __('messages.download_pdf') }}">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center">{{ __('messages.no_records_found') }}</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    {{ $quotations->links() }}
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
