@@ -13,6 +13,8 @@ use App\Models\Warehouse;
 use App\Models\TaxSetting;
 use App\Models\DocumentNumber;
 use App\Models\AuditLog;
+use App\Models\User;
+use App\Models\Quotation;
 use App\Services\TaxCalculator;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -30,16 +32,28 @@ class SalesInvoiceController extends Controller
         $query = SalesInvoice::with(['customer', 'branch', 'warehouse', 'salesman']);
 
         // Apply filters
+        if ($request->filled('invoice_number')) {
+            $invoiceNumber = $request->invoice_number;
+            $query->where(function ($q) use ($invoiceNumber) {
+                $q->where('invoice_number', 'like', "%{$invoiceNumber}%")
+                    ->orWhere('document_number', 'like', "%{$invoiceNumber}%");
+            });
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('document_number', 'like', "%{$search}%")
-                  ->orWhere('invoice_number', 'like', "%{$search}%")
-                  ->orWhereHas('customer', function ($cq) use ($search) {
-                      $cq->where('name_en', 'like', "%{$search}%")
-                         ->orWhere('name_ar', 'like', "%{$search}%");
-                  });
+                    ->orWhere('invoice_number', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($cq) use ($search) {
+                        $cq->where('name_en', 'like', "%{$search}%")
+                            ->orWhere('name_ar', 'like', "%{$search}%");
+                    });
             });
+        }
+
+        if ($request->filled('total')) {
+            $query->where('total_amount', 'like', "%{$request->total}%");
         }
 
         if ($request->filled('status')) {
@@ -48,6 +62,12 @@ class SalesInvoiceController extends Controller
 
         if ($request->filled('customer_id')) {
             $query->where('customer_id', $request->customer_id);
+        } elseif ($request->filled('customer_name')) {
+            $customerName = $request->customer_name;
+            $query->whereHas('customer', function ($q) use ($customerName) {
+                $q->where('name_en', 'like', "%{$customerName}%")
+                    ->orWhere('name_ar', 'like', "%{$customerName}%");
+            });
         }
 
         if ($request->filled('date_from')) {
@@ -62,7 +82,7 @@ class SalesInvoiceController extends Controller
         if (!auth()->user()->isSuperAdmin()) {
             $userBranchIds = auth()->user()->branch_id ? [auth()->user()->branch_id] : [];
             $userWarehouseIds = auth()->user()->warehouses->pluck('id')->toArray();
-            
+
             if (!empty($userBranchIds)) {
                 $query->whereIn('branch_id', $userBranchIds);
             }
@@ -95,21 +115,32 @@ class SalesInvoiceController extends Controller
         }
 
         $documentNumber = DocumentNumber::generate('sales_invoice');
+        $salesmen = User::active()->get();
 
         return view('sales.invoices.create', compact(
-            'customers', 'branches', 'warehouses', 'products', 
-            'taxSetting', 'documentNumber'
+            'customers',
+            'branches',
+            'warehouses',
+            'products',
+            'taxSetting',
+            'documentNumber',
+            'salesmen'
         ));
     }
 
     public function store(Request $request)
     {
+        // If document_number is not sent, use invoice_number
+        if (!$request->has('document_number') && $request->has('invoice_number')) {
+            $request->merge(['document_number' => $request->invoice_number]);
+        }
+
         $validated = $request->validate([
             'document_number' => 'required|unique:sales_invoices',
             'invoice_number' => 'required|unique:sales_invoices',
             'invoice_date' => 'required|date',
-            'due_date' => 'required|date|after_or_equal:invoice_date',
-            'customer_id' => 'required|exists:customers,id',
+            'due_date' => 'nullable|date|after_or_equal:invoice_date',
+            'customer_id' => 'nullable|exists:customers,id',
             'branch_id' => 'required|exists:branches,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'salesman_id' => 'nullable|exists:users,id',
@@ -132,7 +163,7 @@ class SalesInvoiceController extends Controller
             'invoice_number' => $validated['invoice_number'],
             'invoice_date' => $validated['invoice_date'],
             'due_date' => $validated['due_date'],
-            'customer_id' => $validated['customer_id'],
+            'customer_id' => $validated['customer_id'] ?? null,
             'branch_id' => $validated['branch_id'],
             'warehouse_id' => $validated['warehouse_id'],
             'salesman_id' => $validated['salesman_id'] ?? null,
@@ -148,7 +179,7 @@ class SalesInvoiceController extends Controller
         foreach ($validated['items'] as $item) {
             $product = Product::find($item['product_id']);
             $taxRate = $product->tax_rate ?? $taxSetting?->default_tax_rate ?? 0;
-            
+
             $lineTotals = SalesInvoiceItem::calculateLineTotals(
                 $item['quantity'],
                 $item['unit_price'],
@@ -208,8 +239,12 @@ class SalesInvoiceController extends Controller
         $invoice->load('items.product');
 
         return view('sales.invoices.edit', compact(
-            'invoice', 'customers', 'branches', 'warehouses', 
-            'products', 'taxSetting'
+            'invoice',
+            'customers',
+            'branches',
+            'warehouses',
+            'products',
+            'taxSetting'
         ));
     }
 
@@ -261,7 +296,7 @@ class SalesInvoiceController extends Controller
         foreach ($validated['items'] as $item) {
             $product = Product::find($item['product_id']);
             $taxRate = $product->tax_rate ?? $taxSetting?->default_tax_rate ?? 0;
-            
+
             $lineTotals = SalesInvoiceItem::calculateLineTotals(
                 $item['quantity'],
                 $item['unit_price'],
@@ -370,16 +405,16 @@ class SalesInvoiceController extends Controller
     public function downloadPdf(SalesInvoice $invoice)
     {
         $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator']);
-        
+
         $pdf = PDF::loadView('sales.invoices.pdf', compact('invoice'));
-        
+
         return $pdf->download("invoice_{$invoice->document_number}.pdf");
     }
 
     public function print(SalesInvoice $invoice)
     {
         $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator']);
-        
+
         return view('sales.invoices.print', compact('invoice'));
     }
 
@@ -401,10 +436,17 @@ class SalesInvoiceController extends Controller
         $quotation->load('items.product');
 
         $documentNumber = DocumentNumber::generate('sales_invoice');
+        $salesmen = User::active()->get();
 
         return view('sales.invoices.create-from-quotation', compact(
-            'quotation', 'customers', 'branches', 'warehouses', 
-            'products', 'taxSetting', 'documentNumber'
+            'quotation',
+            'customers',
+            'branches',
+            'warehouses',
+            'products',
+            'taxSetting',
+            'documentNumber',
+            'salesmen'
         ));
     }
 
@@ -458,7 +500,7 @@ class SalesInvoiceController extends Controller
         foreach ($validated['items'] as $item) {
             $product = Product::find($item['product_id']);
             $taxRate = $product->tax_rate ?? $taxSetting?->default_tax_rate ?? 0;
-            
+
             $lineTotals = SalesInvoiceItem::calculateLineTotals(
                 $item['quantity'],
                 $item['unit_price'],

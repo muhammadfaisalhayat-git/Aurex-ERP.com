@@ -38,6 +38,7 @@ return [
     'partial' => 'Partial',
     'overdue' => 'Overdue',
     'cancelled' => 'Cancelled',
+    'blocked' => 'Blocked',
     'pending' => 'Pending',
     'approved' => 'Approved',
     'rejected' => 'Rejected',
@@ -56,22 +57,26 @@ return [
     'tax' => 'Tax',
     'net_amount' => 'Net Amount',
     'gross_amount' => 'Gross Amount',
+    'all_customers' => 'All Customers',
+    'all_statuses' => 'All Statuses',
+    'date_from' => 'Date From',
+    'date_to' => 'Date To',
     'balance' => 'Balance',
     'code' => 'Code',
     'name' => 'Name',
-    'name_en' => 'Name (English)',
-    'name_ar' => 'Name (Arabic)',
+    'name_en' => 'Full Name (English)',
+    'name_ar' => 'Full Name (Arabic)',
     'address' => 'Address',
     'phone' => 'Phone',
     'mobile' => 'Mobile',
     'city' => 'City',
     'region' => 'Region',
     'postal_code' => 'Postal Code',
-    
+
     // Login
     'login_subtitle' => 'Enterprise Resource Planning System',
     'demo_credentials' => 'Demo Credentials',
-    
+
     // Dashboard
     'sales_today' => 'Sales Today',
     'sales_this_month' => 'Sales This Month',
@@ -93,7 +98,7 @@ return [
     'select_widgets_to_display' => 'Select widgets to display on your dashboard',
     'save_changes' => 'Save Changes',
     'no_data_available' => 'No data available',
-    
+
     // Administration
     'administration' => 'Administration',
     'user_management' => 'User Management',
@@ -107,7 +112,7 @@ return [
     'branch' => 'Branch',
     'warehouses' => 'Warehouses',
     'warehouse' => 'Warehouse',
-    
+
     // User Management
     'add_user' => 'Add User',
     'edit_user' => 'Edit User',
@@ -138,14 +143,25 @@ return [
     'cannot_edit_system_role' => 'Cannot edit system role',
     'cannot_delete_system_role' => 'Cannot delete system role',
     'cannot_delete_role_with_users' => 'Cannot delete role with assigned users',
-    
+
     // Sales
     'sales' => 'Sales',
     'sales_documents' => 'Sales Documents',
     'customers' => 'Customers',
     'customer' => 'Customer',
+    'salesman' => 'Salesman',
+    'create_customer' => 'Create Customer',
+    'edit_customer' => 'Edit Customer',
+    'view_customer' => 'View Customer',
     'customer_requests' => 'Customer Requests',
     'customer_request' => 'Customer Request',
+    'customer_request_details' => 'Customer Request Details',
+    'create_customer_request' => 'Create Customer Request',
+    'edit_customer_request' => 'Edit Customer Request',
+    'needed_date' => 'Needed By',
+    'select_product' => 'Select Product',
+    'select_customer' => 'Select Customer',
+    'converted' => 'Converted',
     'quotations' => 'Quotations',
     'quotation' => 'Quotation',
     'sales_contracts' => 'Sales Contracts',
@@ -159,7 +175,7 @@ return [
     'commissions' => 'Commissions',
     'commission_rules' => 'Commission Rules',
     'commission_runs' => 'Commission Runs',
-    
+
     // Customer
     'customer_group' => 'Customer Group',
     'customer_groups' => 'Customer Groups',
@@ -170,7 +186,19 @@ return [
     'current_balance' => 'Current Balance',
     'tax_number' => 'Tax Number',
     'commercial_registration' => 'Commercial Registration',
-    
+
+    // Form Sections
+    'basic_information' => 'Basic Information',
+    'contact_information' => 'Contact Information',
+    'address_information' => 'Address Information',
+    'financial_information' => 'Financial Information',
+    'other_information' => 'Other Information',
+
+    // Selection Hints
+    'select_group' => 'Select Customer Group',
+    'select_branch' => 'Select Branch',
+    'select_salesman' => 'Select Salesman',
+
     // Invoice
     'invoice_number' => 'Invoice Number',
     'invoice_date' => 'Invoice Date',
@@ -204,7 +232,7 @@ return [
     'invoice_unpost_failed' => 'Failed to unpost invoice',
     'no_permission_to_post' => 'You do not have permission to post invoices',
     'no_permission_to_unpost' => 'You do not have permission to unpost invoices',
-    
+
     // Quotation
     'expiry_date' => 'Expiry Date',
     'version' => 'Version',
@@ -214,7 +242,7 @@ return [
     'revise_quotation' => 'Revise Quotation',
     'quotation_not_available_for_conversion' => 'Quotation is not available for conversion',
     'invoice_created_from_quotation' => 'Invoice created from quotation successfully',
-    
+
     // Sales Order
     'sales_order_created' => 'Sales order created successfully',
     'sales_order_updated' => 'Sales order updated successfully',
@@ -243,7 +271,7 @@ return [
     'shipped' => 'Shipped',
     'delivered' => 'Delivered',
     'invoiced' => 'Invoiced',
-    
+
     // Contract
     'contract_number' => 'Contract Number',
     'contract_date' => 'Contract Date',
@@ -254,7 +282,7 @@ return [
     'activate_contract' => 'Activate Contract',
     'terminate_contract' => 'Terminate Contract',
     'generate_invoice' => 'Generate Invoice',
-    
+
     // Return
     'return_number' => 'Return Number',
     'return_date' => 'Return Date',
@@ -267,7 +295,7 @@ return [
     'other' => 'Other',
     'restock_inventory' => 'Restock Inventory',
     'credit_note' => 'Credit Note',
-    
+
     // Commission
     'calculation_type' => 'Calculation Type',
     'percentage' => 'Percentage',
@@ -280,7 +308,7 @@ return [
     'run_commission_calculation' => 'Run Commission Calculation',
     'approve_commissions' => 'Approve Commissions',
     'export_commissions' => 'Export Commissions',
-    
+
     // Purchases
     'purchases' => 'Purchases',
     'vendors' => 'Vendors',
@@ -290,7 +318,7 @@ return [
     'purchase_invoices' => 'Purchase Invoices',
     'purchase_invoice' => 'Purchase Invoice',
     'purchase_order_number' => 'Purchase Order Number',
-    
+
     // Supply Order
     'supply_order_created' => 'Supply order created successfully',
     'supply_order_updated' => 'Supply order updated successfully',
@@ -302,13 +330,13 @@ return [
     'supply_order_cannot_be_invoiced' => 'Supply order cannot be converted to invoice',
     'supply_order_converted_to_invoice' => 'Supply order converted to invoice successfully',
     'send_supply_order' => 'Send Supply Order',
-    'convert_to_invoice' => 'Convert to Invoice',
+    'order_to_invoice' => 'Convert to Invoice',
     'expected_delivery_date' => 'Expected Delivery Date',
     'order_number' => 'Order Number',
     'order_date' => 'Order Date',
     'received_quantity' => 'Received Quantity',
     'pending_quantity' => 'Pending Quantity',
-    
+
     // Inventory
     'inventory' => 'Inventory',
     'products' => 'Products',
@@ -327,7 +355,7 @@ return [
     'composite_assemblies' => 'Composite Assemblies',
     'composite_assembly' => 'Composite Assembly',
     'stock_ledger' => 'Stock Ledger',
-    
+
     // Product
     'product_code' => 'Product Code',
     'barcode' => 'Barcode',
@@ -349,7 +377,7 @@ return [
     'components' => 'Components',
     'component' => 'Component',
     'waste_percentage' => 'Waste %',
-    
+
     // Stock
     'document_number' => 'Document Number',
     'supply_date' => 'Supply Date',
@@ -368,7 +396,7 @@ return [
     'confirm' => 'Confirm',
     'receive' => 'Receive',
     'execute' => 'Execute',
-    
+
     // Transport
     'transport' => 'Transport',
     'trailers' => 'Trailers',
@@ -392,7 +420,7 @@ return [
     'completion_date' => 'Completion Date',
     'loading' => 'Loading',
     'in_transit' => 'In Transit',
-    'delivered' => 'Delivered',
+    'transit_completed' => 'Delivered',
     'loading_sheet' => 'Loading Sheet',
     'contractor_name' => 'Contractor Name',
     'claim_type' => 'Claim Type',
@@ -405,7 +433,7 @@ return [
     'settled_amount' => 'Settled Amount',
     'under_review' => 'Under Review',
     'settled' => 'Settled',
-    
+
     // Maintenance
     'maintenance' => 'Maintenance',
     'workshops' => 'Workshops',
@@ -424,8 +452,8 @@ return [
     'inspection' => 'Inspection',
     'problem_description' => 'Problem Description',
     'work_description' => 'Work Description',
-    'scheduled_date' => 'Scheduled Date',
-    'completion_date' => 'Completion Date',
+    'maintenance_scheduled' => 'Scheduled Date',
+    'maintenance_completed' => 'Completion Date',
     'estimated_cost' => 'Estimated Cost',
     'actual_cost' => 'Actual Cost',
     'technician_name' => 'Technician Name',
@@ -433,7 +461,7 @@ return [
     'add_parts' => 'Add Parts',
     'in_progress' => 'In Progress',
     'waiting_parts' => 'Waiting Parts',
-    
+
     // Reports
     'reports' => 'Reports',
     'sales_reports' => 'Sales Reports',
@@ -450,7 +478,7 @@ return [
     'export' => 'Export',
     'export_to_pdf' => 'Export to PDF',
     'export_to_excel' => 'Export to Excel',
-    
+
     // Audit
     'action' => 'Action',
     'entity' => 'Entity',
@@ -458,7 +486,7 @@ return [
     'new_values' => 'New Values',
     'ip_address' => 'IP Address',
     'user_agent' => 'User Agent',
-    
+
     // Messages
     'success' => 'Success',
     'error' => 'Error',
@@ -473,7 +501,7 @@ return [
     'record_posted' => 'Record posted successfully',
     'record_unposted' => 'Record unposted successfully',
     'no_records_found' => 'No records found',
-    'loading' => 'Loading...',
+    'is_loading' => 'Loading...',
     'please_wait' => 'Please wait...',
     'required_field' => 'This field is required',
     'invalid_email' => 'Please enter a valid email address',
@@ -481,11 +509,11 @@ return [
     'min_value' => 'Value must be at least :min',
     'max_value' => 'Value must not exceed :max',
     'unique_value' => 'This value already exists',
-    
+
     // Unauthorized
     'unauthorized' => 'Unauthorized access',
     'no_permission' => 'You do not have permission to perform this action',
-    
+
     // Local Purchase
     'local_purchase' => 'Local Purchase',
     'local_purchases' => 'Local Purchases',
@@ -515,7 +543,7 @@ return [
     'local_purchase_unposted_successfully' => 'Local purchase unposted successfully',
     'local_purchase_cannot_edit_posted' => 'Cannot edit posted local purchase',
     'local_purchase_cannot_delete_posted' => 'Cannot delete posted local purchase',
-    
+
     // Supplier Registration
     'supplier_registration' => 'Supplier Registration',
     'supplier_registrations' => 'Supplier Registrations',
@@ -562,7 +590,7 @@ return [
     'supplier_registration_approved_successfully' => 'Supplier registration approved successfully',
     'supplier_registration_rejected_successfully' => 'Supplier registration rejected successfully',
     'supplier_registration_converted_successfully' => 'Supplier converted to vendor successfully',
-    
+
     // Customer Registration
     'customer_registration' => 'Customer Registration',
     'customer_registrations' => 'Customer Registrations',
@@ -587,7 +615,7 @@ return [
     'customer_registration_approved_successfully' => 'Customer registration approved successfully',
     'customer_registration_rejected_successfully' => 'Customer registration rejected successfully',
     'customer_registration_converted_successfully' => 'Customer converted successfully',
-    
+
     // Reports
     'reports_title' => 'Reports',
     'reports_supplier_title' => 'Supplier Reports',
@@ -639,4 +667,4 @@ return [
     'reports_no_records' => 'No records found',
     'overview' => 'Overview',
     'supplier_reports' => 'Supplier Reports',
-];;
+];

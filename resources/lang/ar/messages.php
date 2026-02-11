@@ -38,6 +38,7 @@ return [
     'partial' => 'جزئي',
     'overdue' => 'متأخر',
     'cancelled' => 'ملغى',
+    'blocked' => 'محظور',
     'pending' => 'معلق',
     'approved' => 'معتمد',
     'rejected' => 'مرفوض',
@@ -59,19 +60,19 @@ return [
     'balance' => 'الرصيد',
     'code' => 'الكود',
     'name' => 'الاسم',
-    'name_en' => 'الاسم (إنجليزي)',
-    'name_ar' => 'الاسم (عربي)',
+    'name_en' => 'الاسم بالكامل (إنجليزي)',
+    'name_ar' => 'الاسم بالكامل (عربي)',
     'address' => 'العنوان',
     'phone' => 'الهاتف',
     'mobile' => 'الجوال',
     'city' => 'المدينة',
     'region' => 'المنطقة',
     'postal_code' => 'الرمز البريدي',
-    
+
     // Login
     'login_subtitle' => 'نظام تخطيط موارد المؤسسات',
     'demo_credentials' => 'بيانات الدخول التجريبية',
-    
+
     // Dashboard
     'sales_today' => 'المبيعات اليوم',
     'sales_this_month' => 'المبيعات هذا الشهر',
@@ -93,7 +94,7 @@ return [
     'select_widgets_to_display' => 'اختر العناصر لعرضها على لوحة التحكم',
     'save_changes' => 'حفظ التغييرات',
     'no_data_available' => 'لا توجد بيانات متاحة',
-    
+
     // Administration
     'administration' => 'الإدارة',
     'user_management' => 'إدارة المستخدمين',
@@ -107,7 +108,7 @@ return [
     'branch' => 'الفرع',
     'warehouses' => 'المستودعات',
     'warehouse' => 'المستودع',
-    
+
     // User Management
     'add_user' => 'إضافة مستخدم',
     'edit_user' => 'تعديل مستخدم',
@@ -138,14 +139,24 @@ return [
     'cannot_edit_system_role' => 'لا يمكن تعديل دور النظام',
     'cannot_delete_system_role' => 'لا يمكن حذف دور النظام',
     'cannot_delete_role_with_users' => 'لا يمكن حذف الدور المرتبط بمستخدمين',
-    
+
     // Sales
     'sales' => 'المبيعات',
     'sales_documents' => 'مستندات المبيعات',
     'customers' => 'العملاء',
     'customer' => 'العميل',
+    'create_customer' => 'إنشاء عميل',
+    'edit_customer' => 'تعديل عميل',
+    'view_customer' => 'عرض عميل',
     'customer_requests' => 'طلبات العملاء',
     'customer_request' => 'طلب العميل',
+    'customer_request_details' => 'تفاصيل طلب العميل',
+    'create_customer_request' => 'إنشاء طلب عميل',
+    'edit_customer_request' => 'تعديل طلب عميل',
+    'needed_date' => 'مطلوب بتاريخ',
+    'select_product' => 'اختر المنتج',
+    'select_customer' => 'اختر العميل',
+    'converted' => 'تم التحويل',
     'quotations' => 'عروض الأسعار',
     'quotation' => 'عرض السعر',
     'sales_contracts' => 'عقود المبيعات',
@@ -159,7 +170,7 @@ return [
     'commissions' => 'العمولات',
     'commission_rules' => 'قواعد العمولات',
     'commission_runs' => 'تشغيلات العمولات',
-    
+
     // Customer
     'customer_group' => 'مجموعة العملاء',
     'customer_groups' => 'مجموعات العملاء',
@@ -170,7 +181,19 @@ return [
     'current_balance' => 'الرصيد الحالي',
     'tax_number' => 'الرقم الضريبي',
     'commercial_registration' => 'السجل التجاري',
-    
+
+    // Form Sections
+    'basic_information' => 'المعلومات الأساسية',
+    'contact_information' => 'معلومات الاتصال',
+    'address_information' => 'معلومات العنوان',
+    'financial_information' => 'المعلومات المالية',
+    'other_information' => 'معلومات أخرى',
+
+    // Selection Hints
+    'select_group' => 'اختر مجموعة العملاء',
+    'select_branch' => 'اختر الفرع',
+    'select_salesman' => 'اختر المندوب',
+
     // Invoice
     'invoice_number' => 'رقم الفاتورة',
     'invoice_date' => 'تاريخ الفاتورة',
@@ -204,7 +227,7 @@ return [
     'invoice_unpost_failed' => 'فشل إلغاء ترحيل الفاتورة',
     'no_permission_to_post' => 'ليس لديك صلاحية لترحيل الفواتير',
     'no_permission_to_unpost' => 'ليس لديك صلاحية لإلغاء ترحيل الفواتير',
-    
+
     // Quotation
     'expiry_date' => 'تاريخ الانتهاء',
     'version' => 'الإصدار',
@@ -214,7 +237,7 @@ return [
     'revise_quotation' => 'مراجعة عرض السعر',
     'quotation_not_available_for_conversion' => 'عرض السعر غير متاح للتحويل',
     'invoice_created_from_quotation' => 'تم إنشاء الفاتورة من عرض السعر بنجاح',
-    
+
     // Sales Order
     'sales_order_created' => 'تم إنشاء أمر البيع بنجاح',
     'sales_order_updated' => 'تم تحديث أمر البيع بنجاح',
@@ -243,7 +266,7 @@ return [
     'shipped' => 'تم الشحن',
     'delivered' => 'تم التسليم',
     'invoiced' => 'تمت الفوترة',
-    
+
     // Contract
     'contract_number' => 'رقم العقد',
     'contract_date' => 'تاريخ العقد',
@@ -254,7 +277,7 @@ return [
     'activate_contract' => 'تفعيل العقد',
     'terminate_contract' => 'إنهاء العقد',
     'generate_invoice' => 'إنشاء فاتورة',
-    
+
     // Return
     'return_number' => 'رقم المرتجع',
     'return_date' => 'تاريخ المرتجع',
@@ -267,7 +290,7 @@ return [
     'other' => 'أخرى',
     'restock_inventory' => 'إعادة للمخزون',
     'credit_note' => 'إشعار دائن',
-    
+
     // Commission
     'calculation_type' => 'نوع الحساب',
     'percentage' => 'نسبة مئوية',
@@ -280,7 +303,7 @@ return [
     'run_commission_calculation' => 'تشغيل حساب العمولات',
     'approve_commissions' => 'اعتماد العمولات',
     'export_commissions' => 'تصدير العمولات',
-    
+
     // Purchases
     'purchases' => 'المشتريات',
     'vendors' => 'الموردين',
@@ -290,7 +313,7 @@ return [
     'purchase_invoices' => 'فواتير المشتريات',
     'purchase_invoice' => 'فاتورة المشتريات',
     'purchase_order_number' => 'رقم أمر الشراء',
-    
+
     // Supply Order
     'supply_order_created' => 'تم إنشاء أمر التوريد بنجاح',
     'supply_order_updated' => 'تم تحديث أمر التوريد بنجاح',
@@ -302,13 +325,13 @@ return [
     'supply_order_cannot_be_invoiced' => 'لا يمكن تحويل أمر التوريد إلى فاتورة',
     'supply_order_converted_to_invoice' => 'تم تحويل أمر التوريد إلى فاتورة بنجاح',
     'send_supply_order' => 'إرسال أمر التوريد',
-    'convert_to_invoice' => 'تحويل إلى فاتورة',
+    'order_to_invoice' => 'تحويل إلى فاتورة',
     'expected_delivery_date' => 'تاريخ التسليم المتوقع',
     'order_number' => 'رقم الأمر',
     'order_date' => 'تاريخ الأمر',
     'received_quantity' => 'الكمية المستلمة',
     'pending_quantity' => 'الكمية المعلقة',
-    
+
     // Inventory
     'inventory' => 'المخزون',
     'products' => 'المنتجات',
@@ -327,7 +350,7 @@ return [
     'composite_assemblies' => 'تجميعات الأصناف المركبة',
     'composite_assembly' => 'تجميع الصنف المركب',
     'stock_ledger' => 'دفتر المخزون',
-    
+
     // Product
     'product_code' => 'كود المنتج',
     'barcode' => 'الباركود',
@@ -349,7 +372,7 @@ return [
     'components' => 'المكونات',
     'component' => 'المكون',
     'waste_percentage' => 'نسبة الهدر %',
-    
+
     // Stock
     'document_number' => 'رقم المستند',
     'supply_date' => 'تاريخ التوريد',
@@ -368,7 +391,7 @@ return [
     'confirm' => 'تأكيد',
     'receive' => 'استلام',
     'execute' => 'تنفيذ',
-    
+
     // Transport
     'transport' => 'النقل',
     'trailers' => 'المقطورات',
@@ -392,7 +415,7 @@ return [
     'completion_date' => 'تاريخ الإكمال',
     'loading' => 'جاري التحميل',
     'in_transit' => 'في الطريق',
-    'delivered' => 'تم التسليم',
+    'transit_completed' => 'تم التسليم',
     'loading_sheet' => 'ورقة التحميل',
     'contractor_name' => 'اسم المقاول',
     'claim_type' => 'نوع المطالبة',
@@ -405,7 +428,7 @@ return [
     'settled_amount' => 'المبلغ المسوى',
     'under_review' => 'قيد المراجعة',
     'settled' => 'تم التسوية',
-    
+
     // Maintenance
     'maintenance' => 'الصيانة',
     'workshops' => 'الورش',
@@ -424,8 +447,8 @@ return [
     'inspection' => 'فحص',
     'problem_description' => 'وصف المشكلة',
     'work_description' => 'وصف العمل',
-    'scheduled_date' => 'التاريخ المجدول',
-    'completion_date' => 'تاريخ الإكمال',
+    'maintenance_scheduled' => 'التاريخ المجدول',
+    'maintenance_completed' => 'تاريخ الإكمال',
     'estimated_cost' => 'التكلفة المقدرة',
     'actual_cost' => 'التكلفة الفعلية',
     'technician_name' => 'اسم الفني',
@@ -433,7 +456,7 @@ return [
     'add_parts' => 'إضافة قطع',
     'in_progress' => 'قيد التنفيذ',
     'waiting_parts' => 'في انتظار القطع',
-    
+
     // Reports
     'reports' => 'التقارير',
     'sales_reports' => 'تقارير المبيعات',
@@ -450,7 +473,7 @@ return [
     'export' => 'تصدير',
     'export_to_pdf' => 'تصدير إلى PDF',
     'export_to_excel' => 'تصدير إلى Excel',
-    
+
     // Audit
     'action' => 'الإجراء',
     'entity' => 'الكيان',
@@ -458,7 +481,7 @@ return [
     'new_values' => 'القيم الجديدة',
     'ip_address' => 'عنوان IP',
     'user_agent' => 'وكيل المستخدم',
-    
+
     // Messages
     'success' => 'نجاح',
     'error' => 'خطأ',
@@ -473,7 +496,7 @@ return [
     'record_posted' => 'تم ترحيل السجل بنجاح',
     'record_unposted' => 'تم إلغاء ترحيل السجل بنجاح',
     'no_records_found' => 'لم يتم العثور على سجلات',
-    'loading' => 'جاري التحميل...',
+    'is_loading' => 'جاري التحميل...',
     'please_wait' => 'يرجى الانتظار...',
     'required_field' => 'هذا الحقل مطلوب',
     'invalid_email' => 'يرجى إدخال بريد إلكتروني صحيح',
@@ -481,7 +504,7 @@ return [
     'min_value' => 'يجب أن تكون القيمة على الأقل :min',
     'max_value' => 'يجب ألا تتجاوز القيمة :max',
     'unique_value' => 'هذه القيمة موجودة مسبقاً',
-    
+
     // Unauthorized
     'unauthorized' => 'وصول غير مصرح',
     'no_permission' => 'ليس لديك صلاحية لتنفيذ هذا الإجراء',

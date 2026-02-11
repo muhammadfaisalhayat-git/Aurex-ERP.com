@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Try SymLinksIfOwnerMatch if FollowSymLinks is forbidden
+    <IfModule mod_rewrite.c>
+        Options +SymLinksIfOwnerMatch
+    </IfModule>
+
+    # Redirect everything to the public folder
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Prevent directory browsing
+Options -Indexes
