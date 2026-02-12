@@ -142,7 +142,101 @@
                         <div class="card">
                             <div class="card-header"><?php echo e(__('messages.recent_transactions')); ?></div>
                             <div class="card-body">
-                                <p class="text-muted text-center pt-3"><?php echo e(__('messages.feature_coming_soon')); ?></p>
+                                <?php
+                                    $transactions = collect();
+
+                                    foreach ($customer->customerRequests as $request) {
+                                        $transactions->push([
+                                            'id' => $request->id,
+                                            'date' => $request->request_date,
+                                            'number' => $request->document_number,
+                                            'type' => 'request',
+                                            'total' => '-',
+                                            'status' => $request->status,
+                                            'route' => route('sales.customer-requests.show', $request),
+                                        ]);
+                                    }
+
+                                    foreach ($customer->quotations as $quotation) {
+                                        $transactions->push([
+                                            'id' => $quotation->id,
+                                            'date' => $quotation->quotation_date,
+                                            'number' => $quotation->document_number,
+                                            'type' => 'quotation',
+                                            'total' => number_format($quotation->total_amount, 2),
+                                            'status' => $quotation->status,
+                                            'route' => route('sales.quotations.show', $quotation),
+                                        ]);
+                                    }
+
+                                    foreach ($customer->salesInvoices as $invoice) {
+                                        $transactions->push([
+                                            'id' => $invoice->id,
+                                            'date' => $invoice->invoice_date,
+                                            'number' => $invoice->document_number,
+                                            'type' => 'invoice',
+                                            'total' => number_format($invoice->total_amount, 2),
+                                            'status' => $invoice->status,
+                                            'route' => route('sales.invoices.show', $invoice),
+                                        ]);
+                                    }
+
+                                    $transactions = $transactions->sortByDesc('date');
+                                ?>
+
+                                <?php if($transactions->count() > 0): ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th><?php echo e(__('messages.date')); ?></th>
+                                                    <th><?php echo e(__('messages.document_number')); ?></th>
+                                                    <th><?php echo e(__('messages.document_type')); ?></th>
+                                                    <th><?php echo e(__('messages.amount')); ?></th>
+                                                    <th><?php echo e(__('messages.status')); ?></th>
+                                                    <th><?php echo e(__('messages.actions')); ?></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php $__currentLoopData = $transactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transaction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <tr>
+                                                        <td><?php echo e($transaction['date']->format('Y-m-d')); ?></td>
+                                                        <td><?php echo e($transaction['number']); ?></td>
+                                                        <td>
+                                                            <span class="badge bg-secondary">
+                                                                <?php echo e(__('messages.' . $transaction['type'])); ?>
+
+                                                            </span>
+                                                        </td>
+                                                        <td><?php echo e($transaction['total']); ?></td>
+                                                        <td>
+                                                            <?php
+                                                                $statusClass = match ($transaction['status']) {
+                                                                    'draft', 'pending' => 'warning',
+                                                                    'posted', 'approved', 'paid', 'converted' => 'success',
+                                                                    'cancelled', 'rejected' => 'danger',
+                                                                    default => 'secondary',
+                                                                };
+                                                            ?>
+                                                            <span class="badge bg-<?php echo e($statusClass); ?>">
+                                                                <?php echo e(__('messages.' . $transaction['status'])); ?>
+
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <a href="<?php echo e($transaction['route']); ?>"
+                                                                class="btn btn-sm btn-info text-white">
+                                                                <i class="fas fa-eye"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <?php else: ?>
+                                    <p class="text-muted text-center pt-3"><?php echo e(__('messages.no_records_found')); ?></p>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

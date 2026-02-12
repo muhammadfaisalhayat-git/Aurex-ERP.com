@@ -104,11 +104,12 @@
                             <div class="col-md-4">
                                 <h5>{{ __('sales.customer_info') }}</h5>
                                 <p>
-                                    <strong>{{ $invoice->customer->company_name }}</strong><br>
-                                    {{ $invoice->customer->address }}<br>
-                                    {{ $invoice->customer->city }}, {{ $invoice->customer->country }}<br>
-                                    <abbr title="{{ __('sales.phone') }}">P:</abbr> {{ $invoice->customer->phone }}<br>
-                                    <abbr title="{{ __('sales.email') }}">E:</abbr> {{ $invoice->customer->email }}
+                                    <strong>{{ $invoice->customer->company_name ?? __('sales.cash_customer') }}</strong><br>
+                                    {{ $invoice->customer->address ?? '-' }}<br>
+                                    {{ $invoice->customer->city ?? '-' }}, {{ $invoice->customer->country ?? '-' }}<br>
+                                    <abbr title="{{ __('sales.phone') }}">P:</abbr>
+                                    {{ $invoice->customer->phone ?? '-' }}<br>
+                                    <abbr title="{{ __('sales.email') }}">E:</abbr> {{ $invoice->customer->email ?? '-' }}
                                 </p>
                             </div>
                             <div class="col-md-4">
@@ -157,14 +158,14 @@
                                                 {{ number_format($item->tax_amount, 2) }}
                                                 <small class="text-muted">({{ $item->tax_rate }}%)</small>
                                             </td>
-                                            <td class="text-end">{{ number_format($item->total, 2) }}</td>
+                                            <td class="text-end">{{ number_format($item->gross_amount, 2) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                                 <tfoot>
                                     <tr>
                                         <td colspan="5" class="text-end fw-bold">{{ __('sales.subtotal') }}</td>
-                                        <td class="text-end">{{ number_format($invoice->subtotal, 2) }}</td>
+                                        <td class="text-end">{{ number_format($invoice->total_amount, 2) }}</td>
                                     </tr>
                                     <tr>
                                         <td colspan="5" class="text-end fw-bold">{{ __('sales.tax') }}</td>
@@ -178,7 +179,7 @@
                                     @endif
                                     <tr>
                                         <td colspan="5" class="text-end fw-bold">{{ __('sales.grand_total') }}</td>
-                                        <td class="text-end fw-bold">{{ number_format($invoice->grand_total, 2) }}</td>
+                                        <td class="text-end fw-bold">{{ number_format($invoice->subtotal, 2) }}</td>
                                     </tr>
                                 </tfoot>
                             </table>

@@ -84,6 +84,23 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">{{ __('messages.password') }}</label>
+                            <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                id="password" name="password">
+                            <small class="text-muted">{{ __('messages.leave_blank_to_keep_current') }}</small>
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="password_confirmation"
+                                class="form-label">{{ __('messages.confirm_password') }}</label>
+                            <input type="password" class="form-control" id="password_confirmation"
+                                name="password_confirmation">
+                        </div>
                     </div>
 
                     <div class="row">

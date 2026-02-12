@@ -42,6 +42,7 @@ class UserController extends Controller
             'employee_code' => 'nullable|string|max:50|unique:users',
             'branch_id' => 'nullable|exists:branches,id',
             'default_language' => 'required|in:en,ar',
+            'password' => 'required|string|min:8|confirmed',
             'roles' => 'required|array',
             'roles.*' => 'exists:roles,id',
             'warehouses' => 'nullable|array',
@@ -49,13 +50,10 @@ class UserController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        // Generate random password
-        $password = Str::random(12);
-
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make($password),
+            'password' => Hash::make($validated['password']),
             'phone' => $validated['phone'] ?? null,
             'employee_code' => $validated['employee_code'] ?? null,
             'branch_id' => $validated['branch_id'] ?? null,
@@ -82,7 +80,7 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('admin.users.index')
-            ->with('success', __('messages.user_created', ['password' => $password]));
+            ->with('success', __('messages.user_created_success'));
     }
 
     public function show(User $user)
@@ -110,6 +108,7 @@ class UserController extends Controller
             'employee_code' => 'nullable|string|max:50|unique:users,employee_code,' . $user->id,
             'branch_id' => 'nullable|exists:branches,id',
             'default_language' => 'required|in:en,ar',
+            'password' => 'nullable|string|min:8|confirmed',
             'roles' => 'required|array',
             'roles.*' => 'exists:roles,id',
             'warehouses' => 'nullable|array',
@@ -119,7 +118,7 @@ class UserController extends Controller
 
         $oldValues = $user->toArray();
 
-        $user->update([
+        $updateData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
@@ -127,7 +126,13 @@ class UserController extends Controller
             'branch_id' => $validated['branch_id'] ?? null,
             'default_language' => $validated['default_language'],
             'is_active' => $validated['is_active'] ?? true,
-        ]);
+        ];
+
+        if (!empty($validated['password'])) {
+            $updateData['password'] = Hash::make($validated['password']);
+        }
+
+        $user->update($updateData);
 
         // Sync roles
         $roleNames = Role::whereIn('id', $validated['roles'])->pluck('name');
@@ -197,15 +202,15 @@ class UserController extends Controller
             'user_id' => auth()->id(),
         ]);
 
-        return back()->with('success', $user->is_active 
-            ? __('messages.user_activated') 
+        return back()->with('success', $user->is_active
+            ? __('messages.user_activated')
             : __('messages.user_deactivated'));
     }
 
     public function resetPassword(User $user)
     {
         $newPassword = Str::random(12);
-        
+
         $user->update([
             'password' => Hash::make($newPassword),
         ]);
@@ -238,7 +243,7 @@ class UserController extends Controller
 
         $permissionIds = $validated['permissions'] ?? [];
         $permissionNames = Permission::whereIn('id', $permissionIds)->pluck('name');
-        
+
         $user->syncPermissions($permissionNames);
 
         // Log audit

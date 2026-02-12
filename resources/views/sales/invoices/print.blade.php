@@ -1,155 +1,245 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
-@section('content')
-    <div class="container-fluid" id="print-area">
-        <div class="row mb-4 d-print-none">
-            <div class="col">
-                <button onclick="window.print()" class="btn btn-primary">
-                    <i class="fas fa-print me-1"></i> {{ __('sales.print') }}
-                </button>
-                <a href="{{ route('sales.invoices.show', $invoice) }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left me-1"></i> {{ __('common.back') }}
-                </a>
-            </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ __('sales.invoice') }} #{{ $invoice->invoice_number }}</title>
+    <style>
+        body {
+            font-family: 'Inter', 'Cairo', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        .company-logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .invoice-title {
+            text-align: right;
+        }
+
+        .invoice-title h1 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 32px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .info-section h3 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .invoice-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        .invoice-items th {
+            background-color: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .invoice-items td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .text-end {
+            text-align: right !important;
+        }
+
+        .invoice-totals {
+            margin-left: auto;
+            width: 300px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+
+        .total-row.grand-total {
+            border-top: 2px solid #2563eb;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-weight: bold;
+            font-size: 18px;
+            color: #2563eb;
+        }
+
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        [dir="rtl"] .invoice-items th,
+        [dir="rtl"] .invoice-items td {
+            text-align: right;
+        }
+
+        [dir="rtl"] .text-end {
+            text-align: left !important;
+        }
+
+        [dir="rtl"] .invoice-totals {
+            margin-left: 0;
+            margin-right: auto;
+        }
+    </style>
+</head>
+
+<body onload="window.print()">
+    <div class="no-print" style="margin-bottom: 20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">{{ __('sales.print') }}</button>
+        <button onclick="window.close()" style="padding: 10px 20px; cursor: pointer;">{{ __('common.close') }}</button>
+    </div>
+
+    <div class="invoice-header">
+        <div class="company-logo">
+            {{ config('app.name', 'Aurex ERP') }}
         </div>
+        <div class="invoice-title">
+            <h1>{{ __('sales.invoice') }}</h1>
+            <div># {{ $invoice->document_number }}</div>
+            <div>{{ __('sales.date') }}: {{ $invoice->invoice_date->format('Y-m-d') }}</div>
+        </div>
+    </div>
 
-        <div class="card">
-            <div class="card-body p-5">
-                <div class="row mb-4">
-                    <div class="col-6">
-                        <h2 class="mb-4">Aurex ERP</h2>
-                        <div>
-                            123 Business Street<br>
-                            Riyadh, Saudi Arabia<br>
-                            Phone: +966 12 345 6789<br>
-                            Email: info@aurex-erp.com
-                        </div>
-                    </div>
-                    <div class="col-6 text-end">
-                        <h1 class="text-primary mb-3">{{ __('sales.invoice') }}</h1>
-                        <h4 class="mb-1">#{{ $invoice->invoice_number }}</h4>
-                        <div class="text-muted">
-                            {{ __('sales.date') }}: {{ $invoice->invoice_date->format('Y-m-d') }}<br>
-                            {{ __('sales.due_date') }}: {{ $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '-' }}
-                        </div>
-                        <div class="mt-2">
-                            <span
-                                class="badge bg-{{ $invoice->status === 'paid' ? 'success' : ($invoice->status === 'posted' ? 'primary' : 'secondary') }} fs-6">
-                                {{ ucfirst($invoice->status) }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="my-4">
-
-                <div class="row mb-5">
-                    <div class="col-6">
-                        <h5 class="text-muted mb-3">{{ __('sales.bill_to') }}:</h5>
-                        <h4 class="mb-2">{{ $invoice->customer->company_name }}</h4>
-                        <div>
-                            {{ $invoice->customer->address }}<br>
-                            {{ $invoice->customer->city }}, {{ $invoice->customer->country }}<br>
-                            {{ __('sales.tax_number') }}: {{ $invoice->customer->tax_number }}
-                        </div>
-                    </div>
-                </div>
-
-                <table class="table table-striped table-bordered mb-4">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>{{ __('sales.item') }}</th>
-                            <th class="text-end" style="width: 100px;">{{ __('sales.quantity') }}</th>
-                            <th class="text-end" style="width: 150px;">{{ __('sales.unit_price') }}</th>
-                            <th class="text-end" style="width: 150px;">{{ __('sales.tax') }}</th>
-                            <th class="text-end" style="width: 150px;">{{ __('sales.total') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($invoice->items as $item)
-                            <tr>
-                                <td>
-                                    <strong>{{ $item->product->name }}</strong>
-                                    @if($item->description)
-                                        <br><small class="text-muted">{{ $item->description }}</small>
-                                    @endif
-                                </td>
-                                <td class="text-end">{{ $item->quantity }}</td>
-                                <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
-                                <td class="text-end">{{ number_format($item->tax_amount, 2) }}</td>
-                                <td class="text-end">{{ number_format($item->total, 2) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-
-                <div class="row justify-content-end">
-                    <div class="col-5">
-                        <table class="table table-borderless">
-                            <tr>
-                                <td>{{ __('sales.subtotal') }}:</td>
-                                <td class="text-end fw-bold">{{ number_format($invoice->subtotal, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td>{{ __('sales.tax') }}:</td>
-                                <td class="text-end fw-bold">{{ number_format($invoice->tax_amount, 2) }}</td>
-                            </tr>
-                            @if($invoice->discount_amount > 0)
-                                <tr>
-                                    <td>{{ __('sales.discount') }}:</td>
-                                    <td class="text-end text-danger">-{{ number_format($invoice->discount_amount, 2) }}</td>
-                                </tr>
-                            @endif
-                            <tr class="border-top">
-                                <td class="fs-5">{{ __('sales.grand_total') }}:</td>
-                                <td class="text-end fs-5 fw-bold">{{ number_format($invoice->grand_total, 2) }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-                @if($invoice->notes)
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <h5>{{ __('sales.notes') }}:</h5>
-                            <p class="text-muted">{{ $invoice->notes }}</p>
-                        </div>
-                    </div>
-                @endif
-
-                @if($invoice->terms)
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <h5>{{ __('sales.terms_conditions') }}:</h5>
-                            <p class="text-muted">{{ $invoice->terms }}</p>
-                        </div>
-                    </div>
-                @endif
+    <div class="info-grid">
+        <div class="info-section">
+            <h3>{{ __('sales.customer_info') }}</h3>
+            <strong>{{ $invoice->customer->company_name ?? __('sales.cash_customer') }}</strong><br>
+            {{ $invoice->customer->address ?? '-' }}<br>
+            {{ $invoice->customer->city ?? '-' }}, {{ $invoice->customer->country ?? '-' }}<br>
+            {{ __('sales.phone') }}: {{ $invoice->customer->phone ?? '-' }}
+        </div>
+        <div class="info-section">
+            <h3>{{ __('sales.invoice_details') }}</h3>
+            <div style="display: flex; justify-content: space-between;">
+                <span>{{ __('sales.payment_terms') }}:</span>
+                <strong>{{ ucfirst($invoice->payment_terms) }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>{{ __('sales.due_date') }}:</span>
+                <strong>{{ $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '-' }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>{{ __('sales.reference_number') }}:</span>
+                <strong>{{ $invoice->reference_number ?? '-' }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>{{ __('sales.branch') }}:</span>
+                <strong>{{ $invoice->branch->name_en }}</strong>
             </div>
         </div>
     </div>
 
-    <style>
-        @media print {
-            body * {
-                visibility: hidden;
-            }
+    <table class="invoice-items">
+        <thead>
+            <tr>
+                <th width="40%">{{ __('sales.product') }}</th>
+                <th class="text-end">{{ __('sales.quantity') }}</th>
+                <th class="text-end">{{ __('sales.unit_price') }}</th>
+                <th class="text-end">{{ __('sales.tax') }}</th>
+                <th class="text-end">{{ __('sales.total') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($invoice->items as $item)
+                <tr>
+                    <td>
+                        <strong>{{ $item->product->name }}</strong>
+                        @if($item->description && $item->description !== $item->product->name)
+                            <div style="font-size: 12px; color: #666;">{{ $item->description }}</div>
+                        @endif
+                    </td>
+                    <td class="text-end">{{ number_format($item->quantity, 3) }}</td>
+                    <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
+                    <td class="text-end">{{ number_format($item->tax_amount, 2) }}</td>
+                    <td class="text-end">{{ number_format($item->gross_amount, 2) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
 
-            #print-area,
-            #print-area * {
-                visibility: visible;
-            }
+    <div class="invoice-totals">
+        <div class="total-row">
+            <span>{{ __('sales.subtotal') }}</span>
+            <span>{{ number_format($invoice->total_amount, 2) }}</span>
+        </div>
+        <div class="total-row">
+            <span>{{ __('sales.tax') }}</span>
+            <span>{{ number_format($invoice->tax_amount, 2) }}</span>
+        </div>
+        @if($invoice->discount_amount > 0)
+            <div class="total-row">
+                <span>{{ __('sales.discount') }}</span>
+                <span>-{{ number_format($invoice->discount_amount, 2) }}</span>
+            </div>
+        @endif
+        <div class="total-row grand-total">
+            <span>{{ __('sales.grand_total') }}</span>
+            <span>{{ number_format($invoice->subtotal, 2) }}</span>
+        </div>
+    </div>
 
-            #print-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
+    @if($invoice->notes)
+        <div style="margin-top: 40px;">
+            <h3 style="font-size: 16px; color: #64748b; margin-bottom: 10px;">{{ __('sales.notes') }}</h3>
+            <p style="white-space: pre-wrap;">{{ $invoice->notes }}</p>
+        </div>
+    @endif
 
-            .d-print-none {
-                display: none !important;
-            }
-        }
-    </style>
-@endsection
+    <div class="footer">
+        <p>{{ __('messages.thank_you_for_business') }}</p>
+        <p>{{ config('app.url') }}</p>
+    </div>
+</body>
+
+</html>

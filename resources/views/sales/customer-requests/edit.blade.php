@@ -63,7 +63,7 @@
                                 <input type="hidden" name="customer_id" id="customer_id"
                                     value="{{ old('customer_id', $customerRequest->customer_id) }}">
                                 <div id="customer-results" class="search-results-container glassy"
-                                    style="display: none; position: absolute; z-index: 1050; width: 100%;"></div>
+                                    style="display: none; position: absolute;"></div>
                             </div>
                             @error('customer_id')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -123,19 +123,46 @@
                     </button>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="">
                         <table class="table table-hover mb-0" id="itemsTable">
                             <thead>
                                 <tr class="bg-light">
-                                    <th style="width: 40%">{{ __('messages.product') }}</th>
-                                    <th style="width: 15%">{{ __('messages.quantity') }}</th>
-                                    <th style="width: 40%">{{ __('messages.notes') }}</th>
+                                    <th style="width: 35%">{{ __('messages.product') }}</th>
+                                    <th style="width: 10%">{{ __('messages.quantity') }}</th>
+                                    <th style="width: 12%">{{ __('messages.unit_price') ?? 'Unit Price' }}</th>
+                                    <th style="width: 8%">{{ __('messages.tax') ?? 'Tax' }} %</th>
+                                    <th style="width: 10%">{{ __('messages.tax_amount') ?? 'Tax Amt' }}</th>
+                                    <th style="width: 10%">{{ __('messages.total') ?? 'Total' }}</th>
+                                    <th style="width: 10%">{{ __('messages.notes') }}</th>
                                     <th style="width: 5%"></th>
                                 </tr>
                             </thead>
                             <tbody id="itemsBody">
                                 <!-- Items will be added here via JS -->
                             </tbody>
+                            <tfoot class="bg-light">
+                                <tr>
+                                    <td colspan="5" class="text-end fw-bold">{{ __('messages.subtotal') ?? 'Subtotal' }}:
+                                    </td>
+                                    <td class="fw-bold" id="grand_subtotal">
+                                        {{ number_format($customerRequest->subtotal, 2) }}</td>
+                                    <td colspan="2"></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5" class="text-end fw-bold">
+                                        {{ __('messages.tax_amount') ?? 'Tax Amount' }}:</td>
+                                    <td class="fw-bold" id="grand_tax">{{ number_format($customerRequest->tax_amount, 2) }}
+                                    </td>
+                                    <td colspan="2"></td>
+                                </tr>
+                                <tr class="table-primary">
+                                    <td colspan="5" class="text-end fw-bold">
+                                        {{ __('messages.total_amount') ?? 'Total Amount' }}:</td>
+                                    <td class="fw-bold" id="grand_total">
+                                        {{ number_format($customerRequest->total_amount, 2) }}</td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                     @error('items')
@@ -160,10 +187,12 @@
                 let itemIndex = 0;
 
                 const products = @json($products);
+                const taxSetting = @json($taxSetting);
                 const customers = @json($customers->map(function ($c) {
-                return ['id' => $c->id, 'name' => $c->name_en, 'code' => $c->code]; }));
+                    return ['id' => $c->id, 'name' => $c->name_en, 'code' => $c->code];
+                }));
 
-                // Customer Search Logic
+                // ... (keeping existing search logic)
                 const customerSearch = document.getElementById('customer_search');
                 const customerId = document.getElementById('customer_id');
                 const customerResults = document.getElementById('customer-results');
@@ -185,11 +214,11 @@
 
                     if (results.length > 0) {
                         customerResults.innerHTML = results.map(c => `
-                        <div class="search-result-item p-2 border-bottom" data-id="${c.id}" style="cursor: pointer;">
-                            <div class="fw-bold">${c.name}</div>
-                            <small class="text-muted">${c.code || ''}</small>
-                        </div>
-                    `).join('');
+                                    <div class="search-result-item p-2 border-bottom" data-id="${c.id}" style="cursor: pointer;">
+                                        <div class="fw-bold">${c.name}</div>
+                                        <small class="text-muted">${c.code || ''}</small>
+                                    </div>
+                                `).join('');
                         customerResults.style.display = 'block';
                     } else {
                         customerResults.innerHTML = '<div class="p-2 text-muted">No customer found</div>';
@@ -216,43 +245,134 @@
                 function addItem(data = null) {
                     const index = itemIndex++;
                     const tr = document.createElement('tr');
+                    tr.classList.add('item-row');
 
-                    let productOptions = '<option value="">{{ __("messages.select_product") }}</option>';
-                    products.forEach(p => {
-                        const selected = data && data.product_id == p.id ? 'selected' : '';
-                        productOptions += `<option value="${p.id}" ${selected}>${p.name_en}</option>`;
-                    });
+                    const selectedProduct = data ? products.find(p => p.id == data.product_id) : null;
+                    const productName = selectedProduct ? selectedProduct.name_en : '';
+                    const productId = data ? data.product_id : '';
+                    const taxRate = taxSetting.tax_enabled ? taxSetting.default_tax_rate : 0;
 
                     tr.innerHTML = `
-                    <td>
-                        <select class="form-select form-select-sm bg-white product-select" name="items[${index}][product_id]" required>
-                            ${productOptions}
-                        </select>
-                    </td>
-                    <td>
-                        <input type="number" step="0.001" class="form-control form-control-sm bg-white" name="items[${index}][quantity]" value="${data ? data.quantity : 1}" required min="0.001">
-                    </td>
-                    <td>
-                        <input type="text" class="form-control form-control-sm bg-white" name="items[${index}][notes]" value="${data ? data.notes || '' : ''}">
-                    </td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-link text-danger remove-item p-0">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
+                                <td>
+                                    <div class="position-relative product-search-container">
+                                        <input type="text" class="form-control form-control-sm bg-white product-search-input" 
+                                            placeholder="{{ __('messages.select_product') }}" autocomplete="off" value="${productName}" required>
+                                        <input type="hidden" name="items[${index}][product_id]" class="product-id-input" value="${productId}" required>
+                                        <div class="product-results search-results-container glassy" style="display: none; position: absolute; z-index: 1000; width: 100%;"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.001" class="form-control form-control-sm bg-white quantity-input" name="items[${index}][quantity]" value="${data ? data.quantity : 1}" required min="0.001">
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" class="form-control form-control-sm bg-white price-input" name="items[${index}][unit_price]" value="${data ? data.unit_price : 0}" required min="0">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm bg-light tax-rate-display" value="${taxRate}%" readonly tabindex="-1">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm bg-light tax-amount-display" value="0.00" readonly tabindex="-1">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm bg-light total-amount-display" value="0.00" readonly tabindex="-1">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm bg-white" name="items[${index}][notes]" value="${data ? data.notes || '' : ''}">
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-link text-danger remove-item p-0">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            `;
 
                     itemsBody.appendChild(tr);
+
+                    const searchInput = tr.querySelector('.product-search-input');
+                    const idInput = tr.querySelector('.product-id-input');
+                    const resultsDiv = tr.querySelector('.product-results');
+                    const qtyInput = tr.querySelector('.quantity-input');
+                    const priceInput = tr.querySelector('.price-input');
+
+                    searchInput.addEventListener('input', function () {
+                        idInput.value = '';
+                        performProductSearch(this.value, resultsDiv, idInput, searchInput);
+                    });
+
+                    searchInput.addEventListener('focus', function () {
+                        performProductSearch(this.value, resultsDiv, idInput, searchInput);
+                    });
+
+                    [qtyInput, priceInput].forEach(input => {
+                        input.addEventListener('input', calculateTotals);
+                    });
 
                     tr.querySelector('.remove-item').addEventListener('click', function () {
                         tr.remove();
                         if (itemsBody.children.length === 0) addItem();
+                        calculateTotals();
                     });
+
+                    calculateTotals();
+                }
+
+                function calculateTotals() {
+                    let grandSubtotal = 0;
+                    let grandTax = 0;
+
+                    document.querySelectorAll('.item-row').forEach(row => {
+                        const qty = parseFloat(row.querySelector('.quantity-input').value) || 0;
+                        const price = parseFloat(row.querySelector('.price-input').value) || 0;
+                        const taxRate = taxSetting.tax_enabled ? parseFloat(taxSetting.default_tax_rate) : 0;
+
+                        const subtotal = qty * price;
+                        const tax = subtotal * (taxRate / 100);
+                        const total = subtotal + tax;
+
+                        row.querySelector('.tax-amount-display').value = tax.toFixed(2);
+                        row.querySelector('.total-amount-display').value = total.toFixed(2);
+
+                        grandSubtotal += subtotal;
+                        grandTax += tax;
+                    });
+
+                    document.getElementById('grand_subtotal').textContent = grandSubtotal.toFixed(2);
+                    document.getElementById('grand_tax').textContent = grandTax.toFixed(2);
+                    document.getElementById('grand_total').textContent = (grandSubtotal + grandTax).toFixed(2);
+                }
+
+                function performProductSearch(query, resultsDiv, idInput, searchInput) {
+                    const results = products.filter(p =>
+                        p.name_en.toLowerCase().includes(query.toLowerCase()) ||
+                        (p.code && p.code.toLowerCase().includes(query.toLowerCase()))
+                    ).slice(0, 10);
+
+                    if (results.length > 0) {
+                        resultsDiv.innerHTML = results.map(p => `
+                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name_en}" style="cursor: pointer;">
+                                        <div class="fw-bold">${p.name_en}</div>
+                                        <small class="text-muted">${p.code || ''}</small>
+                                    </div>
+                                `).join('');
+                        resultsDiv.style.display = 'block';
+
+                        resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
+                            item.addEventListener('click', function () {
+                                searchInput.value = this.dataset.name;
+                                idInput.value = this.dataset.id;
+                                resultsDiv.style.display = 'none';
+                                calculateTotals();
+                            });
+                        });
+                    } else {
+                        resultsDiv.innerHTML = '<div class="p-2 text-muted">No product found</div>';
+                        resultsDiv.style.display = 'block';
+                    }
                 }
 
                 addItemBtn.addEventListener('click', () => addItem());
 
-                // Load initial items
+                // Lead initial items
                 @if(old('items'))
                     @foreach(old('items') as $item)
                         addItem(@json($item));
@@ -262,25 +382,40 @@
                         addItem({
                             product_id: "{{ $item->product_id }}",
                             quantity: "{{ $item->quantity }}",
+                            unit_price: "{{ $item->unit_price }}",
                             notes: "{{ $item->notes }}"
                         });
                     @endforeach
                 @endif
 
-            if (itemsBody.children.length === 0) addItem();
+                        if (itemsBody.children.length === 0) addItem();
+            });
+
+            // Enter key to next field navigation
+            document.getElementById('customerRequestForm').addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.type !== 'submit') {
+                    e.preventDefault();
+
+                    const form = this;
+                    const index = Array.prototype.indexOf.call(form.elements, e.target);
+
+                    // Find next visible and enabled focusable element
+                    for (let i = index + 1; i < form.elements.length; i++) {
+                        const nextElement = form.elements[i];
+                        if (nextElement.tabIndex > -1 &&
+                            !nextElement.disabled &&
+                            nextElement.type !== 'hidden' &&
+                            nextElement.offsetParent !== null) {
+                            nextElement.focus();
+                            if (nextElement.tagName === 'INPUT') nextElement.select();
+                            break;
+                        }
+                    }
+                }
             });
         </script>
 
         <style>
-            .search-results-container {
-                background: white;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                max-height: 250px;
-                overflow-y: auto;
-            }
-
             .search-result-item:hover {
                 background-color: #f8f9fa;
             }

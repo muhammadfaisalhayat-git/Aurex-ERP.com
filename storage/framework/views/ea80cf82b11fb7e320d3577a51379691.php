@@ -168,6 +168,37 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                         </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label"><?php echo e(__('messages.password')); ?> <span
+                                    class="text-danger">*</span></label>
+                            <input type="password" class="form-control <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
+                                id="password" name="password" required>
+                            <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="password_confirmation" class="form-label"><?php echo e(__('messages.confirm_password')); ?> <span
+                                    class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password_confirmation"
+                                name="password_confirmation" required>
+                        </div>
                     </div>
 
                     <div class="row">

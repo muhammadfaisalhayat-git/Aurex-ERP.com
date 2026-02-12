@@ -91,4 +91,16 @@ class Customer extends Model
         $this->current_balance += $amount;
         $this->save();
     }
+
+    public static function generateNextCode()
+    {
+        $lastCustomer = self::orderByRaw('CAST(code AS INTEGER) DESC')->first();
+        $nextNumber = 1;
+
+        if ($lastCustomer && is_numeric($lastCustomer->code)) {
+            $nextNumber = (int) $lastCustomer->code + 1;
+        }
+
+        return str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+    }
 }

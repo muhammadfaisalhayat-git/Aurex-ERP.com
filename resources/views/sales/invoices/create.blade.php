@@ -11,8 +11,10 @@
                         <h3 class="card-title">{{ __('sales.create_invoice') }}</h3>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('sales.invoices.store') }}" method="POST" id="invoice-form">
+                        <form action="{{ route('sales.invoices.store') }}" method="POST" id="invoice-form"
+                            class="glassy-form">
                             @csrf
+                            <input type="hidden" name="document_number" value="{{ $documentNumber }}">
 
                             <div class="row">
                                 <div class="col-md-3 mb-3">
@@ -38,10 +40,9 @@
                                 </div>
 
                                 <div class="col-md-3 mb-3">
-                                    <label for="due_date" class="form-label">{{ __('sales.due_date') }} <span
-                                            class="text-danger">*</span></label>
+                                    <label for="due_date" class="form-label">{{ __('sales.due_date') }}</label>
                                     <input type="date" class="form-control @error('due_date') is-invalid @enderror"
-                                        id="due_date" name="due_date" value="{{ old('due_date') }}" required>
+                                        id="due_date" name="due_date" value="{{ old('due_date') }}">
                                     @error('due_date')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -49,18 +50,21 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label for="customer_id" class="form-label">{{ __('sales.customer') }} <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-select @error('customer_id') is-invalid @enderror" id="customer_id"
-                                        name="customer_id" required>
-                                        <option value="">{{ __('common.select') }}</option>
-                                        @foreach($customers as $customer)
-                                            <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>{{ $customer->name_en }}</option>
-                                        @endforeach
-                                    </select>
+                                <div class="col-md-4 mb-3 position-relative" id="customer-container">
+                                    <label for="customer_search" class="form-label">{{ __('sales.customer') }}</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="customer_search" autocomplete="off"
+                                            placeholder="Type to search customer..."
+                                            value="{{ __('sales.cash_customer') }}">
+                                        <input type="hidden" id="customer_id" name="customer_id"
+                                            value="{{ old('customer_id') }}">
+                                        <button class="btn btn-outline-secondary" type="button">
+                                            <i class="fas fa-users"></i>
+                                        </button>
+                                    </div>
+                                    <div id="customer-results" class="search-results-container glassy"></div>
                                     @error('customer_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
 
@@ -104,7 +108,7 @@
                                     <select class="form-select @error('payment_terms') is-invalid @enderror"
                                         id="payment_terms" name="payment_terms" required>
                                         <option value="">{{ __('common.select') }}</option>
-                                        <option value="cash" {{ old('payment_terms') == 'cash' ? 'selected' : '' }}>
+                                        <option value="cash" {{ old('payment_terms', 'cash') == 'cash' ? 'selected' : '' }}>
                                             {{ __('sales.cash') }}
                                         </option>
                                         <option value="credit" {{ old('payment_terms') == 'credit' ? 'selected' : '' }}>
@@ -117,15 +121,20 @@
                                     @enderror
                                 </div>
 
-                                <div class="col-md-4 mb-3">
-                                    <label for="salesman_id" class="form-label">{{ __('sales.salesman') }}</label>
-                                    <select class="form-select @error('salesman_id') is-invalid @enderror" id="salesman_id"
-                                        name="salesman_id">
-                                        <option value="">{{ __('common.select') }}</option>
-                                        {{-- Populate salesman based on branch/user via JS or backend --}}
-                                    </select>
+                                <div class="col-md-4 mb-3 position-relative" id="salesman-container">
+                                    <label for="salesman_search" class="form-label">{{ __('sales.salesman') }}</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="salesman_search" autocomplete="off"
+                                            placeholder="Type to search salesman...">
+                                        <input type="hidden" id="salesman_id" name="salesman_id"
+                                            value="{{ old('salesman_id') }}">
+                                        <button class="btn btn-outline-secondary" type="button">
+                                            <i class="fas fa-user-tie"></i>
+                                        </button>
+                                    </div>
+                                    <div id="salesmen-results" class="search-results-container glassy"></div>
                                     @error('salesman_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
 
@@ -206,48 +215,43 @@
     </div>
 
     <script type="text/template" id="item-row-template">
-                                            <tr>
-                                                <td>
-                                                    <div class="input-group">
-                                                        <input type="text" class="form-control product-search-input" 
-                                                               list="products-list-INDEX" 
-                                                               placeholder="Type to search products..." 
-                                                               autocomplete="off"
-                                                               data-product-id="">
-                                                        <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
-                                                        <button class="btn btn-outline-secondary product-search-btn" type="button" title="Search Product (F2)">
-                                                            <i class="fas fa-search"></i>
-                                                        </button>
-                                                    </div>
-                                                    <datalist id="products-list-INDEX">
-                                                        @foreach($products as $product)
-                                                            <option value="{{ $product->name }}" data-id="{{ $product->id }}" data-price="{{ $product->unit_price }}" data-tax="{{ $product->tax_rate }}">
-                                                        @endforeach
-                                                    </datalist>
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0" required>
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control discount-input" name="items[INDEX][discount_percentage]" step="0.01" min="0" max="100" value="0">
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control tax-display" readonly>
-                                                    <input type="hidden" class="tax-rate-input">
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control total-display" readonly>
-                                                </td>
-                                                <td class="text-center">
-                                                    <button type="button" class="btn btn-sm btn-danger remove-item">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </script>
+                                                        <tr>
+                                                            <td class="position-relative product-cell">
+                                                                <div class="input-group">
+                                                                    <input type="text" class="form-control product-search-input" 
+                                                                           placeholder="Type to search products..." 
+                                                                           autocomplete="off"
+                                                                           data-product-id="">
+                                                                    <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
+                                                                    <button class="btn btn-outline-secondary product-search-btn" type="button" title="Search Product (F2)">
+                                                                        <i class="fas fa-search"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="search-results-container glassy product-results"></div>
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0" required>
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" class="form-control discount-input" name="items[INDEX][discount_percentage]" step="0.01" min="0" max="100" value="0">
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" class="form-control tax-display" readonly>
+                                                                <input type="hidden" class="tax-rate-input">
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" class="form-control total-display" readonly>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <button type="button" class="btn btn-sm btn-danger remove-item">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </script>
 
 @endsection
 
@@ -259,11 +263,35 @@
             const tableBody = document.querySelector('#items-table tbody');
             const template = document.getElementById('item-row-template').innerHTML;
 
+            const salesmanData = [
+                @foreach($salesmen as $salesman)
+                    { id: {{ $salesman->id }}, name: "{{ $salesman->name }}" },
+                @endforeach
+                    ];
+
+            const customerData = [
+                @foreach($customers as $customer)
+                    { id: {{ $customer->id }}, name: "{{ $customer->name_en }}", code: "{{ $customer->customer_code }}" },
+                @endforeach
+                    ];
+
+            const productData = [
+                @foreach($products as $product)
+                            {
+                    id: {{ $product->id }},
+                    name: "{{ $product->name }}",
+                    code: "{{ $product->product_code }}",
+                    price: {{ $product->sale_price ?? 0 }},
+                    tax: {{ $product->tax_rate ?? $taxSetting->default_tax_rate ?? 0 }} 
+                            },
+                @endforeach
+                    ];
+
             function addItem() {
                 const html = template.replace(/INDEX/g, itemIndex++);
                 tableBody.insertAdjacentHTML('beforeend', html);
-
-                // Re-initialize select2 if needed, or other plugins
+                const newRow = tableBody.lastElementChild;
+                initProductSearch(newRow);
             }
 
             // Add initial item
@@ -273,78 +301,198 @@
                 addItem();
             });
 
-            tableBody.addEventListener('click', function (e) {
-                if (e.target.closest('.remove-item')) {
-                    e.target.closest('tr').remove();
-                    calculateTotals();
+            // Customer Search
+            const customerInput = document.getElementById('customer_search');
+            const customerResults = document.getElementById('customer-results');
+            const customerHidden = document.getElementById('customer_id');
+
+            customerInput.addEventListener('input', function () {
+                const search = this.value.toLowerCase();
+                if (search.length < 1) {
+                    customerResults.style.display = 'none';
                     return;
                 }
 
-                // Search button click - focus on the product search input
+                const filtered = customerData.filter(c =>
+                    c.name.toLowerCase().includes(search) ||
+                    (c.code && c.code.toLowerCase().includes(search))
+                );
+
+                renderResults(customerResults, filtered, (item) => {
+                    customerInput.value = item.name;
+                    customerHidden.value = item.id;
+                    customerResults.style.display = 'none';
+                });
+            });
+
+            // Salesman Search
+            const salesmanInput = document.getElementById('salesman_search');
+            const salesmanResults = document.getElementById('salesmen-results');
+            const salesmanHidden = document.getElementById('salesman_id');
+
+            salesmanInput.addEventListener('input', function () {
+                const search = this.value.toLowerCase();
+                if (search.length < 1) {
+                    salesmanResults.style.display = 'none';
+                    return;
+                }
+
+                const filtered = salesmanData.filter(s => s.name.toLowerCase().includes(search));
+                renderResults(salesmanResults, filtered, (item) => {
+                    salesmanInput.value = item.name;
+                    salesmanHidden.value = item.id;
+                    salesmanResults.style.display = 'none';
+                });
+            });
+
+            function initProductSearch(row) {
+                const input = row.querySelector('.product-search-input');
+                const results = row.querySelector('.product-results');
+                const hidden = row.querySelector('.product-id-input');
+
+                input.addEventListener('input', function () {
+                    const search = this.value.toLowerCase();
+                    if (search.length < 1) {
+                        results.style.display = 'none';
+                        return;
+                    }
+
+                    const filtered = productData.filter(p =>
+                        p.name.toLowerCase().includes(search) ||
+                        p.code.toLowerCase().includes(search)
+                    );
+
+                    renderResults(results, filtered, (product) => {
+                        input.value = product.name;
+                        hidden.value = product.id;
+                        row.querySelector('.price-input').value = product.price;
+                        row.querySelector('.tax-rate-input').value = product.tax;
+                        results.style.display = 'none';
+                        calculateRow(row);
+                    }, true);
+                });
+            }
+
+            function renderResults(container, items, onSelect, isProduct = false) {
+                if (items.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+
+                container.innerHTML = '';
+                items.slice(0, 10).forEach((item) => {
+                    const div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    if (isProduct) {
+                        div.innerHTML = `
+                                    <div class="item-title">${item.name}</div>
+                                    <div class="item-subtitle">${item.code}</div>
+                                    <div class="item-meta">{{ __('sales.price') }}: ${parseFloat(item.price).toFixed(2)}</div>
+                                `;
+                    } else {
+                        div.innerHTML = `
+                                    <div class="item-title">${item.name}</div>
+                                    ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
+                                `;
+                    }
+
+                    div.addEventListener('click', () => onSelect(item));
+                    container.appendChild(div);
+                });
+
+                container.style.display = 'block';
+            }
+
+            // Global click to close dropdowns
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.position-relative')) {
+                    document.querySelectorAll('.search-results-container').forEach(c => c.style.display = 'none');
+                }
+            });
+
+            tableBody.addEventListener('click', function (e) {
+                if (e.target.closest('.remove-item')) {
+                    const rows = tableBody.querySelectorAll('tr');
+                    if (rows.length > 1) {
+                        e.target.closest('tr').remove();
+                        calculateTotals();
+                    }
+                    return;
+                }
+
                 const searchBtn = e.target.closest('.product-search-btn');
                 if (searchBtn) {
                     e.preventDefault();
-                    const row = searchBtn.closest('tr');
-                    const productInput = row.querySelector('.product-search-input');
-                    if (productInput) {
-                        productInput.focus();
-                        productInput.select();
-                    }
+                    searchBtn.closest('tr').querySelector('.product-search-input').focus();
                 }
             });
 
-            // Keyboard shortcut: F2 to focus on first empty product input
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'F2') {
                     e.preventDefault();
-                    const emptyInput = document.querySelector('.product-search-input');
-                    if (emptyInput) {
-                        emptyInput.focus();
-                        emptyInput.select();
+                    const customerField = document.getElementById('customer_search');
+                    if (customerField && !customerField.value) {
+                        customerField.focus();
+                    } else {
+                        // Focus first empty or last row product input
+                        const productInputs = document.querySelectorAll('.product-search-input');
+                        const targetInput = Array.from(productInputs).find(i => !i.value) || productInputs[productInputs.length - 1];
+                        if (targetInput) { targetInput.focus(); targetInput.select(); }
+                    }
+                }
+
+                if (e.key === 'Enter' && !e.target.matches('textarea')) {
+                    if (e.target.classList.contains('search-result-item')) return;
+
+                    const form = e.target.form;
+                    if (!form) return;
+
+                    const index = Array.from(form.elements).indexOf(e.target);
+                    if (index > -1) {
+                        // Special case: if in discount field of last row, add new row
+                        if (e.target.classList.contains('discount-input')) {
+                            const row = e.target.closest('tr');
+                            if (row === tableBody.lastElementChild) {
+                                e.preventDefault();
+                                addItem();
+                                setTimeout(() => {
+                                    tableBody.lastElementChild.querySelector('.product-search-input').focus();
+                                }, 10);
+                                return;
+                            }
+                        }
+
+                        // Normal behavior: focus next element
+                        let next = form.elements[index + 1];
+                        while (next && (next.readOnly || next.type === 'hidden' || next.disabled)) {
+                            next = form.elements[Array.from(form.elements).indexOf(next) + 1];
+                        }
+                        if (next && next.type !== 'submit') {
+                            e.preventDefault();
+                            next.focus();
+                        }
                     }
                 }
             });
 
-            // Handle product selection from datalist
             tableBody.addEventListener('input', function (e) {
-                if (e.target.matches('.product-search-input')) {
-                    const input = e.target;
-                    const row = input.closest('tr');
-                    const datalistId = input.getAttribute('list');
-                    const datalist = document.getElementById(datalistId);
-
-                    if (datalist) {
-                        const options = datalist.querySelectorAll('option');
-                        const selectedOption = Array.from(options).find(opt => opt.value === input.value);
-
-                        if (selectedOption) {
-                            const productId = selectedOption.getAttribute('data-id');
-                            const price = selectedOption.getAttribute('data-price') || 0;
-                            const tax = selectedOption.getAttribute('data-tax') || defaultTaxRate;
-
-                            // Set hidden product ID
-                            row.querySelector('.product-id-input').value = productId;
-
-                            // Set price and tax
-                            row.querySelector('.price-input').value = price;
-                            row.querySelector('.tax-rate-input').value = tax;
-
-                            calculateRow(row);
-                        }
-                    }
-                }
-
-                // Handle quantity, price, discount changes
-                if (e.target.matches('.quantity-input, .discount-input')) {
+                if (e.target.matches('.quantity-input, .price-input, .discount-input')) {
                     calculateRow(e.target.closest('tr'));
                 }
             });
 
             function calculateRow(row) {
-                const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
-                const price = parseFloat(row.querySelector('.price-input').value) || 0;
-                const discountPercent = parseFloat(row.querySelector('.discount-input').value) || 0;
-                const taxRate = parseFloat(row.querySelector('.tax-rate-input').value) || 0;
+                const qEl = row.querySelector('.quantity-input');
+                const pEl = row.querySelector('.price-input');
+                const dEl = row.querySelector('.discount-input');
+                const trEl = row.querySelector('.tax-rate-input');
+
+                if (!qEl || !pEl) return;
+
+                const quantity = parseFloat(qEl.value) || 0;
+                const price = parseFloat(pEl.value) || 0;
+                const discountPercent = parseFloat(dEl ? dEl.value : 0) || 0;
+                const taxRate = parseFloat(trEl ? trEl.value : 0) || 0;
 
                 const gross = quantity * price;
                 const discount = gross * (discountPercent / 100);
@@ -352,8 +500,11 @@
                 const tax = taxable * (taxRate / 100);
                 const total = taxable + tax;
 
-                row.querySelector('.tax-display').value = tax.toFixed(2);
-                row.querySelector('.total-display').value = total.toFixed(2);
+                const tdEl = row.querySelector('.tax-display');
+                const totEl = row.querySelector('.total-display');
+
+                if (tdEl) tdEl.value = tax.toFixed(2);
+                if (totEl) totEl.value = total.toFixed(2);
 
                 calculateTotals();
             }
@@ -363,26 +514,37 @@
                 let taxAmount = 0;
                 let grandTotal = 0;
 
-                document.querySelectorAll('#items-table tbody tr').forEach(row => {
-                    const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
-                    const price = parseFloat(row.querySelector('.price-input').value) || 0;
-                    const discountPercent = parseFloat(row.querySelector('.discount-input').value) || 0;
-                    const taxRate = parseFloat(row.querySelector('.tax-rate-input').value) || 0;
+                tableBody.querySelectorAll('tr').forEach(row => {
+                    const qEl = row.querySelector('.quantity-input');
+                    const pEl = row.querySelector('.price-input');
+                    const dEl = row.querySelector('.discount-input');
+                    const trEl = row.querySelector('.tax-rate-input');
 
-                    const gross = quantity * price;
-                    const discount = gross * (discountPercent / 100);
-                    const taxable = gross - discount;
-                    const tax = taxable * (taxRate / 100);
+                    if (qEl && pEl) {
+                        const quantity = parseFloat(qEl.value) || 0;
+                        const price = parseFloat(pEl.value) || 0;
+                        const discountPercent = parseFloat(dEl ? dEl.value : 0) || 0;
+                        const taxRate = parseFloat(trEl ? trEl.value : 0) || 0;
 
-                    subtotal += taxable;
-                    taxAmount += tax;
+                        const gross = quantity * price;
+                        const discount = gross * (discountPercent / 100);
+                        const taxable = gross - discount;
+                        const tax = taxable * (taxRate / 100);
+
+                        subtotal += taxable;
+                        taxAmount += tax;
+                    }
                 });
 
                 grandTotal = subtotal + taxAmount;
 
-                document.getElementById('subtotal').textContent = subtotal.toFixed(2);
-                document.getElementById('tax_amount').textContent = taxAmount.toFixed(2);
-                document.getElementById('grand_total').textContent = grandTotal.toFixed(2);
+                const subEl = document.getElementById('subtotal');
+                const taxEl = document.getElementById('tax_amount');
+                const grandEl = document.getElementById('grand_total');
+
+                if (subEl) subEl.textContent = subtotal.toFixed(2);
+                if (taxEl) taxEl.textContent = taxAmount.toFixed(2);
+                if (grandEl) grandEl.textContent = grandTotal.toFixed(2);
             }
         });
     </script>

@@ -87,7 +87,7 @@ Route::get('/language/{locale}', [LanguageController::class, 'switch'])->name('l
 */
 
 Route::middleware(['auth', 'set.locale'])->group(function () {
-    
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/widgets/reorder', [DashboardController::class, 'reorderWidgets'])->name('dashboard.widgets.reorder');
@@ -98,7 +98,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
     | Admin Routes (Super Admin Only)
     |--------------------------------------------------------------------------
     */
-    
+
     Route::middleware(['can:view-user-management'])->prefix('admin')->name('admin.')->group(function () {
         // Users
         Route::resource('users', UserController::class);
@@ -131,7 +131,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
     | Sales Routes
     |--------------------------------------------------------------------------
     */
-    
+
     Route::prefix('sales')->name('sales.')->group(function () {
         // Customers
         Route::resource('customers', CustomerController::class);
@@ -139,6 +139,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
 
         // Customer Requests
         Route::resource('customer-requests', CustomerRequestController::class);
+        Route::get('customer-requests/{customerRequest}/pdf', [CustomerRequestController::class, 'exportPdf'])->name('customer-requests.pdf');
         Route::post('customer-requests/{customerRequest}/convert', [CustomerRequestController::class, 'convertToQuotation'])->name('customer-requests.convert');
 
         // Quotations
@@ -168,7 +169,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::post('invoices/{invoice}/unpost', [SalesInvoiceController::class, 'unpost'])->name('invoices.unpost');
         Route::get('invoices/{invoice}/pdf', [SalesInvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
         Route::get('invoices/{invoice}/print', [SalesInvoiceController::class, 'print'])->name('invoices.print');
-        
+
         // Import Invoice from Quotation
         Route::get('invoices/create-from-quotation/{quotation}', [SalesInvoiceController::class, 'createFromQuotation'])->name('invoices.create-from-quotation');
         Route::post('invoices/store-from-quotation/{quotation}', [SalesInvoiceController::class, 'storeFromQuotation'])->name('invoices.store-from-quotation');
@@ -184,7 +185,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::get('commissions/rules/{rule}/edit', [CommissionController::class, 'rulesEdit'])->name('commissions.rules.edit');
         Route::put('commissions/rules/{rule}', [CommissionController::class, 'rulesUpdate'])->name('commissions.rules.update');
         Route::delete('commissions/rules/{rule}', [CommissionController::class, 'rulesDestroy'])->name('commissions.rules.destroy');
-        
+
         Route::get('commissions/runs', [CommissionController::class, 'runsIndex'])->name('commissions.runs');
         Route::get('commissions/runs/create', [CommissionController::class, 'runsCreate'])->name('commissions.runs.create');
         Route::post('commissions/runs', [CommissionController::class, 'runsStore'])->name('commissions.runs.store');
@@ -206,7 +207,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
     | Purchases Routes
     |--------------------------------------------------------------------------
     */
-    
+
     Route::prefix('purchases')->name('purchases.')->group(function () {
         // Vendors
         Route::resource('vendors', VendorController::class);
@@ -241,7 +242,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
     | Inventory Routes
     |--------------------------------------------------------------------------
     */
-    
+
     Route::prefix('inventory')->name('inventory.')->group(function () {
         // Products
         Route::resource('products', ProductController::class);
@@ -288,7 +289,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
     | Transport Routes
     |--------------------------------------------------------------------------
     */
-    
+
     Route::prefix('transport')->name('transport.')->group(function () {
         // Trailers
         Route::resource('trailers', TrailerController::class);
@@ -315,7 +316,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
     | Maintenance Routes
     |--------------------------------------------------------------------------
     */
-    
+
     Route::prefix('maintenance')->name('maintenance.')->group(function () {
         // Workshops
         Route::resource('workshops', MaintenanceWorkshopController::class);
@@ -332,7 +333,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
     | Reports Routes
     |--------------------------------------------------------------------------
     */
-    
+
     Route::prefix('reports')->name('reports.')->group(function () {
         // Sales Reports
         Route::get('sales', [SalesReportController::class, 'index'])->name('sales.index');
@@ -364,7 +365,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
     | AJAX Routes
     |--------------------------------------------------------------------------
     */
-    
+
     Route::prefix('ajax')->name('ajax.')->group(function () {
         Route::get('products/search', [ProductController::class, 'ajaxSearch'])->name('products.search');
         Route::get('customers/search', [CustomerController::class, 'ajaxSearch'])->name('customers.search');

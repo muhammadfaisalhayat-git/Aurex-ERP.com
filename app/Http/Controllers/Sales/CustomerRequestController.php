@@ -56,8 +56,9 @@ class CustomerRequestController extends Controller
         $branches = Branch::all();
         $products = Product::active()->orderBy('name_en')->get();
         $document_number = \App\Models\DocumentNumber::generate('customer_request', 'CR');
+        $taxSetting = \App\Models\TaxSetting::getCurrent();
 
-        return view('sales.customer-requests.create', compact('customers', 'branches', 'products', 'document_number'));
+        return view('sales.customer-requests.create', compact('customers', 'branches', 'products', 'document_number', 'taxSetting'));
     }
 
     public function store(Request $request)
@@ -73,8 +74,24 @@ class CustomerRequestController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
+            'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.notes' => 'nullable|string',
         ]);
+
+        $taxSetting = \App\Models\TaxSetting::getCurrent();
+        $subtotal = 0;
+        $totalTax = 0;
+
+        foreach ($validated['items'] as &$item) {
+            $item['tax_rate'] = $taxSetting->tax_enabled ? $taxSetting->default_tax_rate : 0;
+            $lineSubtotal = $item['quantity'] * $item['unit_price'];
+            $lineTax = $lineSubtotal * ($item['tax_rate'] / 100);
+            $item['tax_amount'] = $lineTax;
+            $item['total_amount'] = $lineSubtotal + $lineTax;
+
+            $subtotal += $lineSubtotal;
+            $totalTax += $lineTax;
+        }
 
         \Illuminate\Support\Facades\DB::beginTransaction();
         try {
@@ -84,6 +101,9 @@ class CustomerRequestController extends Controller
                 'needed_date' => $validated['needed_date'],
                 'customer_id' => $validated['customer_id'],
                 'branch_id' => $validated['branch_id'],
+                'subtotal' => $subtotal,
+                'tax_amount' => $totalTax,
+                'total_amount' => $subtotal + $totalTax,
                 'status' => $validated['status'],
                 'notes' => $validated['notes'],
                 'created_by' => auth()->id(),
@@ -94,6 +114,10 @@ class CustomerRequestController extends Controller
                     'customer_request_id' => $customerRequest->id,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'tax_rate' => $item['tax_rate'],
+                    'tax_amount' => $item['tax_amount'],
+                    'total_amount' => $item['total_amount'],
                     'notes' => $item['notes'],
                 ]);
             }
@@ -120,8 +144,9 @@ class CustomerRequestController extends Controller
         $customers = Customer::active()->orderBy('name_en')->get();
         $branches = Branch::all();
         $products = Product::active()->orderBy('name_en')->get();
+        $taxSetting = \App\Models\TaxSetting::getCurrent();
 
-        return view('sales.customer-requests.edit', compact('customerRequest', 'customers', 'branches', 'products'));
+        return view('sales.customer-requests.edit', compact('customerRequest', 'customers', 'branches', 'products', 'taxSetting'));
     }
 
     public function update(Request $request, CustomerRequest $customerRequest)
@@ -137,8 +162,24 @@ class CustomerRequestController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
+            'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.notes' => 'nullable|string',
         ]);
+
+        $taxSetting = \App\Models\TaxSetting::getCurrent();
+        $subtotal = 0;
+        $totalTax = 0;
+
+        foreach ($validated['items'] as &$item) {
+            $item['tax_rate'] = $taxSetting->tax_enabled ? $taxSetting->default_tax_rate : 0;
+            $lineSubtotal = $item['quantity'] * $item['unit_price'];
+            $lineTax = $lineSubtotal * ($item['tax_rate'] / 100);
+            $item['tax_amount'] = $lineTax;
+            $item['total_amount'] = $lineSubtotal + $lineTax;
+
+            $subtotal += $lineSubtotal;
+            $totalTax += $lineTax;
+        }
 
         \Illuminate\Support\Facades\DB::beginTransaction();
         try {
@@ -148,6 +189,9 @@ class CustomerRequestController extends Controller
                 'needed_date' => $validated['needed_date'],
                 'customer_id' => $validated['customer_id'],
                 'branch_id' => $validated['branch_id'],
+                'subtotal' => $subtotal,
+                'tax_amount' => $totalTax,
+                'total_amount' => $subtotal + $totalTax,
                 'status' => $validated['status'],
                 'notes' => $validated['notes'],
             ]);
@@ -158,6 +202,10 @@ class CustomerRequestController extends Controller
                     'customer_request_id' => $customerRequest->id,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'tax_rate' => $item['tax_rate'],
+                    'tax_amount' => $item['tax_amount'],
+                    'total_amount' => $item['total_amount'],
                     'notes' => $item['notes'],
                 ]);
             }
@@ -189,5 +237,13 @@ class CustomerRequestController extends Controller
     {
         // Implementation for conversion logic can be added here
         return redirect()->back()->with('error', 'Conversion logic not implemented yet.');
+    }
+
+    public function exportPdf(CustomerRequest $customerRequest)
+    {
+        $customerRequest->load(['customer', 'branch', 'creator', 'items.product']);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sales.customer-requests.pdf', compact('customerRequest'));
+
+        return $pdf->download('Customer_Request_' . $customerRequest->document_number . '.pdf');
     }
 }

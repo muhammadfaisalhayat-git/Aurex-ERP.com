@@ -101,6 +101,10 @@
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
+                                            <a href="{{ route('sales.customer-requests.pdf', $request) }}"
+                                                class="btn btn-sm btn-success" title="Download PDF">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
                                             @if($request->status == 'pending')
                                                 <form action="{{ route('sales.customer-requests.convert', $request) }}"
                                                     method="POST" style="display:inline">
@@ -164,11 +168,11 @@
             function renderResults(data) {
                 if (data.length > 0) {
                     customerResults.innerHTML = data.map(item => `
-                                    <div class="search-result-item" data-id="${item.id}">
-                                        <div class="item-title">${item.name}</div>
-                                        ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
-                                    </div>
-                                `).join('');
+                                        <div class="search-result-item" data-id="${item.id}">
+                                            <div class="item-title">${item.name}</div>
+                                            ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
+                                        </div>
+                                    `).join('');
                     customerResults.style.display = 'block';
                 } else {
                     customerResults.innerHTML = '<div class="p-2 text-muted">No request found</div>';

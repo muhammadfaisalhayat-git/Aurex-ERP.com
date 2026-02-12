@@ -27,12 +27,17 @@ class CustomerController extends Controller
         $branches = Branch::active()->get();
         // Assuming salesmen have a specific role or just getting all users for now
         $salesmen = User::where('is_active', true)->get();
+        $nextCode = Customer::generateNextCode();
 
-        return view('sales.customers.create', compact('customerGroups', 'branches', 'salesmen'));
+        return view('sales.customers.create', compact('customerGroups', 'branches', 'salesmen', 'nextCode'));
     }
 
     public function store(Request $request)
     {
+        if (!$request->filled('code')) {
+            $request->merge(['code' => Customer::generateNextCode()]);
+        }
+
         $validated = $request->validate([
             'code' => 'required|string|max:50|unique:customers,code',
             'name_en' => 'required|string|max:255',
@@ -57,6 +62,10 @@ class CustomerController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        $validated['credit_limit'] = $validated['credit_limit'] ?? 0;
+        $validated['credit_days'] = $validated['credit_days'] ?? 0;
+        $validated['opening_balance'] = $validated['opening_balance'] ?? 0;
+
         $customer = Customer::create($validated);
 
         AuditLog::create([
@@ -73,7 +82,7 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
-        $customer->load(['group', 'branch', 'salesman', 'quotations', 'salesInvoices']);
+        $customer->load(['group', 'branch', 'salesman', 'customerRequests', 'quotations', 'salesInvoices']);
         return view('sales.customers.show', compact('customer'));
     }
 
@@ -111,6 +120,10 @@ class CustomerController extends Controller
             'status' => 'required|in:active,inactive,blocked',
             'notes' => 'nullable|string',
         ]);
+
+        $validated['credit_limit'] = $validated['credit_limit'] ?? 0;
+        $validated['credit_days'] = $validated['credit_days'] ?? 0;
+        $validated['opening_balance'] = $validated['opening_balance'] ?? 0;
 
         $oldValues = $customer->toArray();
         $customer->update($validated);

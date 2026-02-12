@@ -467,7 +467,10 @@
             border-radius: 12px;
             margin-top: 5px;
             overflow: hidden;
-            z-index: 1050;
+            z-index: 2000;
+            width: max-content;
+            min-width: 500px;
+            max-width: 80vw;
         }
 
         .search-result-item {

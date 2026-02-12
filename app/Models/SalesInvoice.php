@@ -155,7 +155,9 @@ class SalesInvoice extends Model
         $this->save();
 
         // Update customer balance
-        $this->customer->updateBalance($this->total_amount);
+        if ($this->customer) {
+            $this->customer->updateBalance($this->total_amount);
+        }
 
         // Create stock issue order
         $this->createStockIssueOrder();
@@ -174,7 +176,9 @@ class SalesInvoice extends Model
         }
 
         // Reverse customer balance
-        $this->customer->updateBalance(-$this->total_amount);
+        if ($this->customer) {
+            $this->customer->updateBalance(-$this->total_amount);
+        }
 
         // Cancel related stock issue orders
         foreach ($this->stockIssueOrders as $issueOrder) {

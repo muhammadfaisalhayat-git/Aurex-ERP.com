@@ -19,6 +19,9 @@
                         </button>
                     </form>
                 @endif
+                <a href="{{ route('sales.customer-requests.pdf', $customerRequest) }}" class="btn btn-outline-danger">
+                    <i class="fas fa-file-pdf me-1"></i> {{ __('messages.download_pdf') ?? 'Download PDF' }}
+                </a>
             </div>
         </div>
 
@@ -104,11 +107,15 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered">
+                    <table class="table table-bordered table-striped">
                         <thead>
-                            <tr>
+                            <tr class="bg-light">
                                 <th>Product</th>
-                                <th>Quantity</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-center">Tax %</th>
+                                <th class="text-end">Tax Amount</th>
+                                <th class="text-end">Total</th>
                                 <th>Notes</th>
                             </tr>
                         </thead>
@@ -116,15 +123,36 @@
                             @forelse($customerRequest->items as $item)
                                 <tr>
                                     <td>{{ $item->product->name_en ?? 'Unknown Product' }}</td>
-                                    <td>{{ number_format($item->quantity, 2) }}</td>
+                                    <td class="text-center">{{ number_format($item->quantity, 2) }}</td>
+                                    <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
+                                    <td class="text-center">{{ number_format($item->tax_rate, 2) }}%</td>
+                                    <td class="text-end">{{ number_format($item->tax_amount, 2) }}</td>
+                                    <td class="text-end fw-bold">{{ number_format($item->total_amount, 2) }}</td>
                                     <td>{{ $item->notes ?? '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="text-center">No items found</td>
+                                    <td colspan="7" class="text-center">No items found</td>
                                 </tr>
                             @endforelse
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" class="text-end fw-bold">Subtotal:</td>
+                                <td class="text-end fw-bold">{{ number_format($customerRequest->subtotal, 2) }}</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" class="text-end fw-bold">Tax Amount:</td>
+                                <td class="text-end fw-bold">{{ number_format($customerRequest->tax_amount, 2) }}</td>
+                                <td></td>
+                            </tr>
+                            <tr class="table-primary">
+                                <td colspan="5" class="text-end fw-bold">Total Amount:</td>
+                                <td class="text-end fw-bold">{{ number_format($customerRequest->total_amount, 2) }}</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>

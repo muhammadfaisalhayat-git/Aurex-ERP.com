@@ -26,10 +26,10 @@ class SystemSetting extends Model
         'is_editable' => 'boolean',
     ];
 
-    public static function get($key, $default = null)
+    public static function getValue($key, $default = null)
     {
         $setting = self::where('key', $key)->first();
-        
+
         if (!$setting) {
             return $default;
         }
@@ -43,10 +43,10 @@ class SystemSetting extends Model
         };
     }
 
-    public static function set($key, $value, $type = 'string')
+    public static function setValue($key, $value, $type = 'string')
     {
         $setting = self::where('key', $key)->first();
-        
+
         if ($setting && !$setting->is_editable) {
             return false;
         }

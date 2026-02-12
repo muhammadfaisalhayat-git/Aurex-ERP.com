@@ -138,7 +138,99 @@
                         <div class="card">
                             <div class="card-header">{{ __('messages.recent_transactions') }}</div>
                             <div class="card-body">
-                                <p class="text-muted text-center pt-3">{{ __('messages.feature_coming_soon') }}</p>
+                                @php
+                                    $transactions = collect();
+
+                                    foreach ($customer->customerRequests as $request) {
+                                        $transactions->push([
+                                            'id' => $request->id,
+                                            'date' => $request->request_date,
+                                            'number' => $request->document_number,
+                                            'type' => 'request',
+                                            'total' => '-',
+                                            'status' => $request->status,
+                                            'route' => route('sales.customer-requests.show', $request),
+                                        ]);
+                                    }
+
+                                    foreach ($customer->quotations as $quotation) {
+                                        $transactions->push([
+                                            'id' => $quotation->id,
+                                            'date' => $quotation->quotation_date,
+                                            'number' => $quotation->document_number,
+                                            'type' => 'quotation',
+                                            'total' => number_format($quotation->total_amount, 2),
+                                            'status' => $quotation->status,
+                                            'route' => route('sales.quotations.show', $quotation),
+                                        ]);
+                                    }
+
+                                    foreach ($customer->salesInvoices as $invoice) {
+                                        $transactions->push([
+                                            'id' => $invoice->id,
+                                            'date' => $invoice->invoice_date,
+                                            'number' => $invoice->document_number,
+                                            'type' => 'invoice',
+                                            'total' => number_format($invoice->total_amount, 2),
+                                            'status' => $invoice->status,
+                                            'route' => route('sales.invoices.show', $invoice),
+                                        ]);
+                                    }
+
+                                    $transactions = $transactions->sortByDesc('date');
+                                @endphp
+
+                                @if ($transactions->count() > 0)
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>{{ __('messages.date') }}</th>
+                                                    <th>{{ __('messages.document_number') }}</th>
+                                                    <th>{{ __('messages.document_type') }}</th>
+                                                    <th>{{ __('messages.amount') }}</th>
+                                                    <th>{{ __('messages.status') }}</th>
+                                                    <th>{{ __('messages.actions') }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($transactions as $transaction)
+                                                    <tr>
+                                                        <td>{{ $transaction['date']->format('Y-m-d') }}</td>
+                                                        <td>{{ $transaction['number'] }}</td>
+                                                        <td>
+                                                            <span class="badge bg-secondary">
+                                                                {{ __('messages.' . $transaction['type']) }}
+                                                            </span>
+                                                        </td>
+                                                        <td>{{ $transaction['total'] }}</td>
+                                                        <td>
+                                                            @php
+                                                                $statusClass = match ($transaction['status']) {
+                                                                    'draft', 'pending' => 'warning',
+                                                                    'posted', 'approved', 'paid', 'converted' => 'success',
+                                                                    'cancelled', 'rejected' => 'danger',
+                                                                    default => 'secondary',
+                                                                };
+                                                            @endphp
+                                                            <span class="badge bg-{{ $statusClass }}">
+                                                                {{ __('messages.' . $transaction['status']) }}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <a href="{{ $transaction['route'] }}"
+                                                                class="btn btn-sm btn-info text-white">
+                                                                <i class="fas fa-eye"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <p class="text-muted text-center pt-3">{{ __('messages.no_records_found') }}</p>
+                                @endif
                             </div>
                         </div>
                     </div>
