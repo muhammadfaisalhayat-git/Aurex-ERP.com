@@ -50,20 +50,24 @@
                                     </td>
                                     <td>
                                         <div class="btn-group">
-                                            <a href="{{ route('sales.customers.show', $customer) }}" class="btn btn-sm btn-info"
-                                                title="{{ __('messages.view') }}">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
+                                            @can('view customers')
+                                                <a href="{{ route('sales.customers.show', $customer) }}" class="btn btn-sm btn-info"
+                                                    title="{{ __('messages.view') }}">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            @endcan
                                             @can('edit customers')
                                                 <a href="{{ route('sales.customers.edit', $customer) }}"
                                                     class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                             @endcan
-                                            <a href="{{ route('sales.customers.statement', $customer) }}"
-                                                class="btn btn-sm btn-secondary" title="{{ __('messages.view_statement') }}">
-                                                <i class="fas fa-file-invoice-dollar"></i>
-                                            </a>
+                                            @can('view customers')
+                                                <a href="{{ route('sales.customers.statement', $customer) }}"
+                                                    class="btn btn-sm btn-secondary" title="{{ __('messages.view_statement') }}">
+                                                    <i class="fas fa-file-invoice-dollar"></i>
+                                                </a>
+                                            @endcan
                                         </div>
                                     </td>
                                 </tr>

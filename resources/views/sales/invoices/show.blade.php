@@ -49,6 +49,11 @@
                                 <i class="fas fa-file-pdf"></i> {{ __('sales.pdf') }}
                             </a>
 
+                            <a href="{{ route('sales.invoices.whatsapp', $invoice) }}" target="_blank"
+                                class="btn btn-success me-2">
+                                <i class="fab fa-whatsapp"></i> {{ __('messages.send_whatsapp') ?? 'WhatsApp' }}
+                            </a>
+
                             @if($invoice->status === 'draft')
                                 <form action="{{ route('sales.invoices.destroy', $invoice) }}" method="POST" class="d-inline">
                                     @csrf

@@ -12,6 +12,13 @@ use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:view customers')->only(['index', 'show', 'statement', 'ajaxSearch']);
+        $this->middleware('can:create customers')->only(['create', 'store']);
+        $this->middleware('can:edit customers')->only(['edit', 'update']);
+        $this->middleware('can:delete customers')->only(['destroy']);
+    }
     public function index()
     {
         $customers = Customer::with(['group', 'branch', 'salesman'])

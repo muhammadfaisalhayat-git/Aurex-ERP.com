@@ -11,6 +11,7 @@ class Branch extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'company_id',
         'code',
         'name_en',
         'name_ar',
@@ -22,8 +23,14 @@ class Branch extends Model
     ];
 
     protected $casts = [
+        'company_id' => 'integer',
         'is_active' => 'boolean',
     ];
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 
     public function warehouses()
     {

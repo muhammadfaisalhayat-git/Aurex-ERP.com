@@ -18,7 +18,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
+
         // Get user's dashboard widgets
         $widgets = DashboardWidget::where('user_id', $user->id)
             ->where('is_visible', true)
@@ -36,10 +36,11 @@ class DashboardController extends Controller
             $widgetData[$widget->widget_type] = $this->getWidgetData($widget->widget_type);
         }
 
-        // Get recent audit logs for Super Admin
+        // Get recent audit logs for Super Admin or Company Admin
         $recentActivities = null;
-        if ($user->isSuperAdmin()) {
+        if ($user->hasRole(['Super Admin', 'Company Admin'])) {
             $recentActivities = AuditLog::with('user')
+                ->where('company_id', session('active_company_id'))
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();

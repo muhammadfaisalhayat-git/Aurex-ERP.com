@@ -109,7 +109,7 @@
                                 multiple required>
                                 @foreach($roles as $role)
                                     <option value="{{ $role->id }}" {{ in_array($role->id, old('roles', [])) ? 'selected' : '' }}>
-                                        {{ $role->name }}
+                                        {{ app()->getLocale() == 'ar' ? ($role->display_name_ar ?? $role->name) : ($role->display_name_en ?? $role->name) }}
                                     </option>
                                 @endforeach
                             </select>

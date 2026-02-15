@@ -8,6 +8,7 @@ use App\Http\Controllers\LanguageController;
 // Admin Controllers
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Admin\SettingController;
@@ -30,6 +31,7 @@ use App\Http\Controllers\Purchases\SupplyOrderController;
 use App\Http\Controllers\Purchases\PurchaseInvoiceController;
 use App\Http\Controllers\Purchases\LocalPurchaseController;
 use App\Http\Controllers\Purchases\SupplierRegistrationController;
+use App\Http\Controllers\Purchases\PurchaseAIController;
 
 // Inventory Controllers
 use App\Http\Controllers\Inventory\ProductController;
@@ -41,6 +43,7 @@ use App\Http\Controllers\Inventory\StockTransferRequestController;
 use App\Http\Controllers\Inventory\StockIssueOrderController;
 use App\Http\Controllers\Inventory\CompositeAssemblyController;
 use App\Http\Controllers\Inventory\StockLedgerController;
+use App\Http\Controllers\Inventory\BarcodeController;
 
 // Transport Controllers
 use App\Http\Controllers\Transport\TrailerController;
@@ -71,6 +74,12 @@ Route::get('/', function () {
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Tenant Switching
+Route::middleware(['auth'])->group(function () {
+    Route::post('/switch-company', [\App\Http\Controllers\Admin\TenantController::class, 'switchCompany'])->name('switch-company');
+    Route::post('/switch-branch', [\App\Http\Controllers\Admin\TenantController::class, 'switchBranch'])->name('switch-branch');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -112,6 +121,9 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::get('roles/{role}/permissions', [RoleController::class, 'editPermissions'])->name('roles.permissions');
         Route::post('roles/{role}/permissions', [RoleController::class, 'updatePermissions'])->name('roles.permissions.update');
 
+        // Companies
+        Route::resource('companies', CompanyController::class);
+
         // Branches
         Route::resource('branches', BranchController::class);
 
@@ -140,6 +152,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         // Customer Requests
         Route::resource('customer-requests', CustomerRequestController::class);
         Route::get('customer-requests/{customerRequest}/pdf', [CustomerRequestController::class, 'exportPdf'])->name('customer-requests.pdf');
+        Route::get('customer-requests/{customerRequest}/whatsapp', [CustomerRequestController::class, 'sendWhatsApp'])->name('customer-requests.whatsapp');
         Route::post('customer-requests/{customerRequest}/convert', [CustomerRequestController::class, 'convertToQuotation'])->name('customer-requests.convert');
 
         // Quotations
@@ -147,6 +160,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::post('quotations/{quotation}/send', [QuotationController::class, 'send'])->name('quotations.send');
         Route::post('quotations/{quotation}/convert', [QuotationController::class, 'convert'])->name('quotations.convert');
         Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'downloadPdf'])->name('quotations.pdf');
+        Route::get('quotations/{quotation}/whatsapp', [QuotationController::class, 'sendWhatsApp'])->name('quotations.whatsapp');
         Route::post('quotations/{quotation}/revise', [QuotationController::class, 'revise'])->name('quotations.revise');
 
         // Sales Contracts
@@ -164,10 +178,13 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::get('sales-orders/{salesOrder}/print', [SalesOrderController::class, 'print'])->name('sales-orders.print');
 
         // Sales Invoices
+        Route::get('invoices/import-sources', [SalesInvoiceController::class, 'getSourceDocuments'])->name('invoices.import-sources');
+        Route::get('invoices/source-data/{type}/{id}', [SalesInvoiceController::class, 'getSourceDocumentData'])->name('invoices.source-data');
         Route::resource('invoices', SalesInvoiceController::class);
         Route::post('invoices/{invoice}/post', [SalesInvoiceController::class, 'post'])->name('invoices.post');
         Route::post('invoices/{invoice}/unpost', [SalesInvoiceController::class, 'unpost'])->name('invoices.unpost');
         Route::get('invoices/{invoice}/pdf', [SalesInvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
+        Route::get('invoices/{invoice}/whatsapp', [SalesInvoiceController::class, 'sendWhatsApp'])->name('invoices.whatsapp');
         Route::get('invoices/{invoice}/print', [SalesInvoiceController::class, 'print'])->name('invoices.print');
 
         // Import Invoice from Quotation
@@ -243,12 +260,24 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
+    // HR Routes
+    Route::prefix('hr')->name('hr.')->group(function () {
+        Route::resource('employees', \App\Http\Controllers\HR\EmployeeController::class);
+        Route::resource('departments', \App\Http\Controllers\HR\DepartmentController::class);
+        Route::resource('designations', \App\Http\Controllers\HR\DesignationController::class);
+    });
+
     Route::prefix('inventory')->name('inventory.')->group(function () {
         // Products
         Route::resource('products', ProductController::class);
         Route::resource('categories', ProductCategoryController::class);
         Route::get('products/{product}/bom', [ProductController::class, 'bom'])->name('products.bom');
         Route::post('products/{product}/bom', [ProductController::class, 'updateBom'])->name('products.bom.update');
+
+        // Barcodes
+        Route::get('barcodes', [BarcodeController::class, 'index'])->name('barcodes.index');
+        Route::get('barcodes/search', [BarcodeController::class, 'search'])->name('barcodes.search');
+        Route::get('barcodes/print', [BarcodeController::class, 'print'])->name('barcodes.print');
 
         // Stock Supply
         Route::resource('stock-supply', StockSupplyController::class);
@@ -372,5 +401,6 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::get('vendors/search', [VendorController::class, 'ajaxSearch'])->name('vendors.search');
         Route::get('warehouses/by-branch', [WarehouseController::class, 'ajaxByBranch'])->name('warehouses.by-branch');
         Route::get('products/stock', [ProductController::class, 'ajaxStock'])->name('products.stock');
+        Route::post('purchases/scan', [PurchaseAIController::class, 'scan'])->name('purchases.scan');
     });
 });

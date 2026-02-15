@@ -11,7 +11,7 @@ class BranchController extends Controller
 {
     public function index()
     {
-        $branches = Branch::withCount(['users', 'warehouses'])
+        $branches = Branch::with('company')->withCount(['users', 'warehouses'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -20,12 +20,14 @@ class BranchController extends Controller
 
     public function create()
     {
-        return view('admin.branches.create');
+        $companies = \App\Models\Company::all();
+        return view('admin.branches.create', compact('companies'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'company_id' => 'required|exists:companies,id',
             'code' => 'required|string|max:50|unique:branches,code',
             'name_en' => 'required|string|max:255',
             'name_ar' => 'required|string|max:255',
@@ -43,6 +45,7 @@ class BranchController extends Controller
             'entity_type' => 'branch',
             'entity_id' => $branch->id,
             'user_id' => auth()->id(),
+            'company_id' => $branch->company_id,
             'new_values' => $branch->toArray(),
         ]);
 
@@ -52,18 +55,20 @@ class BranchController extends Controller
 
     public function show(Branch $branch)
     {
-        $branch->load(['users', 'warehouses']);
+        $branch->load(['users', 'warehouses', 'company']);
         return view('admin.branches.show', compact('branch'));
     }
 
     public function edit(Branch $branch)
     {
-        return view('admin.branches.edit', compact('branch'));
+        $companies = \App\Models\Company::all();
+        return view('admin.branches.edit', compact('branch', 'companies'));
     }
 
     public function update(Request $request, Branch $branch)
     {
         $validated = $request->validate([
+            'company_id' => 'required|exists:companies,id',
             'code' => 'required|string|max:50|unique:branches,code,' . $branch->id,
             'name_en' => 'required|string|max:255',
             'name_ar' => 'required|string|max:255',
@@ -82,6 +87,7 @@ class BranchController extends Controller
             'entity_type' => 'branch',
             'entity_id' => $branch->id,
             'user_id' => auth()->id(),
+            'company_id' => $branch->company_id,
             'old_values' => $oldValues,
             'new_values' => $branch->toArray(),
         ]);

@@ -6,12 +6,18 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3"><?php echo e(__('messages.sales_invoices')); ?></h1>
-            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('create invoices')): ?>
-                <a href="<?php echo e(route('sales.invoices.create')); ?>" class="btn btn-primary d-flex align-items-center">
-                    <i class="fas fa-plus-circle me-2"></i> <?php echo e(__('messages.create')); ?>
+            <div>
+                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('create invoices')): ?>
+                    <a href="<?php echo e(route('inventory.barcodes.index')); ?>" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-barcode me-2"></i> <?php echo e(__('messages.barcode_generator')); ?>
 
-                </a>
-            <?php endif; ?>
+                    </a>
+                    <a href="<?php echo e(route('sales.invoices.create')); ?>" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i> <?php echo e(__('messages.create')); ?>
+
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="card mb-4 glassy">
@@ -139,22 +145,26 @@
                                     </td>
                                     <td>
                                         <div class="btn-group">
-                                            <a href="<?php echo e(route('sales.invoices.show', $invoice)); ?>" class="btn btn-sm btn-info"
-                                                title="<?php echo e(__('messages.view')); ?>">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
+                                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view invoices')): ?>
+                                                <a href="<?php echo e(route('sales.invoices.show', $invoice)); ?>" class="btn btn-sm btn-info"
+                                                    title="<?php echo e(__('messages.view')); ?>">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            <?php endif; ?>
                                             <?php if($invoice->isEditable()): ?>
-                                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('edit sales invoices')): ?>
+                                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('edit invoices')): ?>
                                                     <a href="<?php echo e(route('sales.invoices.edit', $invoice)); ?>"
                                                         class="btn btn-sm btn-primary" title="<?php echo e(__('messages.edit')); ?>">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 <?php endif; ?>
                                             <?php endif; ?>
-                                            <a href="<?php echo e(route('sales.invoices.pdf', $invoice)); ?>"
-                                                class="btn btn-sm btn-secondary" title="<?php echo e(__('messages.download_pdf')); ?>">
-                                                <i class="fas fa-file-pdf"></i>
-                                            </a>
+                                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view invoices')): ?>
+                                                <a href="<?php echo e(route('sales.invoices.pdf', $invoice)); ?>"
+                                                    class="btn btn-sm btn-secondary" title="<?php echo e(__('messages.download_pdf')); ?>">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </a>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -176,108 +186,108 @@
     <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                 const customerSearch = document.getElementById('customer_search');
-                        const customerId = document.getElementById('customer_id');
-                        const customerResults = document.getElementById('customer-results');
-                        const customerData = <?php echo json_encode($customers->map(function ($c) {
-                            return ['id' => $c->id, 'name' => $c->name_en, 'code' => $c->code];
-                        })) ?>;
+                const customerSearch = document.getElementById('customer_search');
+                const customerId = document.getElementById('customer_id');
+                const customerResults = document.getElementById('customer-results');
+                const customerData = <?php echo json_encode($customers->map(function ($c) {
+                    return ['id' => $c->id, 'name' => $c->name_en, 'code' => $c->code];
+                })) ?>;
 
-                                 const invoiceNumberSearch = document.getElementById('invoice_number');
+                const invoiceNumberSearch = document.getElementById('invoice_number');
 
-                                // F2 Shortcut
-                                document.addEventListener('keydown', function (e) {
-                                    if (e.key === 'F2') {
-                                        e.preventDefault();
-                                        invoiceNumberSearch.focus();
-                                        invoiceNumberSearch.select();
-                                    }
-                                });
+                // F2 Shortcut
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'F2') {
+                        e.preventDefault();
+                        invoiceNumberSearch.focus();
+                        invoiceNumberSearch.select();
+                    }
+                });
 
-                                function performSearch(val) {
-                                    const search = val.toLowerCase();
-                                    const filtered = customerData.filter(c =>
-                                        c.name.toLowerCase().includes(search) ||
-                                        (c.code && c.code.toLowerCase().includes(search))
-                                    );
+                function performSearch(val) {
+                    const search = val.toLowerCase();
+                    const filtered = customerData.filter(c =>
+                        c.name.toLowerCase().includes(search) ||
+                        (c.code && c.code.toLowerCase().includes(search))
+                    );
 
-                                    renderResults(customerResults, filtered, (customer) => {
-                                        customerSearch.value = customer.name;
-                                        customerId.value = customer.id;
-                                        customerResults.style.display = 'none';
-                                    });
-                                }
+                    renderResults(customerResults, filtered, (customer) => {
+                        customerSearch.value = customer.name;
+                        customerId.value = customer.id;
+                        customerResults.style.display = 'none';
+                    });
+                }
 
-                                // Searchable Customer Dropdown
-                                customerSearch.addEventListener('focus', function () {
-                                    performSearch(this.value);
-                                });
+                // Searchable Customer Dropdown
+                customerSearch.addEventListener('focus', function () {
+                    performSearch(this.value);
+                });
 
-                                customerSearch.addEventListener('input', function () {
-                                    if (this.value.length < 1) {
-                                        customerId.value = '';
-                                    }
-                                    performSearch(this.value);
-                                });
+                customerSearch.addEventListener('input', function () {
+                    if (this.value.length < 1) {
+                        customerId.value = '';
+                    }
+                    performSearch(this.value);
+                });
 
-                                function renderResults(container, data, onSelect) {
-                                    if (data.length === 0) {
-                                        container.style.display = 'none';
-                                        return;
-                                    }
+                function renderResults(container, data, onSelect) {
+                    if (data.length === 0) {
+                        container.style.display = 'none';
+                        return;
+                    }
 
-                                    container.innerHTML = data.map(item => `
-                                                                <div class="search-result-item" data-id="${item.id}">
-                                                                    <div class="item-title">${item.name}</div>
-                                                                    ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
-                                                                </div>
-                                                            `).join('');
+                    container.innerHTML = data.map(item => `
+                                                                                <div class="search-result-item" data-id="${item.id}">
+                                                                                    <div class="item-title">${item.name}</div>
+                                                                                    ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
+                                                                                </div>
+                                                                            `).join('');
 
-                                    container.style.display = 'block';
+                    container.style.display = 'block';
 
-                                    container.querySelectorAll('.search-result-item').forEach((el, index) => {
-                                        el.addEventListener('click', () => {
-                                            const item = data[index];
-                                            onSelect(item);
-                                        });
-                                    });
-                                }
+                    container.querySelectorAll('.search-result-item').forEach((el, index) => {
+                        el.addEventListener('click', () => {
+                            const item = data[index];
+                            onSelect(item);
+                        });
+                    });
+                }
 
-                                // Close dropdown when clicking outside
-                                document.addEventListener('click', function (e) {
-                                    if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
-                                        customerResults.style.display = 'none';
-                                    }
-                                });
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function (e) {
+                    if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
+                        customerResults.style.display = 'none';
+                    }
+                });
 
-                                // Keyboard navigation for dropdown
-                                customerSearch.addEventListener('keydown', function (e) {
-                                    const items = customerResults.querySelectorAll('.search-result-item');
-                                    let activeIndex = Array.from(items).findIndex(i => i.classList.contains('active'));
+                // Keyboard navigation for dropdown
+                customerSearch.addEventListener('keydown', function (e) {
+                    const items = customerResults.querySelectorAll('.search-result-item');
+                    let activeIndex = Array.from(items).findIndex(i => i.classList.contains('active'));
 
-                                    if (e.key === 'ArrowDown') {
-                                        e.preventDefault();
-                                        if (activeIndex < items.length - 1) {
-                                            if (activeIndex > -1) items[activeIndex].classList.remove('active');
-                                            items[++activeIndex].classList.add('active');
-                                            items[activeIndex].scrollIntoView({ block: 'nearest' });
-                                        }
-                                    } else if (e.key === 'ArrowUp') {
-                                        e.preventDefault();
-                                        if (activeIndex > 0) {
-                                            items[activeIndex].classList.remove('active');
-                                            items[--activeIndex].classList.add('active');
-                                            items[activeIndex].scrollIntoView({ block: 'nearest' });
-                                        }
-                                    } else if (e.key === 'Enter' && activeIndex > -1) {
-                                        e.preventDefault();
-                                        items[activeIndex].click();
-                                    } else if (e.key === 'Escape') {
-                                        customerResults.style.display = 'none';
-                                    }
-                                });
-                            });
-                        </script>
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (activeIndex < items.length - 1) {
+                            if (activeIndex > -1) items[activeIndex].classList.remove('active');
+                            items[++activeIndex].classList.add('active');
+                            items[activeIndex].scrollIntoView({ block: 'nearest' });
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (activeIndex > 0) {
+                            items[activeIndex].classList.remove('active');
+                            items[--activeIndex].classList.add('active');
+                            items[activeIndex].scrollIntoView({ block: 'nearest' });
+                        }
+                    } else if (e.key === 'Enter' && activeIndex > -1) {
+                        e.preventDefault();
+                        items[activeIndex].click();
+                    } else if (e.key === 'Escape') {
+                        customerResults.style.display = 'none';
+                    }
+                });
+            });
+        </script>
     <?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Pc\Downloads\aurex-erp\aurex-erp\resources\views/sales/invoices/index.blade.php ENDPATH**/ ?>

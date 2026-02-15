@@ -29,11 +29,13 @@
                                 <p class="mb-0">{{ $quotation->customer->email ?? '' }}</p>
                             </div>
                             <div class="col-sm-6 text-sm-end">
-                                <h6 class="fw-bold">{{ __('messages.quotation_details') }}</h6>
-                                <p class="mb-0"><strong>{{ __('messages.document_number') }}:</strong>
+                                <h6 class="fw-bold text-muted text-uppercase small">{{ __('messages.quotation_details') }}</h6>
+                                <p class="mb-1"><strong>{{ __('messages.quotation_number') }}:</strong>
                                     {{ $quotation->document_number }}</p>
-                                <p class="mb-0"><strong>{{ __('messages.expiry_date') }}:</strong>
-                                    {{ $quotation->expiry_date->format('Y-m-d') }}</p>
+                                @if($quotation->expiry_date)
+                                    <p class="mb-1"><strong>{{ __('messages.expiry_date') }}:</strong>
+                                        {{ $quotation->expiry_date->format('Y-m-d') }}</p>
+                                @endif
                                 <p class="mb-0"><strong>{{ __('messages.status') }}:</strong>
                                     @php
                                         $statusClass = match ($quotation->status) {
@@ -45,7 +47,7 @@
                                             default => 'light'
                                         };
                                     @endphp
-                                    <span class="badge bg-{{ $statusClass }}">{{ ucfirst($quotation->status) }}</span>
+                                    <span class="badge rounded-pill bg-{{ $statusClass }} px-3">{{ __('messages.' . $quotation->status) }}</span>
                                 </p>
                             </div>
                         </div>
@@ -130,8 +132,13 @@
                                 </form>
                             @endcan
 
-                            <a href="#" class="btn btn-outline-secondary">
+                            <a href="{{ route('sales.quotations.pdf', $quotation) }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-print"></i> {{ __('messages.print') }}
+                            </a>
+
+                            <a href="{{ route('sales.quotations.whatsapp', $quotation) }}" target="_blank"
+                                class="btn btn-outline-success">
+                                <i class="fab fa-whatsapp"></i> Send via WhatsApp
                             </a>
                         </div>
                     </div>

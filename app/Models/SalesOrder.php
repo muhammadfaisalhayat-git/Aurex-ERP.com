@@ -101,6 +101,11 @@ class SalesOrder extends Model
         return $this->hasMany(SalesOrderItem::class);
     }
 
+    public function scopeActive($query)
+    {
+        return $query->where('status', '!=', 'cancelled');
+    }
+
     public function statusHistory()
     {
         return $this->hasMany(SalesOrderStatusHistory::class);
@@ -183,20 +188,20 @@ class SalesOrder extends Model
     {
         $this->invoiced_amount += $amount;
         $this->balance_amount = $this->total_amount - $this->invoiced_amount;
-        
+
         if ($this->isFullyInvoiced()) {
             $this->status = 'invoiced';
         } else {
             $this->status = 'partial';
         }
-        
+
         $this->save();
     }
 
     public static function createFromQuotation(Quotation $quotation, $userId)
     {
         $orderNumber = DocumentNumber::generate('sales_order');
-        
+
         $salesOrder = self::create([
             'document_number' => $orderNumber,
             'order_number' => $orderNumber,

@@ -7,10 +7,18 @@ use App\Models\CustomerRequest;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 
 class CustomerRequestController extends Controller
 {
+    protected $whatsappService;
+
+    public function __construct(WhatsAppService $whatsappService)
+    {
+        $this->whatsappService = $whatsappService;
+    }
+
     public function index(Request $request)
     {
         $query = CustomerRequest::with(['customer', 'branch', 'creator']);
@@ -245,5 +253,25 @@ class CustomerRequestController extends Controller
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sales.customer-requests.pdf', compact('customerRequest'));
 
         return $pdf->download('Customer_Request_' . $customerRequest->document_number . '.pdf');
+    }
+
+    public function sendWhatsApp(CustomerRequest $customerRequest)
+    {
+        $customer = $customerRequest->customer;
+
+        if (!$customer) {
+            return back()->with('error', 'Customer request does not have a linked customer.');
+        }
+
+        $phone = $customer->mobile ?? $customer->phone;
+
+        if (!$phone) {
+            return back()->with('error', 'Customer does not have a mobile or phone number.');
+        }
+
+        $message = $this->whatsappService->formatDocumentMessage($customerRequest, 'request');
+        $link = $this->whatsappService->generateLink($phone, $message);
+
+        return redirect()->away($link);
     }
 }

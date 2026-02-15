@@ -29,7 +29,8 @@ class RoleSeeder extends Seeder
             'is_system' => true,
         ]);
         $admin->syncPermissions(Permission::whereNotIn('name', [
-            'manage roles', 'delete users'
+            'manage roles',
+            'delete users'
         ])->get());
 
         // Accountant
@@ -41,10 +42,22 @@ class RoleSeeder extends Seeder
             'is_system' => false,
         ]);
         $accountant->syncPermissions(Permission::whereIn('name', [
-            'view customers', 'view vendors', 'view invoices', 'view purchases', 
-            'view returns', 'view inventory', 'view reports', 'export data',
-            'post invoices', 'post purchases', 'post returns', 'post inventory',
-            'create invoices', 'edit invoices', 'create purchases', 'edit purchases',
+            'view customers',
+            'view vendors',
+            'view invoices',
+            'view purchases',
+            'view returns',
+            'view inventory',
+            'view reports',
+            'export data',
+            'post invoices',
+            'post purchases',
+            'post returns',
+            'post inventory',
+            'create invoices',
+            'edit invoices',
+            'create purchases',
+            'edit purchases',
         ])->get());
 
         // Sales Manager
@@ -56,12 +69,26 @@ class RoleSeeder extends Seeder
             'is_system' => false,
         ]);
         $salesManager->syncPermissions(Permission::whereIn('name', [
-            'view customers', 'create customers', 'edit customers',
-            'view quotations', 'create quotations', 'edit quotations', 'delete quotations',
-            'view invoices', 'create invoices', 'edit invoices',
-            'view returns', 'create returns', 'edit returns',
-            'view commissions', 'manage commissions', 'approve commissions',
-            'view reports', 'export data', 'post invoices', 'post returns',
+            'view customers',
+            'create customers',
+            'edit customers',
+            'view quotations',
+            'create quotations',
+            'edit quotations',
+            'delete quotations',
+            'view invoices',
+            'create invoices',
+            'edit invoices',
+            'view returns',
+            'create returns',
+            'edit returns',
+            'view commissions',
+            'manage commissions',
+            'approve commissions',
+            'view reports',
+            'export data',
+            'post invoices',
+            'post returns',
         ])->get());
 
         // Salesman
@@ -73,9 +100,14 @@ class RoleSeeder extends Seeder
             'is_system' => false,
         ]);
         $salesman->syncPermissions(Permission::whereIn('name', [
-            'view customers', 'create customers', 'edit customers',
-            'view quotations', 'create quotations', 'edit quotations',
-            'view invoices', 'create invoices',
+            'view customers',
+            'create customers',
+            'edit customers',
+            'view quotations',
+            'create quotations',
+            'edit quotations',
+            'view invoices',
+            'create invoices',
             'view returns',
         ])->get());
 
@@ -88,10 +120,17 @@ class RoleSeeder extends Seeder
             'is_system' => false,
         ]);
         $dataAnalyst->syncPermissions(Permission::whereIn('name', [
-            'view customers', 'view vendors', 'view products',
-            'view invoices', 'view purchases', 'view returns',
-            'view inventory', 'view transport', 'view maintenance',
-            'view reports', 'export data',
+            'view customers',
+            'view vendors',
+            'view products',
+            'view invoices',
+            'view purchases',
+            'view returns',
+            'view inventory',
+            'view transport',
+            'view maintenance',
+            'view reports',
+            'export data',
         ])->get());
 
         // Data Entry
@@ -103,11 +142,19 @@ class RoleSeeder extends Seeder
             'is_system' => false,
         ]);
         $dataEntry->syncPermissions(Permission::whereIn('name', [
-            'view customers', 'create customers', 'edit customers',
-            'view vendors', 'create vendors', 'edit vendors',
-            'view products', 'create products', 'edit products',
-            'view quotations', 'create quotations',
-            'view invoices', 'create invoices',
+            'view customers',
+            'create customers',
+            'edit customers',
+            'view vendors',
+            'create vendors',
+            'edit vendors',
+            'view products',
+            'create products',
+            'edit products',
+            'view quotations',
+            'create quotations',
+            'view invoices',
+            'create invoices',
         ])->get());
 
         // Inventory Manager
@@ -119,9 +166,16 @@ class RoleSeeder extends Seeder
             'is_system' => false,
         ]);
         $inventoryManager->syncPermissions(Permission::whereIn('name', [
-            'view products', 'create products', 'edit products', 'delete products',
-            'view inventory', 'manage stock', 'post inventory', 'approve transfers',
-            'view reports', 'export data',
+            'view products',
+            'create products',
+            'edit products',
+            'delete products',
+            'view inventory',
+            'manage stock',
+            'post inventory',
+            'approve transfers',
+            'view reports',
+            'export data',
         ])->get());
 
         // Warehouse User
@@ -133,7 +187,19 @@ class RoleSeeder extends Seeder
             'is_system' => false,
         ]);
         $warehouseUser->syncPermissions(Permission::whereIn('name', [
-            'view products', 'view inventory', 'manage stock',
+            'view products',
+            'view inventory',
+            'manage stock',
         ])->get());
+
+        // HR Manager
+        $hrManager = Role::create([
+            'name' => 'HR Manager',
+            'display_name_en' => 'HR Manager',
+            'display_name_ar' => 'مدير الموارد البشرية',
+            'guard_name' => 'web',
+            'is_system' => false,
+        ]);
+        $hrManager->syncPermissions(Permission::where('module', 'hr')->get());
     }
 }

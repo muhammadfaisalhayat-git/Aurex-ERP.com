@@ -5,11 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\BelongsToTenant;
+
 class AuditLog extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $fillable = [
+        'company_id',
         'action',
         'entity_type',
         'entity_id',
@@ -35,6 +38,7 @@ class AuditLog extends Model
     public static function log($action, $entityType, $entityId, $oldValues = null, $newValues = null, $notes = null)
     {
         return self::create([
+            'company_id' => session('active_company_id'),
             'action' => $action,
             'entity_type' => $entityType,
             'entity_id' => $entityId,

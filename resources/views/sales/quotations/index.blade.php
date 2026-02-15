@@ -19,7 +19,7 @@
                     <table class="table table-striped table-hover">
                         <thead>
                             <tr>
-                                <th>{{ __('messages.document_number') }}</th>
+                                <th>{{ __('messages.quotation_number') }}</th>
                                 <th>{{ __('messages.date') }}</th>
                                 <th>{{ __('messages.customer') }}</th>
                                 <th>{{ __('messages.total') }}</th>
@@ -31,7 +31,8 @@
                             @forelse($quotations as $quotation)
                                 <tr>
                                     <td>
-                                        <a href="{{ route('sales.quotations.show', $quotation) }}">
+                                        <a href="{{ route('sales.quotations.show', $quotation) }}"
+                                            class="fw-bold text-decoration-none">
                                             {{ $quotation->document_number }}
                                         </a>
                                         @if($quotation->version > 1)
@@ -40,12 +41,14 @@
                                     </td>
                                     <td>
                                         {{ $quotation->quotation_date->format('Y-m-d') }}
-                                        <br>
-                                        <small class="text-muted">{{ __('messages.expiry_date') }}:
-                                            {{ $quotation->expiry_date->format('Y-m-d') }}</small>
+                                        @if($quotation->expiry_date)
+                                            <br>
+                                            <small class="text-muted">{{ __('messages.expiry_date') }}:
+                                                {{ $quotation->expiry_date->format('Y-m-d') }}</small>
+                                        @endif
                                     </td>
                                     <td>{{ $quotation->customer->name ?? '-' }}</td>
-                                    <td>{{ number_format($quotation->total_amount, 2) }}</td>
+                                    <td class="fw-bold">{{ number_format($quotation->total_amount, 2) }}</td>
                                     <td>
                                         @php
                                             $statusClass = [
@@ -57,7 +60,7 @@
                                                 'expired' => 'warning',
                                             ][$quotation->status] ?? 'secondary';
                                         @endphp
-                                        <span class="badge bg-{{ $statusClass }}">
+                                        <span class="badge rounded-pill bg-{{ $statusClass }}">
                                             {{ __('messages.' . $quotation->status) }}
                                         </span>
                                     </td>

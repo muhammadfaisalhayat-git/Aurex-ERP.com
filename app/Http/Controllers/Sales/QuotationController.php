@@ -11,11 +11,25 @@ use App\Models\Warehouse;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\AuditLog;
+use App\Models\TaxSetting;
+use App\Services\WhatsAppService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class QuotationController extends Controller
 {
+    protected $whatsappService;
+
+    public function __construct(WhatsAppService $whatsappService)
+    {
+        $this->whatsappService = $whatsappService;
+
+        $this->middleware('can:view quotations')->only(['index', 'show', 'downloadPdf', 'sendWhatsApp']);
+        $this->middleware('can:create quotations')->only(['create', 'store', 'send', 'convert', 'revise']);
+        $this->middleware('can:edit quotations')->only(['edit', 'update']);
+        $this->middleware('can:delete quotations')->only(['destroy']);
+    }
     public function index()
     {
         $quotations = Quotation::with(['customer', 'branch', 'salesman'])
@@ -32,8 +46,10 @@ class QuotationController extends Controller
         $warehouses = Warehouse::active()->get();
         $salesmen = User::where('is_active', true)->get();
         $products = Product::active()->get();
+        $document_number = Quotation::generateNextNumber();
+        $taxSetting = TaxSetting::getCurrent();
 
-        return view('sales.quotations.create', compact('customers', 'branches', 'warehouses', 'salesmen', 'products'));
+        return view('sales.quotations.create', compact('customers', 'branches', 'warehouses', 'salesmen', 'products', 'document_number', 'taxSetting'));
     }
 
     public function store(Request $request)
@@ -41,7 +57,7 @@ class QuotationController extends Controller
         $validated = $request->validate([
             'document_number' => 'required|string|max:50|unique:quotations,document_number',
             'quotation_date' => 'required|date',
-            'expiry_date' => 'required|date|after_or_equal:quotation_date',
+            'expiry_date' => 'nullable|date|after_or_equal:quotation_date',
             'customer_id' => 'required|exists:customers,id',
             'branch_id' => 'required|exists:branches,id',
             'warehouse_id' => 'nullable|exists:warehouses,id',
@@ -131,8 +147,9 @@ class QuotationController extends Controller
         $warehouses = Warehouse::active()->get();
         $salesmen = User::where('is_active', true)->get();
         $products = Product::active()->get();
+        $taxSetting = TaxSetting::getCurrent();
 
-        return view('sales.quotations.edit', compact('quotation', 'customers', 'branches', 'warehouses', 'salesmen', 'products'));
+        return view('sales.quotations.edit', compact('quotation', 'customers', 'branches', 'warehouses', 'salesmen', 'products', 'taxSetting'));
     }
 
     public function update(Request $request, Quotation $quotation)
@@ -140,7 +157,7 @@ class QuotationController extends Controller
         $validated = $request->validate([
             'document_number' => 'required|string|max:50|unique:quotations,document_number,' . $quotation->id,
             'quotation_date' => 'required|date',
-            'expiry_date' => 'required|date|after_or_equal:quotation_date',
+            'expiry_date' => 'nullable|date|after_or_equal:quotation_date',
             'customer_id' => 'required|exists:customers,id',
             'branch_id' => 'required|exists:branches,id',
             'warehouse_id' => 'nullable|exists:warehouses,id',
@@ -241,5 +258,32 @@ class QuotationController extends Controller
 
         return redirect()->route('sales.quotations.index')
             ->with('success', __('messages.quotation_deleted'));
+    }
+
+    public function downloadPdf(Quotation $quotation)
+    {
+        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product']);
+        $pdf = Pdf::loadView('sales.quotations.pdf', compact('quotation'));
+        return $pdf->download('quotation-' . $quotation->document_number . '.pdf');
+    }
+
+    public function sendWhatsApp(Quotation $quotation)
+    {
+        $customer = $quotation->customer;
+
+        if (!$customer) {
+            return back()->with('error', 'Quotation does not have a linked customer.');
+        }
+
+        $phone = $customer->mobile ?? $customer->phone;
+
+        if (!$phone) {
+            return back()->with('error', 'Customer does not have a mobile or phone number.');
+        }
+
+        $message = $this->whatsappService->formatDocumentMessage($quotation, 'quotation');
+        $link = $this->whatsappService->generateLink($phone, $message);
+
+        return redirect()->away($link);
     }
 }

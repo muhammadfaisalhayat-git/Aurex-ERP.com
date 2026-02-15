@@ -45,4 +45,12 @@ return [
     'phone' => 'Phone',
     'email' => 'Email',
     'posted_by' => 'Posted By',
+    'import_data' => 'Import Data',
+    'select_source' => 'Select Source',
+    'source_document' => 'Source Document',
+    'search_document_placeholder' => 'Type to search document...',
+    'quotation' => 'Quotation',
+    'customer_request' => 'Customer Request',
+    'return_invoice' => 'Return Invoice',
+    'sales_order' => 'Sales Order',
 ];

@@ -23,6 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'set.locale' => \App\Http\Middleware\SetLocale::class,
+            'identify.tenant' => \App\Http\Middleware\IdentifyTenant::class,
+        ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\IdentifyTenant::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

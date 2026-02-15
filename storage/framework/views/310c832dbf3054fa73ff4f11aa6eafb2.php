@@ -25,6 +25,9 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Hotwire Turbo -->
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.0/dist/turbo.es2017-umd.js"></script>
+
     <!-- Custom CSS: Commented out as file doesn't exist -->
     
 
@@ -561,6 +564,69 @@
                 <button class="sidebar-toggle d-lg-none" onclick="toggleSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>
+
+                <!-- Company/Branch Switcher -->
+                <div class="d-none d-lg-flex align-items-center gap-3 ms-4">
+                    <?php
+                        $activeCompany = \App\Models\Company::find(session('active_company_id'));
+                        $activeBranch = \App\Models\Branch::find(session('active_branch_id'));
+                        $userCompanies = auth()->user()->hasRole('Super Admin') ? \App\Models\Company::all() : collect([auth()->user()->company]);
+                        $companyBranches = \App\Models\Branch::where('company_id', session('active_company_id'))->get();
+                    ?>
+
+                    <?php if(auth()->user()->hasRole('Super Admin')): ?>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown">
+                                <i class="fas fa-building me-1"></i> <?php echo e($activeCompany->name ?? __('Select Company')); ?>
+
+                            </button>
+                            <ul class="dropdown-menu">
+                                <?php $__currentLoopData = $userCompanies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $company): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <li>
+                                        <form action="<?php echo e(route('switch-company')); ?>" method="POST">
+                                            <?php echo csrf_field(); ?>
+                                            <input type="hidden" name="company_id" value="<?php echo e($company->id); ?>">
+                                            <button type="submit"
+                                                class="dropdown-item <?php echo e($company->id == session('active_company_id') ? 'active' : ''); ?>">
+                                                <?php echo e($company->name); ?>
+
+                                            </button>
+                                        </form>
+                                    </li>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </ul>
+                        </div>
+                    <?php else: ?>
+                        <div class="text-muted small fw-bold">
+                            <i class="fas fa-building me-1"></i> <?php echo e($activeCompany->name ?? ''); ?>
+
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown">
+                            <i class="fas fa-map-marker-alt me-1"></i> <?php echo e($activeBranch->name ?? __('Select Branch')); ?>
+
+                        </button>
+                        <ul class="dropdown-menu">
+                            <?php $__currentLoopData = $companyBranches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <li>
+                                    <form action="<?php echo e(route('switch-branch')); ?>" method="POST">
+                                        <?php echo csrf_field(); ?>
+                                        <input type="hidden" name="branch_id" value="<?php echo e($branch->id); ?>">
+                                        <button type="submit"
+                                            class="dropdown-item <?php echo e($branch->id == session('active_branch_id') ? 'active' : ''); ?>">
+                                            <?php echo e($branch->name); ?>
+
+                                        </button>
+                                    </form>
+                                </li>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
             <div class="header-right">
@@ -642,19 +708,24 @@
             document.querySelector('.sidebar').classList.toggle('show');
         }
 
-        // Auto-hide alerts after 5 seconds
-        setTimeout(function () {
-            document.querySelectorAll('.alert').forEach(function (alert) {
-                var bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            });
-        }, 5000);
+        // Initialize functionality on Turbo load
+        document.addEventListener('turbo:load', function () {
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function () {
+                document.querySelectorAll('.alert').forEach(function (alert) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
 
-        // Submenu toggle
-        document.querySelectorAll('.menu-link[data-submenu]').forEach(function (link) {
-            link.addEventListener('click', function (e) {
-                e.preventDefault();
-                this.closest('.menu-item').classList.toggle('open');
+            // Submenu toggle
+            document.querySelectorAll('.menu-link[data-submenu]').forEach(function (link) {
+                // Remove existing click listeners to avoid duplicates
+                link.onclick = null;
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    this.closest('.menu-item').classList.toggle('open');
+                });
             });
         });
 

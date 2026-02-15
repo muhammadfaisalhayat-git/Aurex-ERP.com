@@ -38,6 +38,13 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+            $user = Auth::user();
+
+            // Initialize tenant context in session
+            session([
+                'active_company_id' => $user->company_id,
+                'active_branch_id' => $user->branch_id,
+            ]);
 
             // Update last login info
             $user->update([

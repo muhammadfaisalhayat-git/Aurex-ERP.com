@@ -28,7 +28,7 @@ class UserController extends Controller
     {
         $branches = Branch::active()->get();
         $warehouses = Warehouse::active()->get();
-        $roles = Role::all();
+        $roles = Role::orderBy('name')->get();
 
         return view('admin.users.create', compact('branches', 'warehouses', 'roles'));
     }
@@ -93,7 +93,7 @@ class UserController extends Controller
     {
         $branches = Branch::active()->get();
         $warehouses = Warehouse::active()->get();
-        $roles = Role::all();
+        $roles = Role::orderBy('name')->get();
         $user->load(['roles', 'warehouses']);
 
         return view('admin.users.edit', compact('user', 'branches', 'warehouses', 'roles'));

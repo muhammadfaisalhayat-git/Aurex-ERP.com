@@ -16,15 +16,24 @@ use App\Models\AuditLog;
 use App\Models\User;
 use App\Models\Quotation;
 use App\Services\TaxCalculator;
+use App\Services\WhatsAppService;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SalesInvoiceController extends Controller
 {
     protected $taxCalculator;
+    protected $whatsappService;
 
-    public function __construct(TaxCalculator $taxCalculator)
+    public function __construct(TaxCalculator $taxCalculator, WhatsAppService $whatsappService)
     {
         $this->taxCalculator = $taxCalculator;
+        $this->whatsappService = $whatsappService;
+
+        $this->middleware('can:view invoices')->only(['index', 'show', 'downloadPdf', 'print', 'getSourceDocuments', 'getSourceDocumentData', 'sendWhatsApp']);
+        $this->middleware('can:create invoices')->only(['create', 'store', 'createFromQuotation', 'storeFromQuotation']);
+        $this->middleware('can:edit invoices')->only(['edit', 'update']);
+        $this->middleware('can:delete invoices')->only(['destroy']);
+        $this->middleware('can:post invoices')->only(['post', 'unpost']);
     }
 
     public function index(Request $request)
@@ -96,6 +105,99 @@ class SalesInvoiceController extends Controller
 
         return view('sales.invoices.index', compact('invoices', 'customers'));
     }
+
+
+    public function getSourceDocuments(Request $request)
+    {
+        $type = $request->type;
+        $query = $request->q;
+
+        $results = [];
+
+        switch ($type) {
+            case 'quotation':
+                $results = Quotation::where('document_number', 'LIKE', "%$query%")
+                    ->orWhereHas('customer', function ($q) use ($query) {
+                        $q->where('name_en', 'LIKE', "%$query%");
+                    })
+                    ->active()
+                    ->limit(10)
+                    ->get(['id', 'document_number as text']);
+                break;
+            case 'customer_request':
+                $results = \App\Models\CustomerRequest::where('document_number', 'LIKE', "%$query%")
+                    ->orWhereHas('customer', function ($q) use ($query) {
+                        $q->where('name_en', 'LIKE', "%$query%");
+                    })
+                    ->limit(10)
+                    ->get(['id', 'document_number as text']);
+                break;
+            case 'sales_return':
+                $results = \App\Models\SalesReturn::where('document_number', 'LIKE', "%$query%")
+                    ->orWhereHas('customer', function ($q) use ($query) {
+                        $q->where('name_en', 'LIKE', "%$query%");
+                    })
+                    ->limit(10)
+                    ->get(['id', 'document_number as text']);
+                break;
+            case 'sales_order':
+                $results = \App\Models\SalesOrder::where('document_number', 'LIKE', "%$query%")
+                    ->orWhereHas('customer', function ($q) use ($query) {
+                        $q->where('name_en', 'LIKE', "%$query%");
+                    })
+                    ->limit(10)
+                    ->get(['id', 'document_number as text']);
+                break;
+        }
+
+        return response()->json($results);
+    }
+
+    public function getSourceDocumentData($type, $id)
+    {
+        $data = null;
+        switch ($type) {
+            case 'quotation':
+                $data = Quotation::with('items.product')->find($id);
+                break;
+            case 'customer_request':
+                $data = \App\Models\CustomerRequest::with('items.product')->find($id);
+                break;
+            case 'sales_return':
+                $data = \App\Models\SalesReturn::with('items.product')->find($id);
+                break;
+            case 'sales_order':
+                $data = \App\Models\SalesOrder::with('items.product')->find($id);
+                break;
+        }
+
+        if (!$data) {
+            return response()->json(['error' => 'Document not found'], 404);
+        }
+
+        // Normalize items
+        $normalizedItems = $data->items->map(function ($item) {
+            return [
+                'product_id' => $item->product_id,
+                'product_name' => $item->product->name ?? 'Unknown',
+                'product_code' => $item->product->product_code ?? '',
+                'quantity' => $item->quantity,
+                'unit_price' => $item->unit_price,
+                'discount_percentage' => $item->discount_percentage ?? 0,
+                'tax_rate' => $item->tax_rate ?? 0,
+            ];
+        });
+
+        return response()->json([
+            'customer_id' => $data->customer_id,
+            'customer_name' => $data->customer->name_en ?? '',
+            'branch_id' => $data->branch_id,
+            'warehouse_id' => $data->warehouse_id,
+            'salesman_id' => $data->salesman_id ?? null,
+            'items' => $normalizedItems,
+        ]);
+    }
+
 
     public function create()
     {
@@ -544,5 +646,25 @@ class SalesInvoiceController extends Controller
 
         return redirect()->route('sales.invoices.show', $invoice)
             ->with('success', __('messages.invoice_created_from_quotation'));
+    }
+
+    public function sendWhatsApp(SalesInvoice $invoice)
+    {
+        $customer = $invoice->customer;
+
+        if (!$customer) {
+            return back()->with('error', 'Invoice does not have a linked customer.');
+        }
+
+        $phone = $customer->mobile ?? $customer->phone;
+
+        if (!$phone) {
+            return back()->with('error', 'Customer does not have a mobile or phone number.');
+        }
+
+        $message = $this->whatsappService->formatDocumentMessage($invoice, 'invoice');
+        $link = $this->whatsappService->generateLink($phone, $message);
+
+        return redirect()->away($link);
     }
 }

@@ -22,6 +22,10 @@
                 <a href="{{ route('sales.customer-requests.pdf', $customerRequest) }}" class="btn btn-outline-danger">
                     <i class="fas fa-file-pdf me-1"></i> {{ __('messages.download_pdf') ?? 'Download PDF' }}
                 </a>
+                <a href="{{ route('sales.customer-requests.whatsapp', $customerRequest) }}" target="_blank"
+                    class="btn btn-outline-success">
+                    <i class="fab fa-whatsapp me-1"></i> Send via WhatsApp
+                </a>
             </div>
         </div>
 

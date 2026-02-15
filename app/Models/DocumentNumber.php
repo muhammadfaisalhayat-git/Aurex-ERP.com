@@ -4,9 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\BelongsToTenant;
+
 class DocumentNumber extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
+        'company_id',
         'entity_type',
         'prefix',
         'current_number',

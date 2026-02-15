@@ -6,11 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\Traits\BelongsToTenant;
+
 class CommissionRule extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BelongsToTenant;
 
     protected $fillable = [
+        'company_id',
         'name_en',
         'name_ar',
         'salesman_id',
@@ -56,7 +59,7 @@ class CommissionRule extends Model
             ->where('effective_from', '<=', now())
             ->where(function ($q) {
                 $q->whereNull('effective_to')
-                  ->orWhere('effective_to', '>=', now());
+                    ->orWhere('effective_to', '>=', now());
             });
     }
 

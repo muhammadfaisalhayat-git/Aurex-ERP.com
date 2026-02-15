@@ -8,11 +8,14 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Permission\Traits\HasRoles;
 
+use App\Traits\BelongsToTenant;
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes, HasRoles;
 
     protected $fillable = [
+        'company_id',
         'name',
         'email',
         'password',
@@ -37,6 +40,11 @@ class User extends Authenticatable
         'password' => 'hashed',
         'is_active' => 'boolean',
     ];
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 
     public function branch()
     {

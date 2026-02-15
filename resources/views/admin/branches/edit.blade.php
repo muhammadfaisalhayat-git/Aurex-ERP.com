@@ -1,106 +1,102 @@
 @extends('layouts.app')
 
-@section('title', __('messages.edit_branch'))
+@section('title', isset($branch) ? __('Edit Branch') : __('Add Branch'))
 
 @section('content')
-    <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3">{{ __('messages.edit_branch') }}: {{ $branch->name }}</h1>
-            <a href="{{ route('admin.branches.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> {{ __('messages.back') }}
+    <div class="page-header">
+        <h1 class="page-title">{{ isset($branch) ? __('Edit Branch') : __('Add Branch') }}</h1>
+        <div class="page-actions">
+            <a href="{{ route('admin.branches.index') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> {{ __('Back to List') }}
             </a>
         </div>
+    </div>
 
-        <div class="card">
+    <div class="card">
+        <form action="{{ isset($branch) ? route('admin.branches.update', $branch) : route('admin.branches.store') }}"
+            method="POST">
+            @csrf
+            @if(isset($branch))
+                @method('PUT')
+            @endif
+
             <div class="card-body">
-                <form action="{{ route('admin.branches.update', $branch) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="code" class="form-label">{{ __('messages.code') }} <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('code') is-invalid @enderror" id="code"
-                                name="code" value="{{ old('code', $branch->code) }}" required>
-                            @error('code')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="name_en" class="form-label">{{ __('messages.name_en') }} <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('name_en') is-invalid @enderror" id="name_en"
-                                name="name_en" value="{{ old('name_en', $branch->name_en) }}" required>
-                            @error('name_en')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="name_ar" class="form-label">{{ __('messages.name_ar') }} <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('name_ar') is-invalid @enderror" id="name_ar"
-                                name="name_ar" value="{{ old('name_ar', $branch->name_ar) }}" required>
-                            @error('name_ar')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">{{ __('messages.email') }}</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"
-                                name="email" value="{{ old('email', $branch->email) }}">
-                            @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label">{{ __('messages.phone') }}</label>
-                            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone"
-                                name="phone" value="{{ old('phone', $branch->phone) }}">
-                            @error('phone')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="manager_name" class="form-label">{{ __('messages.manager_name') }}</label>
-                            <input type="text" class="form-control @error('manager_name') is-invalid @enderror"
-                                id="manager_name" name="manager_name"
-                                value="{{ old('manager_name', $branch->manager_name) }}">
-                            @error('manager_name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-12 mb-3">
-                            <label for="address" class="form-label">{{ __('messages.address') }}</label>
-                            <textarea class="form-control @error('address') is-invalid @enderror" id="address"
-                                name="address" rows="3">{{ old('address', $branch->address) }}</textarea>
-                            @error('address')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label">{{ __('Company') }} <span class="text-danger">*</span></label>
+                        <select name="company_id" class="form-select @error('company_id') is-invalid @enderror" required>
+                            <option value="">{{ __('Select Company') }}</option>
+                            @foreach($companies as $company)
+                                <option value="{{ $company->id }}" {{ old('company_id', $branch->company_id ?? '') == $company->id ? 'selected' : '' }}>{{ $company->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('company_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
-                    <div class="mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">{{ __('Code') }} <span class="text-danger">*</span></label>
+                        <input type="text" name="code" class="form-control @error('code') is-invalid @enderror"
+                            value="{{ old('code', $branch->code ?? '') }}" required>
+                        @error('code') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">{{ __('Name (English)') }} <span class="text-danger">*</span></label>
+                        <input type="text" name="name_en" class="form-control @error('name_en') is-invalid @enderror"
+                            value="{{ old('name_en', $branch->name_en ?? '') }}" required>
+                        @error('name_en') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">{{ __('Name (Arabic)') }} <span class="text-danger">*</span></label>
+                        <input type="text" name="name_ar" class="form-control @error('name_ar') is-invalid @enderror"
+                            value="{{ old('name_ar', $branch->name_ar ?? '') }}" required>
+                        @error('name_ar') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">{{ __('Email') }}</label>
+                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                            value="{{ old('email', $branch->email ?? '') }}">
+                        @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">{{ __('Phone') }}</label>
+                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror"
+                            value="{{ old('phone', $branch->phone ?? '') }}">
+                        @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">{{ __('Manager Name') }}</label>
+                        <input type="text" name="manager_name"
+                            class="form-control @error('manager_name') is-invalid @enderror"
+                            value="{{ old('manager_name', $branch->manager_name ?? '') }}">
+                        @error('manager_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">{{ __('Address') }}</label>
+                        <textarea name="address" class="form-control @error('address') is-invalid @enderror"
+                            rows="2">{{ old('address', $branch->address ?? '') }}</textarea>
+                        @error('address') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-12">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $branch->is_active) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="is_active">
-                                {{ __('messages.active') }}
-                            </label>
+                            <input type="hidden" name="is_active" value="0">
+                            <input type="checkbox" name="is_active" value="1" class="form-check-input" id="is_active" {{ old('is_active', $branch->is_active ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="is_active">{{ __('Active') }}</label>
                         </div>
                     </div>
-
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> {{ __('messages.update') }}
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
-        </div>
+            <div class="card-footer text-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> {{ __('Save Branch') }}
+                </button>
+            </div>
+        </form>
     </div>
 @endsection

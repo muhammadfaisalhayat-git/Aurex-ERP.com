@@ -6,11 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\Traits\BelongsToTenant;
+
 class CustomerRegistration extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BelongsToTenant;
 
     protected $fillable = [
+        'company_id',
         'registration_number',
         'registration_date',
         'customer_name_en',
@@ -188,8 +191,8 @@ class CustomerRegistration extends Model
 
     public function getCustomerNameAttribute()
     {
-        return app()->getLocale() === 'ar' && $this->customer_name_ar 
-            ? $this->customer_name_ar 
+        return app()->getLocale() === 'ar' && $this->customer_name_ar
+            ? $this->customer_name_ar
             : $this->customer_name_en;
     }
 }

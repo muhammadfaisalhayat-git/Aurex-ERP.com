@@ -25,6 +25,9 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Hotwire Turbo -->
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.0/dist/turbo.es2017-umd.js"></script>
+
     <!-- Custom CSS: Commented out as file doesn't exist -->
     {{--
     <link rel="stylesheet" href="{{ asset('css/app.css') }}"> --}}
@@ -559,6 +562,64 @@
                 <button class="sidebar-toggle d-lg-none" onclick="toggleSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>
+
+                <!-- Company/Branch Switcher -->
+                <div class="d-none d-lg-flex align-items-center gap-3 ms-4">
+                    @php
+                        $activeCompany = \App\Models\Company::find(session('active_company_id'));
+                        $activeBranch = \App\Models\Branch::find(session('active_branch_id'));
+                        $userCompanies = auth()->user()->hasRole('Super Admin') ? \App\Models\Company::all() : collect([auth()->user()->company]);
+                        $companyBranches = \App\Models\Branch::where('company_id', session('active_company_id'))->get();
+                    @endphp
+
+                    @if(auth()->user()->hasRole('Super Admin'))
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown">
+                                <i class="fas fa-building me-1"></i> {{ $activeCompany->name ?? __('Select Company') }}
+                            </button>
+                            <ul class="dropdown-menu">
+                                @foreach($userCompanies as $company)
+                                    <li>
+                                        <form action="{{ route('switch-company') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="company_id" value="{{ $company->id }}">
+                                            <button type="submit"
+                                                class="dropdown-item {{ $company->id == session('active_company_id') ? 'active' : '' }}">
+                                                {{ $company->name }}
+                                            </button>
+                                        </form>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @else
+                        <div class="text-muted small fw-bold">
+                            <i class="fas fa-building me-1"></i> {{ $activeCompany->name ?? '' }}
+                        </div>
+                    @endif
+
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown">
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ $activeBranch->name ?? __('Select Branch') }}
+                        </button>
+                        <ul class="dropdown-menu">
+                            @foreach($companyBranches as $branch)
+                                <li>
+                                    <form action="{{ route('switch-branch') }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="branch_id" value="{{ $branch->id }}">
+                                        <button type="submit"
+                                            class="dropdown-item {{ $branch->id == session('active_branch_id') ? 'active' : '' }}">
+                                            {{ $branch->name }}
+                                        </button>
+                                    </form>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
             </div>
 
             <div class="header-right">
@@ -635,19 +696,24 @@
             document.querySelector('.sidebar').classList.toggle('show');
         }
 
-        // Auto-hide alerts after 5 seconds
-        setTimeout(function () {
-            document.querySelectorAll('.alert').forEach(function (alert) {
-                var bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            });
-        }, 5000);
+        // Initialize functionality on Turbo load
+        document.addEventListener('turbo:load', function () {
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function () {
+                document.querySelectorAll('.alert').forEach(function (alert) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
 
-        // Submenu toggle
-        document.querySelectorAll('.menu-link[data-submenu]').forEach(function (link) {
-            link.addEventListener('click', function (e) {
-                e.preventDefault();
-                this.closest('.menu-item').classList.toggle('open');
+            // Submenu toggle
+            document.querySelectorAll('.menu-link[data-submenu]').forEach(function (link) {
+                // Remove existing click listeners to avoid duplicates
+                link.onclick = null;
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    this.closest('.menu-item').classList.toggle('open');
+                });
             });
         });
 

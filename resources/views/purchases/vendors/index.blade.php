@@ -6,11 +6,25 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">{{ __('messages.vendors') }}</h1>
-            @can('create vendors')
-                <a href="{{ route('purchases.vendors.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> {{ __('messages.create') }}
-                </a>
-            @endcan
+            <div class="d-flex gap-2">
+                <form action="{{ route('purchases.vendors.index') }}" method="GET" class="d-flex gap-2">
+                    <input type="text" name="search" class="form-control" placeholder="{{ __('messages.search') }}..."
+                        value="{{ request('search') }}">
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    @if (request('search'))
+                        <a href="{{ route('purchases.vendors.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    @endif
+                </form>
+                @can('create vendors')
+                    <a href="{{ route('purchases.vendors.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> {{ __('messages.create') }}
+                    </a>
+                @endcan
+            </div>
         </div>
 
         <div class="card">
@@ -64,6 +78,17 @@
                                                 class="btn btn-sm btn-secondary" title="{{ __('messages.view_statement') }}">
                                                 <i class="fas fa-file-invoice-dollar"></i>
                                             </a>
+                                            @can('delete vendors')
+                                                <form action="{{ route('purchases.vendors.destroy', $vendor) }}" method="POST"
+                                                    class="d-inline" onsubmit="return confirm('{{ __('messages.are_you_sure') }}')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger"
+                                                        title="{{ __('messages.delete') }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endcan
                                         </div>
                                     </td>
                                 </tr>

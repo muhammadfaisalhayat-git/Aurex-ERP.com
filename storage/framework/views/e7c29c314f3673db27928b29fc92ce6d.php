@@ -53,20 +53,24 @@
                                     </td>
                                     <td>
                                         <div class="btn-group">
-                                            <a href="<?php echo e(route('sales.customers.show', $customer)); ?>" class="btn btn-sm btn-info"
-                                                title="<?php echo e(__('messages.view')); ?>">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
+                                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view customers')): ?>
+                                                <a href="<?php echo e(route('sales.customers.show', $customer)); ?>" class="btn btn-sm btn-info"
+                                                    title="<?php echo e(__('messages.view')); ?>">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            <?php endif; ?>
                                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('edit customers')): ?>
                                                 <a href="<?php echo e(route('sales.customers.edit', $customer)); ?>"
                                                     class="btn btn-sm btn-primary" title="<?php echo e(__('messages.edit')); ?>">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                             <?php endif; ?>
-                                            <a href="<?php echo e(route('sales.customers.statement', $customer)); ?>"
-                                                class="btn btn-sm btn-secondary" title="<?php echo e(__('messages.view_statement')); ?>">
-                                                <i class="fas fa-file-invoice-dollar"></i>
-                                            </a>
+                                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view customers')): ?>
+                                                <a href="<?php echo e(route('sales.customers.statement', $customer)); ?>"
+                                                    class="btn btn-sm btn-secondary" title="<?php echo e(__('messages.view_statement')); ?>">
+                                                    <i class="fas fa-file-invoice-dollar"></i>
+                                                </a>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>

@@ -5,12 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\BelongsToTenant;
 
 class LocalPurchase extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BelongsToTenant;
 
     protected $fillable = [
+        'company_id',
         'document_number',
         'invoice_number',
         'invoice_date',
@@ -91,10 +93,10 @@ class LocalPurchase extends Model
             $taxAmount += $item->tax_amount;
         }
 
-        $this->subtotal = $subtotal;
-        $this->discount_amount = $discountAmount;
-        $this->tax_amount = $taxAmount;
-        $this->total_amount = $subtotal;
+        $this->subtotal = (float) $subtotal;
+        $this->discount_amount = (float) $discountAmount;
+        $this->tax_amount = (float) $taxAmount;
+        $this->total_amount = (float) $subtotal;
         $this->save();
     }
 

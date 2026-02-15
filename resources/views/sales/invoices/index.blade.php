@@ -6,11 +6,16 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">{{ __('messages.sales_invoices') }}</h1>
-            @can('create invoices')
-                <a href="{{ route('sales.invoices.create') }}" class="btn btn-primary d-flex align-items-center">
-                    <i class="fas fa-plus-circle me-2"></i> {{ __('messages.create') }}
-                </a>
-            @endcan
+            <div>
+                @can('create invoices')
+                    <a href="{{ route('inventory.barcodes.index') }}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-barcode me-2"></i> {{ __('messages.barcode_generator') }}
+                    </a>
+                    <a href="{{ route('sales.invoices.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i> {{ __('messages.create') }}
+                    </a>
+                @endcan
+            </div>
         </div>
 
         <div class="card mb-4 glassy">
@@ -131,22 +136,26 @@
                                     </td>
                                     <td>
                                         <div class="btn-group">
-                                            <a href="{{ route('sales.invoices.show', $invoice) }}" class="btn btn-sm btn-info"
-                                                title="{{ __('messages.view') }}">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
+                                            @can('view invoices')
+                                                <a href="{{ route('sales.invoices.show', $invoice) }}" class="btn btn-sm btn-info"
+                                                    title="{{ __('messages.view') }}">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            @endcan
                                             @if($invoice->isEditable())
-                                                @can('edit sales invoices')
+                                                @can('edit invoices')
                                                     <a href="{{ route('sales.invoices.edit', $invoice) }}"
                                                         class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 @endcan
                                             @endif
-                                            <a href="{{ route('sales.invoices.pdf', $invoice) }}"
-                                                class="btn btn-sm btn-secondary" title="{{ __('messages.download_pdf') }}">
-                                                <i class="fas fa-file-pdf"></i>
-                                            </a>
+                                            @can('view invoices')
+                                                <a href="{{ route('sales.invoices.pdf', $invoice) }}"
+                                                    class="btn btn-sm btn-secondary" title="{{ __('messages.download_pdf') }}">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </a>
+                                            @endcan
                                         </div>
                                     </td>
                                 </tr>
@@ -167,107 +176,107 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                 const customerSearch = document.getElementById('customer_search');
-                        const customerId = document.getElementById('customer_id');
-                        const customerResults = document.getElementById('customer-results');
-                        const customerData = @json($customers->map(function ($c) {
-                            return ['id' => $c->id, 'name' => $c->name_en, 'code' => $c->code];
-                        }));
+                const customerSearch = document.getElementById('customer_search');
+                const customerId = document.getElementById('customer_id');
+                const customerResults = document.getElementById('customer-results');
+                const customerData = @json($customers->map(function ($c) {
+                    return ['id' => $c->id, 'name' => $c->name_en, 'code' => $c->code];
+                }));
 
-                                 const invoiceNumberSearch = document.getElementById('invoice_number');
+                const invoiceNumberSearch = document.getElementById('invoice_number');
 
-                                // F2 Shortcut
-                                document.addEventListener('keydown', function (e) {
-                                    if (e.key === 'F2') {
-                                        e.preventDefault();
-                                        invoiceNumberSearch.focus();
-                                        invoiceNumberSearch.select();
-                                    }
-                                });
+                // F2 Shortcut
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'F2') {
+                        e.preventDefault();
+                        invoiceNumberSearch.focus();
+                        invoiceNumberSearch.select();
+                    }
+                });
 
-                                function performSearch(val) {
-                                    const search = val.toLowerCase();
-                                    const filtered = customerData.filter(c =>
-                                        c.name.toLowerCase().includes(search) ||
-                                        (c.code && c.code.toLowerCase().includes(search))
-                                    );
+                function performSearch(val) {
+                    const search = val.toLowerCase();
+                    const filtered = customerData.filter(c =>
+                        c.name.toLowerCase().includes(search) ||
+                        (c.code && c.code.toLowerCase().includes(search))
+                    );
 
-                                    renderResults(customerResults, filtered, (customer) => {
-                                        customerSearch.value = customer.name;
-                                        customerId.value = customer.id;
-                                        customerResults.style.display = 'none';
-                                    });
-                                }
+                    renderResults(customerResults, filtered, (customer) => {
+                        customerSearch.value = customer.name;
+                        customerId.value = customer.id;
+                        customerResults.style.display = 'none';
+                    });
+                }
 
-                                // Searchable Customer Dropdown
-                                customerSearch.addEventListener('focus', function () {
-                                    performSearch(this.value);
-                                });
+                // Searchable Customer Dropdown
+                customerSearch.addEventListener('focus', function () {
+                    performSearch(this.value);
+                });
 
-                                customerSearch.addEventListener('input', function () {
-                                    if (this.value.length < 1) {
-                                        customerId.value = '';
-                                    }
-                                    performSearch(this.value);
-                                });
+                customerSearch.addEventListener('input', function () {
+                    if (this.value.length < 1) {
+                        customerId.value = '';
+                    }
+                    performSearch(this.value);
+                });
 
-                                function renderResults(container, data, onSelect) {
-                                    if (data.length === 0) {
-                                        container.style.display = 'none';
-                                        return;
-                                    }
+                function renderResults(container, data, onSelect) {
+                    if (data.length === 0) {
+                        container.style.display = 'none';
+                        return;
+                    }
 
-                                    container.innerHTML = data.map(item => `
-                                                                <div class="search-result-item" data-id="${item.id}">
-                                                                    <div class="item-title">${item.name}</div>
-                                                                    ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
-                                                                </div>
-                                                            `).join('');
+                    container.innerHTML = data.map(item => `
+                                                                                <div class="search-result-item" data-id="${item.id}">
+                                                                                    <div class="item-title">${item.name}</div>
+                                                                                    ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
+                                                                                </div>
+                                                                            `).join('');
 
-                                    container.style.display = 'block';
+                    container.style.display = 'block';
 
-                                    container.querySelectorAll('.search-result-item').forEach((el, index) => {
-                                        el.addEventListener('click', () => {
-                                            const item = data[index];
-                                            onSelect(item);
-                                        });
-                                    });
-                                }
+                    container.querySelectorAll('.search-result-item').forEach((el, index) => {
+                        el.addEventListener('click', () => {
+                            const item = data[index];
+                            onSelect(item);
+                        });
+                    });
+                }
 
-                                // Close dropdown when clicking outside
-                                document.addEventListener('click', function (e) {
-                                    if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
-                                        customerResults.style.display = 'none';
-                                    }
-                                });
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function (e) {
+                    if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
+                        customerResults.style.display = 'none';
+                    }
+                });
 
-                                // Keyboard navigation for dropdown
-                                customerSearch.addEventListener('keydown', function (e) {
-                                    const items = customerResults.querySelectorAll('.search-result-item');
-                                    let activeIndex = Array.from(items).findIndex(i => i.classList.contains('active'));
+                // Keyboard navigation for dropdown
+                customerSearch.addEventListener('keydown', function (e) {
+                    const items = customerResults.querySelectorAll('.search-result-item');
+                    let activeIndex = Array.from(items).findIndex(i => i.classList.contains('active'));
 
-                                    if (e.key === 'ArrowDown') {
-                                        e.preventDefault();
-                                        if (activeIndex < items.length - 1) {
-                                            if (activeIndex > -1) items[activeIndex].classList.remove('active');
-                                            items[++activeIndex].classList.add('active');
-                                            items[activeIndex].scrollIntoView({ block: 'nearest' });
-                                        }
-                                    } else if (e.key === 'ArrowUp') {
-                                        e.preventDefault();
-                                        if (activeIndex > 0) {
-                                            items[activeIndex].classList.remove('active');
-                                            items[--activeIndex].classList.add('active');
-                                            items[activeIndex].scrollIntoView({ block: 'nearest' });
-                                        }
-                                    } else if (e.key === 'Enter' && activeIndex > -1) {
-                                        e.preventDefault();
-                                        items[activeIndex].click();
-                                    } else if (e.key === 'Escape') {
-                                        customerResults.style.display = 'none';
-                                    }
-                                });
-                            });
-                        </script>
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (activeIndex < items.length - 1) {
+                            if (activeIndex > -1) items[activeIndex].classList.remove('active');
+                            items[++activeIndex].classList.add('active');
+                            items[activeIndex].scrollIntoView({ block: 'nearest' });
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (activeIndex > 0) {
+                            items[activeIndex].classList.remove('active');
+                            items[--activeIndex].classList.add('active');
+                            items[activeIndex].scrollIntoView({ block: 'nearest' });
+                        }
+                    } else if (e.key === 'Enter' && activeIndex > -1) {
+                        e.preventDefault();
+                        items[activeIndex].click();
+                    } else if (e.key === 'Escape') {
+                        customerResults.style.display = 'none';
+                    }
+                });
+            });
+        </script>
     @endpush
 @endsection
