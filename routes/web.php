@@ -252,6 +252,10 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::post('supplier-registrations/{supplierRegistration}/reject', [SupplierRegistrationController::class, 'reject'])->name('supplier-registrations.reject');
         Route::post('supplier-registrations/{supplierRegistration}/convert', [SupplierRegistrationController::class, 'convertToVendor'])->name('supplier-registrations.convert');
         Route::delete('supplier-registrations/documents/{document}', [SupplierRegistrationController::class, 'deleteDocument'])->name('supplier-registrations.documents.delete');
+
+        // AI Invoice Scanning
+        Route::post('ai/scan', [App\Http\Controllers\Purchases\PurchaseAIController::class, 'scan'])->name('ai.scan');
+        Route::post('ai/save-to-vendor', [App\Http\Controllers\Purchases\PurchaseAIController::class, 'saveToVendor'])->name('ai.save-to-vendor');
     });
 
     /*

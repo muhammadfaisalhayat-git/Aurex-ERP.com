@@ -4,11 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\BelongsToTenant;
-
 class StockBalance extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use HasFactory;
 
     protected $table = 'stock_balances';
 

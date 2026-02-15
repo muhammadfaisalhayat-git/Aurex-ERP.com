@@ -6,12 +6,12 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">{{ __('local_purchase.edit') }}</h1>
-        <a href="{{ route('local-purchases.show', $localPurchase) }}" class="btn btn-secondary">
+        <a href="{{ route('purchases.local-purchases.show', $localPurchase) }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> {{ __('general.back') }}
         </a>
     </div>
 
-    <form action="{{ route('local-purchases.update', $localPurchase) }}" method="POST" id="localPurchaseForm">
+    <form action="{{ route('purchases.local-purchases.update', $localPurchase) }}" method="POST" id="localPurchaseForm">
         @csrf
         @method('PUT')
         <div class="row">
@@ -82,11 +82,11 @@
                                     @foreach($localPurchase->items as $index => $item)
                                     <tr class="item-row">
                                         <td>
-                                            <select class="form-select item-select" name="items[{{ $index }}][item_id]" required>
+                                            <select class="form-select item-select" name="items[{{ $index }}][product_id]" required>
                                                 <option value="">{{ __('general.select_item') }}</option>
-                                                @foreach(\App\Models\Item::where('is_active', true)->get() as $product)
+                                                @foreach(\App\Models\Product::where('is_active', true)->get() as $product)
                                                     <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? $product->sale_price }}" 
-                                                        {{ $item->item_id == $product->id ? 'selected' : '' }}>
+                                                        {{ $item->product_id == $product->id ? 'selected' : '' }}>
                                                         {{ $product->code }} - {{ $product->name }}
                                                     </option>
                                                 @endforeach
@@ -202,11 +202,11 @@
 <template id="itemRowTemplate">
     <tr class="item-row">
         <td>
-            <select class="form-select item-select" name="items[INDEX][item_id]" required>
+            <select class="form-select item-select" name="items[INDEX][product_id]" required>
                 <option value="">{{ __('general.select_item') }}</option>
-                @foreach(\App\Models\Item::where('is_active', true)->get() as $item)
-                    <option value="{{ $item->id }}" data-price="{{ $item->purchase_price ?? $item->sale_price }}">
-                        {{ $item->code }} - {{ $item->name }}
+                @foreach(\App\Models\Product::where('is_active', true)->get() as $product)
+                    <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? $product->sale_price }}">
+                        {{ $product->code }} - {{ $product->name }}
                     </option>
                 @endforeach
             </select>

@@ -45,4 +45,19 @@ class ProductController extends Controller
         $product->load('bomComponents.component');
         return view('inventory.products.bom', compact('product'));
     }
+
+    public function ajaxSearch(Request $request)
+    {
+        $search = $request->get('q');
+        $products = Product::where('is_purchasable', true)
+            ->where(function ($query) use ($search) {
+                $query->where('name_en', 'like', "%$search%")
+                    ->orWhere('name_ar', 'like', "%$search%")
+                    ->orWhere('code', 'like', "%$search%");
+            })
+            ->limit(10)
+            ->get(['id', 'code', 'name_en', 'name_ar', 'sale_price', 'cost_price']);
+
+        return response()->json($products);
+    }
 }

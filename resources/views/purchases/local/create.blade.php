@@ -11,13 +11,13 @@
                 <button type="button" class="btn btn-info" id="scanInvoiceBtn">
                     <i class="fas fa-magic"></i> {{ __('local_purchase.scan_invoice') }}
                 </button>
-                <a href="{{ route('local-purchases.index') }}" class="btn btn-secondary">
+                <a href="{{ route('purchases.local-purchases.index') }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> {{ __('general.back') }}
                 </a>
             </div>
         </div>
 
-        <form action="{{ route('local-purchases.store') }}" method="POST" id="localPurchaseForm">
+        <form action="{{ route('purchases.local-purchases.store') }}" method="POST" id="localPurchaseForm">
             @csrf
             <div class="row">
                 <div class="col-md-8">
@@ -188,11 +188,11 @@
     <template id="itemRowTemplate">
         <tr class="item-row">
             <td>
-                <select class="form-select item-select" name="items[INDEX][item_id]" required>
+                <select class="form-select item-select" name="items[INDEX][product_id]" required>
                     <option value="">{{ __('general.select_item') }}</option>
-                    @foreach($items as $item)
-                        <option value="{{ $item->id }}" data-price="{{ $item->purchase_price ?? $item->sale_price }}">
-                            {{ $item->code }} - {{ $item->name }}
+                    @foreach($products as $product)
+                        <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? $product->sale_price }}">
+                            {{ $product->code }} - {{ $product->name }}
                         </option>
                     @endforeach
                 </select>
@@ -318,6 +318,8 @@
 
             scanBtn.addEventListener('click', () => scanInput.click());
 
+            let scannedImagePath = null; // Store the scanned image path
+            
             scanInput.addEventListener('change', function() {
                 if (this.files && this.files[0]) {
                     const formData = new FormData();
@@ -328,13 +330,16 @@
                     scanBtn.disabled = true;
                     scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ __("local_purchase.scanning") }}...';
 
-                    fetch('{{ route("ajax.purchases.scan") }}', {
+                    fetch('{{ route("purchases.ai.scan") }}', {
                         method: 'POST',
                         body: formData
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            // Store scanned image path for later use
+                            scannedImagePath = data.data.image_path;
+                            
                             // Pre-fill main fields
                             if (data.data.supplier_name) document.getElementById('supplier_name').value = data.data.supplier_name;
                             if (data.data.invoice_number) document.getElementById('invoice_number').value = data.data.invoice_number;
@@ -359,10 +364,17 @@
                                         el.name = el.name.replace('INDEX', itemIndex);
                                     });
 
-                                    // Pre-fill item row (description is just for display in this simplified mock)
+                                    // Pre-select product if product_id is provided
+                                    const productSelect = row.querySelector('.item-select');
+                                    if (item.product_id) {
+                                        productSelect.value = item.product_id;
+                                    }
+
+                                    // Pre-fill item row data
                                     row.querySelector('.quantity').value = item.quantity;
                                     row.querySelector('.unit-price').value = item.unit_price;
-                                    row.querySelector('.tax-rate').value = item.tax_rate;
+                                    row.querySelector('.discount').value = item.discount_amount || 0;
+                                    row.querySelector('.tax-rate').value = item.tax_rate || 15;
 
                                     // Add event listeners (standard item logic)
                                     row.querySelector('.remove-item').addEventListener('click', function () {
@@ -414,6 +426,38 @@
                         scanBtn.disabled = false;
                         scanBtn.innerHTML = '<i class="fas fa-magic"></i> {{ __("local_purchase.scan_invoice") }}';
                         scanInput.value = ''; // Reset input
+                    });
+                }
+            });
+
+            // Save scanned invoice to vendor on form submit
+            const form = document.getElementById('localPurchaseForm');
+            form.addEventListener('submit', function(e) {
+                if (scannedImagePath) {
+                    e.preventDefault();
+                    
+                    // First save the invoice image to vendor
+                    const vendorFormData = new FormData();
+                    vendorFormData.append('vendor_id', document.getElementById('vendor_id')?.value || '');
+                    vendorFormData.append('image_path', scannedImagePath);
+                    vendorFormData.append('invoice_number', document.getElementById('invoice_number').value);
+                    vendorFormData.append('_token', '{{ csrf_token() }}');
+                    
+                    fetch('{{ route("purchases.ai.save-to-vendor") }}', {
+                        method: 'POST',
+                        body: vendorFormData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Continue with form submission regardless of whether save succeeded
+                        scannedImagePath = null; // Clear to avoid duplicate saves
+                        form.submit();
+                    })
+                    .catch(error => {
+                        console.error('Save to vendor error:', error);
+                        // Still submit the form
+                        scannedImagePath = null;
+                        form.submit();
                     });
                 }
             });

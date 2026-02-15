@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\Item;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -62,13 +62,13 @@ class SalesReportController extends Controller
 
         // Customer summary
         $customerSummary = Invoice::select(
-                'customer_id',
-                DB::raw('COUNT(*) as invoice_count'),
-                DB::raw('SUM(net_amount) as total_net'),
-                DB::raw('SUM(tax_amount) as total_tax'),
-                DB::raw('SUM(gross_amount) as total_gross'),
-                DB::raw('SUM(discount_amount) as total_discount')
-            )
+            'customer_id',
+            DB::raw('COUNT(*) as invoice_count'),
+            DB::raw('SUM(net_amount) as total_net'),
+            DB::raw('SUM(tax_amount) as total_tax'),
+            DB::raw('SUM(gross_amount) as total_gross'),
+            DB::raw('SUM(discount_amount) as total_discount')
+        )
             ->when(!empty($validated['date_from']), function ($q) use ($validated) {
                 $q->whereDate('invoice_date', '>=', $validated['date_from']);
             })
@@ -112,7 +112,7 @@ class SalesReportController extends Controller
             'item_name' => 'nullable|string|max:255',
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date',
-            'category_id' => 'nullable|exists:item_categories,id',
+            'category_id' => 'nullable|exists:product_categories,id',
         ]);
 
         $query = InvoiceItem::with(['item', 'item.category', 'invoice'])
@@ -154,12 +154,12 @@ class SalesReportController extends Controller
 
         // Item summary
         $itemSummary = InvoiceItem::select(
-                'item_id',
-                DB::raw('SUM(quantity) as total_quantity'),
-                DB::raw('SUM(net_amount) as total_net'),
-                DB::raw('SUM(tax_amount) as total_tax'),
-                DB::raw('SUM(gross_amount) as total_gross')
-            )
+            'item_id',
+            DB::raw('SUM(quantity) as total_quantity'),
+            DB::raw('SUM(net_amount) as total_net'),
+            DB::raw('SUM(tax_amount) as total_tax'),
+            DB::raw('SUM(gross_amount) as total_gross')
+        )
             ->whereHas('invoice', function ($q) use ($validated) {
                 $q->where('status', 'posted');
                 if (!empty($validated['date_from'])) {
@@ -185,14 +185,14 @@ class SalesReportController extends Controller
 
         // Overall totals
         $totals = InvoiceItem::whereHas('invoice', function ($q) use ($validated) {
-                $q->where('status', 'posted');
-                if (!empty($validated['date_from'])) {
-                    $q->whereDate('invoice_date', '>=', $validated['date_from']);
-                }
-                if (!empty($validated['date_to'])) {
-                    $q->whereDate('invoice_date', '<=', $validated['date_to']);
-                }
-            })
+            $q->where('status', 'posted');
+            if (!empty($validated['date_from'])) {
+                $q->whereDate('invoice_date', '>=', $validated['date_from']);
+            }
+            if (!empty($validated['date_to'])) {
+                $q->whereDate('invoice_date', '<=', $validated['date_to']);
+            }
+        })
             ->when(!empty($validated['item_code']), function ($q) use ($validated) {
                 $q->whereHas('item', function ($sq) use ($validated) {
                     $sq->where('code', 'ILIKE', "%{$validated['item_code']}%");
@@ -211,7 +211,7 @@ class SalesReportController extends Controller
             )
             ->first();
 
-        $categories = \App\Models\ItemCategory::where('is_active', true)->get();
+        $categories = \App\Models\ProductCategory::where('is_active', true)->get();
 
         return view('reports.sales.by_item', compact('items', 'itemSummary', 'totals', 'categories', 'validated'));
     }
@@ -375,7 +375,7 @@ class SalesReportController extends Controller
         $callback = function () use ($items) {
             $file = fopen('php://output', 'w');
             fputcsv($file, ['Invoice #', 'Date', 'Item Code', 'Item Name', 'Quantity', 'Unit Price', 'Net Amount', 'Tax Amount', 'Gross Amount']);
-            
+
             foreach ($items as $item) {
                 fputcsv($file, [
                     $item->invoice->document_number,
@@ -389,7 +389,7 @@ class SalesReportController extends Controller
                     $item->gross_amount,
                 ]);
             }
-            
+
             fclose($file);
         };
 
@@ -406,7 +406,7 @@ class SalesReportController extends Controller
         $callback = function () use ($invoices) {
             $file = fopen('php://output', 'w');
             fputcsv($file, ['Invoice #', 'Date', 'Customer Code', 'Customer Name', 'Net Amount', 'Tax Amount', 'Gross Amount', 'Status']);
-            
+
             foreach ($invoices as $invoice) {
                 fputcsv($file, [
                     $invoice->document_number,
@@ -419,7 +419,7 @@ class SalesReportController extends Controller
                     $invoice->status,
                 ]);
             }
-            
+
             fclose($file);
         };
 

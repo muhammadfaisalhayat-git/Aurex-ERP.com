@@ -3,10 +3,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Traits\BelongsToTenant;
 class StockTransferRequest extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use HasFactory, SoftDeletes;
     protected $fillable = ['company_id', 'document_number', 'request_date', 'from_warehouse_id', 'to_warehouse_id', 'status', 'requested_by', 'approved_by', 'approved_at', 'notes'];
     protected $casts = ['request_date' => 'date', 'approved_at' => 'datetime'];
     public function fromWarehouse()

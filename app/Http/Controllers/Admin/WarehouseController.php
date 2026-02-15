@@ -112,4 +112,14 @@ class WarehouseController extends Controller
         return redirect()->route('admin.warehouses.index')
             ->with('success', __('messages.warehouse_deleted'));
     }
+
+    public function ajaxByBranch(Request $request)
+    {
+        $branch_id = $request->get('branch_id');
+        $warehouses = Warehouse::where('branch_id', $branch_id)
+            ->active()
+            ->get(['id', 'name_en', 'name_ar']);
+
+        return response()->json($warehouses);
+    }
 }

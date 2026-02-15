@@ -1,8 +1,6 @@
-use App\Traits\BelongsToTenant;
-
 class StockIssueOrder extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToTenant;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'company_id',

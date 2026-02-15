@@ -258,6 +258,8 @@ return [
     'invoice_unpost_failed' => 'فشل إلغاء ترحيل الفاتورة',
     'no_permission_to_post' => 'ليس لديك صلاحية لترحيل الفواتير',
     'no_permission_to_unpost' => 'ليس لديك صلاحية لإلغاء ترحيل الفواتير',
+    'confirm_post_invoice' => 'هل أنت متأكد من ترحيل هذه الفاتورة؟ سيؤدي ذلك إلى تحديث المخزون وأرصدة الموردين.',
+    'invoice_already_posted' => 'لقد تم ترحيل هذه الفاتورة بالفعل.',
 
     // Quotation
     'expiry_date' => 'تاريخ الانتهاء',
@@ -355,6 +357,13 @@ return [
     'supply_order' => 'أمر التوريد',
     'purchase_invoices' => 'فواتير المشتريات',
     'purchase_invoice' => 'فاتورة المشتريات',
+    'create_purchase_invoice' => 'إنشاء فاتورة مشتريات',
+    'edit_purchase_invoice' => 'تعديل فاتورة مشتريات',
+    'view_purchase_invoice' => 'عرض فاتورة مشتريات',
+    'invoice_details' => 'تفاصيل الفاتورة',
+    'save_invoice' => 'حفظ الفاتورة',
+    'update_invoice' => 'تحديث الفاتورة',
+    'audit_info' => 'معلومات التدقيق',
     'purchase_order_number' => 'رقم أمر الشراء',
 
     // Supply Order

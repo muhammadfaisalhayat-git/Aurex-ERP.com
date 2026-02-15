@@ -264,6 +264,8 @@ return [
     'invoice_unpost_failed' => 'Failed to unpost invoice',
     'no_permission_to_post' => 'You do not have permission to post invoices',
     'no_permission_to_unpost' => 'You do not have permission to unpost invoices',
+    'confirm_post_invoice' => 'Are you sure you want to post this invoice? This will update stock and vendor balances.',
+    'invoice_already_posted' => 'This invoice has already been posted.',
 
     // Quotation
     'expiry_date' => 'Expiry Date',
@@ -361,6 +363,13 @@ return [
     'supply_order' => 'Supply Order',
     'purchase_invoices' => 'Purchase Invoices',
     'purchase_invoice' => 'Purchase Invoice',
+    'create_purchase_invoice' => 'Create Purchase Invoice',
+    'edit_purchase_invoice' => 'Edit Purchase Invoice',
+    'view_purchase_invoice' => 'View Purchase Invoice',
+    'invoice_details' => 'Invoice Details',
+    'save_invoice' => 'Save Invoice',
+    'update_invoice' => 'Update Invoice',
+    'audit_info' => 'Audit Information',
     'purchase_order_number' => 'Purchase Order Number',
 
     // Supply Order

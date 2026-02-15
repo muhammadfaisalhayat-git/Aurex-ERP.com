@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Purchases;
 use App\Http\Controllers\Controller;
 use App\Models\LocalPurchase;
 use App\Models\LocalPurchaseItem;
-use App\Models\Item;
+use App\Models\Product;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,16 +27,16 @@ class LocalPurchaseController extends Controller
         $purchases = LocalPurchase::with(['items', 'creator', 'branch'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
-        
+
         return view('purchases.local.index', compact('purchases'));
     }
 
     public function create()
     {
         $warehouses = Warehouse::where('is_active', true)->get();
-        $items = Item::where('is_active', true)->get();
-        
-        return view('purchases.local.create', compact('warehouses', 'items'));
+        $products = Product::where('is_active', true)->get();
+
+        return view('purchases.local.create', compact('warehouses', 'products'));
     }
 
     public function store(Request $request)
@@ -52,7 +52,7 @@ class LocalPurchaseController extends Controller
             'branch_id' => 'required|exists:branches,id',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
-            'items.*.item_id' => 'required|exists:items,id',
+            'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_amount' => 'nullable|numeric|min:0',
@@ -60,7 +60,7 @@ class LocalPurchaseController extends Controller
         ]);
 
         DB::beginTransaction();
-        
+
         try {
             $purchase = LocalPurchase::create([
                 'document_number' => LocalPurchase::generateDocumentNumber(),
@@ -87,7 +87,7 @@ class LocalPurchaseController extends Controller
 
                 LocalPurchaseItem::create([
                     'local_purchase_id' => $purchase->id,
-                    'item_id' => $item['item_id'],
+                    'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'discount_amount' => $discount,
@@ -124,9 +124,9 @@ class LocalPurchaseController extends Controller
         }
 
         $warehouses = Warehouse::where('is_active', true)->get();
-        $items = Item::where('is_active', true)->get();
-        
-        return view('purchases.local.edit', compact('localPurchase', 'warehouses', 'items'));
+        $products = Product::where('is_active', true)->get();
+
+        return view('purchases.local.edit', compact('localPurchase', 'warehouses', 'products'));
     }
 
     public function update(Request $request, LocalPurchase $localPurchase)
@@ -147,7 +147,7 @@ class LocalPurchaseController extends Controller
             'branch_id' => 'required|exists:branches,id',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
-            'items.*.item_id' => 'required|exists:items,id',
+            'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_amount' => 'nullable|numeric|min:0',
@@ -155,7 +155,7 @@ class LocalPurchaseController extends Controller
         ]);
 
         DB::beginTransaction();
-        
+
         try {
             $localPurchase->update([
                 'invoice_number' => $validated['invoice_number'],
@@ -181,7 +181,7 @@ class LocalPurchaseController extends Controller
 
                 LocalPurchaseItem::create([
                     'local_purchase_id' => $localPurchase->id,
-                    'item_id' => $item['item_id'],
+                    'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'discount_amount' => $discount,
@@ -212,11 +212,11 @@ class LocalPurchaseController extends Controller
         }
 
         DB::beginTransaction();
-        
+
         try {
             $localPurchase->items()->delete();
             $localPurchase->delete();
-            
+
             DB::commit();
 
             return redirect()->route('local-purchases.index')
@@ -235,10 +235,10 @@ class LocalPurchaseController extends Controller
         }
 
         DB::beginTransaction();
-        
+
         try {
             $localPurchase->post(Auth::id());
-            
+
             DB::commit();
 
             return redirect()->route('local-purchases.show', $localPurchase)
@@ -257,10 +257,10 @@ class LocalPurchaseController extends Controller
         }
 
         DB::beginTransaction();
-        
+
         try {
             $localPurchase->unpost();
-            
+
             DB::commit();
 
             return redirect()->route('local-purchases.show', $localPurchase)
