@@ -38,7 +38,8 @@ class WarehouseController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $warehouse = Warehouse::create($validated);
+        $companyId = Branch::find($validated['branch_id'])?->company_id;
+        $warehouse = Warehouse::create(array_merge($validated, ['company_id' => $companyId]));
 
         AuditLog::create([
             'action' => 'create',
@@ -77,6 +78,9 @@ class WarehouseController extends Controller
         ]);
 
         $oldValues = $warehouse->toArray();
+        if ($request->filled('branch_id')) {
+            $validated['company_id'] = Branch::find($validated['branch_id'])?->company_id;
+        }
         $warehouse->update($validated);
 
         AuditLog::create([

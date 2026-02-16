@@ -50,6 +50,11 @@ class UserController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        $companyId = null;
+        if (!empty($validated['branch_id'])) {
+            $companyId = Branch::find($validated['branch_id'])?->company_id;
+        }
+
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -57,6 +62,7 @@ class UserController extends Controller
             'phone' => $validated['phone'] ?? null,
             'employee_code' => $validated['employee_code'] ?? null,
             'branch_id' => $validated['branch_id'] ?? null,
+            'company_id' => $companyId,
             'default_language' => $validated['default_language'],
             'is_active' => $validated['is_active'] ?? true,
         ]);
@@ -128,8 +134,16 @@ class UserController extends Controller
             'is_active' => $validated['is_active'] ?? true,
         ];
 
+        if ($request->filled('branch_id')) {
+            $updateData['company_id'] = Branch::find($validated['branch_id'])?->company_id;
+        }
+
         if (!empty($validated['password'])) {
             $updateData['password'] = Hash::make($validated['password']);
+        }
+
+        if ($request->has('password_reset_key')) {
+            $updateData['password_reset_key'] = $request->password_reset_key;
         }
 
         $user->update($updateData);
