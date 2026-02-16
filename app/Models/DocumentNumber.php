@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class DocumentNumber extends Model
 {
+    use BelongsToTenant;
 
     protected $fillable = [
         'company_id',
@@ -19,7 +21,10 @@ class DocumentNumber extends Model
     public static function generate($entityType, $prefix = null)
     {
         $sequence = self::firstOrCreate(
-            ['entity_type' => $entityType],
+            [
+                'entity_type' => $entityType,
+                'company_id' => session('active_company_id')
+            ],
             [
                 'prefix' => $prefix ?? self::getDefaultPrefix($entityType),
                 'current_number' => 0,

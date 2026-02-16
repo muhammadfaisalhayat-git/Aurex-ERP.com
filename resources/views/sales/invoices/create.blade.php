@@ -26,15 +26,15 @@
                                         <option value="sales_order">{{ __('sales.sales_order') }}</option>
                                     </select>
                                 </div>
-                                <div class="col-md-6 position-relative" id="import-source-container" style="display: none;">
+                                <div class="col-md-6" id="import-source-container" style="display: none;">
                                     <label class="form-label fw-bold">{{ __('sales.source_document') }}</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="import_source_search" autocomplete="off"
+                                        <input type="text" class="form-control" id="import_source_display" readonly
                                             placeholder="{{ __('sales.search_document_placeholder') }}">
-                                        <button class="btn btn-outline-secondary" type="button"><i
-                                                class="fas fa-search"></i></button>
+                                        <button class="btn btn-primary" type="button" id="btn-show-import-modal">
+                                            <i class="fas fa-search me-1"></i> {{ __('common.select') }}
+                                        </button>
                                     </div>
-                                    <div id="import-source-results" class="search-results-container glassy"></div>
                                 </div>
                             </div>
 
@@ -180,7 +180,7 @@
                                             <th style="width: 12%;">{{ __('sales.quantity') }}</th>
                                             <th style="width: 15%;">{{ __('sales.unit_price') }}</th>
                                             <th style="width: 12%;">{{ __('sales.discount') }} (%)</th>
-                                            <th style="width: 12%;">{{ __('sales.tax') }}</th>
+                                            <th style="width: 12%;" class="d-none">{{ __('sales.tax') }}</th>
                                             <th style="width: 15%;">{{ __('sales.total') }}</th>
                                             <th style="width: 4%;"></th>
                                         </tr>
@@ -237,49 +237,92 @@
     </div>
 
     <script type="text/template" id="item-row-template">
-                                                                <tr>
-                                                                    <td class="position-relative product-cell">
-                                                                        <div class="input-group">
-                                                                            <input type="text" class="form-control product-search-input" 
-                                                                                   placeholder="Type to search products..." 
-                                                                                   autocomplete="off"
-                                                                                   data-product-id="">
-                                                                            <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
-                                                                            <button class="btn btn-outline-secondary product-search-btn" type="button" title="Search Product (F2)">
-                                                                                <i class="fas fa-search"></i>
-                                                                            </button>
-                                                                        </div>
-                                                                        <div class="search-results-container glassy product-results"></div>
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0" required>
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control discount-input" name="items[INDEX][discount_percentage]" step="0.01" min="0" max="100" value="0">
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="text" class="form-control tax-display" readonly>
-                                                                        <input type="hidden" class="tax-rate-input">
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="text" class="form-control total-display" readonly>
-                                                                    </td>
-                                                                    <td class="text-center">
-                                                                        <button type="button" class="btn btn-sm btn-danger remove-item">
-                                                                            <i class="fas fa-trash"></i>
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                            </script>
+                                                                            <tr>
+                                                                                <td class="position-relative product-cell">
+                                                                                    <div class="input-group">
+                                                                                        <input type="text" class="form-control product-search-input" 
+                                                                                               placeholder="Type to search products..." 
+                                                                                               autocomplete="off"
+                                                                                               data-product-id="">
+                                                                                        <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
+                                                                                        <button class="btn btn-outline-secondary product-search-btn" type="button" title="Search Product (F2)">
+                                                                                            <i class="fas fa-search"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div class="search-results-container glassy product-results"></div>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0" required>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input type="number" class="form-control discount-input" name="items[INDEX][discount_percentage]" step="0.01" min="0" max="100" value="0">
+                                                                                </td>
+                                                                                <td class="d-none">
+                                                                                    <input type="text" class="form-control tax-display" readonly>
+                                                                                    <input type="hidden" class="tax-rate-input">
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input type="text" class="form-control total-display" readonly>
+                                                                                </td>
+                                                                                <td class="text-center">
+                                                                                    <button type="button" class="btn btn-sm btn-danger remove-item">
+                                                                                        <i class="fas fa-trash"></i>
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </script>
+
+    <!-- Import Source Modal -->
+    <div class="modal fade" id="importSourceModal" tabindex="-1" aria-labelledby="importSourceModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importSourceModalLabel">{{ __('sales.select_source') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="modal-search-input"
+                                placeholder="{{ __('common.search') }}...">
+                        </div>
+                    </div>
+                    <div class="table-responsive" style="max-height: 400px;">
+                        <table class="table table-hover" id="modal-results-table">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>{{ __('sales.document_number') }}</th>
+                                    <th>{{ __('sales.customer') }}</th>
+                                    <th>{{ __('sales.date') }}</th>
+                                    <th>{{ __('sales.amount') }}</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{-- Results will be injected here --}}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="modal-loader" class="text-center py-4" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 @endsection
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('turbo:load', function () {
             let itemIndex = 0;
             const defaultTaxRate = {{ $taxSetting->default_tax_rate ?? 0 }};
             const tableBody = document.querySelector('#items-table tbody');
@@ -289,25 +332,26 @@
                 @foreach($salesmen as $salesman)
                     { id: {{ $salesman->id }}, name: "{{ $salesman->name }}" },
                 @endforeach
-                            ];
+                                        ];
 
             const customerData = [
                 @foreach($customers as $customer)
                     { id: {{ $customer->id }}, name: "{{ $customer->name_en }}", code: "{{ $customer->customer_code }}" },
                 @endforeach
-                            ];
+                                        ];
 
             const productData = [
                 @foreach($products as $product)
-                                    {
+                                                {
                     id: {{ $product->id }},
                     name: "{{ $product->name }}",
                     code: "{{ $product->product_code }}",
                     price: {{ $product->sale_price ?? 0 }},
+                    cost_price: {{ $product->cost_price ?? 0 }},
                     tax: {{ $product->tax_rate ?? $taxSetting->default_tax_rate ?? 0 }} 
-                                    },
+                                                },
                 @endforeach
-                            ];
+                                        ];
 
             function addItem() {
                 const html = template.replace(/INDEX/g, itemIndex++);
@@ -407,15 +451,18 @@
                     div.className = 'search-result-item';
                     if (isProduct) {
                         div.innerHTML = `
-                                            <div class="item-title">${item.name}</div>
-                                            <div class="item-subtitle">${item.code}</div>
-                                            <div class="item-meta">{{ __('sales.price') }}: ${parseFloat(item.price).toFixed(2)}</div>
-                                        `;
+                                                        <div class="item-title">${item.name}</div>
+                                                        <div class="item-subtitle">${item.code}</div>
+                                                        <div class="item-meta d-flex justify-content-between">
+                                                            <span>{{ __('messages.sale_price') }}: <strong>${parseFloat(item.price).toFixed(2)}</strong></span>
+                                                            <span>{{ __('messages.cost_price') }}: <strong>${parseFloat(item.cost_price).toFixed(2)}</strong></span>
+                                                        </div>
+                                                    `;
                     } else {
                         div.innerHTML = `
-                                            <div class="item-title">${item.name}</div>
-                                            ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
-                                        `;
+                                                        <div class="item-title">${item.name}</div>
+                                                        ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
+                                                    `;
                     }
 
                     div.addEventListener('click', () => onSelect(item));
@@ -428,39 +475,78 @@
             // Import Data Logic
             const importSourceType = document.getElementById('import_source_type');
             const importSourceContainer = document.getElementById('import-source-container');
-            const importSourceSearch = document.getElementById('import_source_search');
-            const importSourceResults = document.getElementById('import-source-results');
+            const importSourceDisplay = document.getElementById('import_source_display');
+            const btnShowImportModal = document.getElementById('btn-show-import-modal');
+            const importModal = new bootstrap.Modal(document.getElementById('importSourceModal'));
+            const modalTableBody = document.querySelector('#modal-results-table tbody');
+            const modalSearchInput = document.getElementById('modal-search-input');
+            const modalLoader = document.getElementById('modal-loader');
 
             importSourceType.addEventListener('change', function () {
                 if (this.value) {
                     importSourceContainer.style.display = 'block';
-                    importSourceSearch.value = '';
-                    importSourceResults.style.display = 'none';
+                    importSourceDisplay.value = '';
+                    // Automatically open modal when source is selected
+                    openImportModal();
                 } else {
                     importSourceContainer.style.display = 'none';
                 }
             });
 
-            importSourceSearch.addEventListener('input', function () {
-                const type = importSourceType.value;
-                const search = this.value;
-                if (!type || search.length < 1) {
-                    importSourceResults.style.display = 'none';
-                    return;
-                }
+            btnShowImportModal.addEventListener('click', openImportModal);
 
-                fetch(`{{ route('sales.invoices.import-sources') }}?type=${type}&q=${search}`)
+            function openImportModal() {
+                const type = importSourceType.value;
+                if (!type) return;
+
+                importModal.show();
+                fetchSourceDocuments(type, '');
+            }
+
+            modalSearchInput.addEventListener('input', function () {
+                const type = importSourceType.value;
+                fetchSourceDocuments(type, this.value);
+            });
+
+            function fetchSourceDocuments(type, query) {
+                modalTableBody.innerHTML = '';
+                modalLoader.style.display = 'block';
+
+                fetch(`{{ route('sales.invoices.import-sources') }}?type=${type}&q=${query}`)
                     .then(response => response.json())
                     .then(data => {
-                        renderResults(importSourceResults, data, (item) => {
-                            if (confirm('Importing this document will clear existing items. Continue?')) {
-                                loadSourceData(type, item.id);
-                            }
-                            importSourceResults.style.display = 'none';
-                            importSourceSearch.value = item.text;
+                        modalLoader.style.display = 'none';
+                        if (data.length === 0) {
+                            modalTableBody.innerHTML = '<tr><td colspan="5" class="text-center">{{ __("common.no_results") }}</td></tr>';
+                            return;
+                        }
+
+                        data.forEach(item => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                    <td>${item.text}</td>
+                                    <td>${item.customer_name || '-'}</td>
+                                    <td>${item.date || '-'}</td>
+                                    <td>${item.total_amount ? parseFloat(item.total_amount).toFixed(2) : '-'}</td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-primary select-document" data-id="${item.id}">
+                                            {{ __("common.select") }}
+                                        </button>
+                                    </td>
+                                `;
+
+                            tr.querySelector('.select-document').addEventListener('click', function () {
+                                if (confirm('Importing this document will clear existing items. Continue?')) {
+                                    loadSourceData(type, item.id);
+                                    importSourceDisplay.value = item.text;
+                                    importModal.hide();
+                                }
+                            });
+
+                            modalTableBody.appendChild(tr);
                         });
                     });
-            });
+            }
 
             function loadSourceData(type, id) {
                 fetch(`{{ url('sales/invoices/source-data') }}/${type}/${id}`)

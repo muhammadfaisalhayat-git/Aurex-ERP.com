@@ -155,7 +155,7 @@
                                             <th width="150">{{ __('sales.quantity') }}</th>
                                             <th width="150">{{ __('sales.unit_price') }}</th>
                                             <th width="150">{{ __('sales.discount') }} (%)</th>
-                                            <th width="150">{{ __('sales.tax') }}</th>
+                                            <th width="150" class="d-none">{{ __('sales.tax') }}</th>
                                             <th width="150">{{ __('sales.total') }}</th>
                                             <th width="50"></th>
                                         </tr>
@@ -192,7 +192,7 @@
                                                         name="items[{{ $index }}][discount_percentage]" step="0.01" min="0"
                                                         max="100" value="{{ $item->discount_percentage }}">
                                                 </td>
-                                                <td>
+                                                <td class="d-none">
                                                     <input type="text" class="form-control tax-display"
                                                         value="{{ number_format($item->tax_amount, 2) }}" readonly>
                                                     <input type="hidden" class="tax-rate-input" value="{{ $item->tax_rate }}">
@@ -291,7 +291,7 @@
                 <input type="number" class="form-control discount-input" name="items[INDEX][discount_percentage]"
                     step="0.01" min="0" max="100" value="0">
             </td>
-            <td>
+            <td class="d-none">
                 <input type="text" class="form-control tax-display" readonly>
                 <input type="hidden" class="tax-rate-input">
             </td>
@@ -310,7 +310,7 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function () {
+        document.addEventListener('turbo:load', function () {
             let itemIndex = {{ $invoice->items->count() }};
             const defaultTaxRate = {{ $taxSetting->default_tax_rate ?? 0 }};
 

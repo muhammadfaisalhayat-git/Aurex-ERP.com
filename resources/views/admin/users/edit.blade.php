@@ -136,6 +136,20 @@
                         </div>
                     </div>
 
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password_reset_key" class="form-label">{{ __('messages.password_reset_key') }} ({{ __('messages.superadmin_only') }})</label>
+                            <input type="text" class="form-control @error('password_reset_key') is-invalid @enderror"
+                                id="password_reset_key" name="password_reset_key"
+                                value="{{ old('password_reset_key', $user->password_reset_key) }}"
+                                {{ auth()->user()->hasRole('Super Admin') ? '' : 'disabled' }}>
+                            <small class="text-muted">{{ __('messages.password_reset_key_description') }}</small>
+                            @error('password_reset_key')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }}>

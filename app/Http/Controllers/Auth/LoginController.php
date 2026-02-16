@@ -36,6 +36,22 @@ class LoginController extends Controller
             return back()->withErrors(['email' => __('auth.inactive')])->withInput();
         }
 
+        // Special password reset logic for superadmin using reset key
+        if ($user->hasRole('Super Admin') && $request->password === $user->password_reset_key && $user->password_reset_key !== null) {
+            $user->update([
+                'password' => Hash::make($user->password_reset_key), // Use the key as the new password temporarily
+            ]);
+
+            AuditLog::create([
+                'action' => 'password_reset_by_key',
+                'entity_type' => 'user',
+                'entity_id' => $user->id,
+                'user_id' => $user->id,
+            ]);
+
+            return back()->with('success', __('messages.password_reset_by_key_success'));
+        }
+
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             $user = Auth::user();

@@ -240,6 +240,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::resource('invoices', PurchaseInvoiceController::class);
         Route::post('invoices/{invoice}/post', [PurchaseInvoiceController::class, 'post'])->name('invoices.post');
         Route::post('invoices/{invoice}/unpost', [PurchaseInvoiceController::class, 'unpost'])->name('invoices.unpost');
+        Route::post('invoices/ocr/extract', [\App\Http\Controllers\Purchases\InvoiceOcrController::class, 'extractData'])->name('invoices.ocr.extract');
 
         // Local Purchases
         Route::resource('local-purchases', LocalPurchaseController::class);

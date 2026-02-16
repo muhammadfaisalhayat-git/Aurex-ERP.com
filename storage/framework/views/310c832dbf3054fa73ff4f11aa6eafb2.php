@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title><?php echo $__env->yieldContent('title', $appName); ?></title>
 
     <!-- Bootstrap CSS -->
@@ -27,6 +30,60 @@
 
     <!-- Hotwire Turbo -->
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.0/dist/turbo.es2017-umd.js"></script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Global functions
+        window.toggleSidebar = function () {
+            document.querySelector('.sidebar').classList.toggle('show');
+        };
+
+        // Use a single persistent listener for all sidebar interactions
+        document.addEventListener('click', function (e) {
+            // Submenu toggle
+            const submenuToggle = e.target.closest('.menu-link[data-submenu]');
+            if (submenuToggle) {
+                e.preventDefault();
+                submenuToggle.closest('.menu-item').classList.toggle('open');
+                return;
+            }
+
+            // Mobile sidebar toggle
+            const sidebarToggle = e.target.closest('.sidebar-toggle');
+            if (sidebarToggle) {
+                document.querySelector('.sidebar').classList.toggle('show');
+                return;
+            }
+        });
+
+        document.addEventListener('turbo:load', function () {
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function () {
+                document.querySelectorAll('.alert').forEach(function (alert) {
+                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    if (bsAlert) bsAlert.close();
+                });
+            }, 50000);
+        });
+
+        // Cleanup Bootstrap state before Turbo caches/replaces the body
+        document.addEventListener('turbo:before-cache', function () {
+            document.querySelectorAll('.dropdown-toggle.show').forEach(function (el) {
+                const dropdown = bootstrap.Dropdown.getOrCreateInstance(el);
+                if (dropdown) dropdown.hide();
+            });
+
+            // Also ensure tooltips/popovers are hidden if any
+            document.querySelectorAll('.tooltip.show, .popover.show').forEach(function (el) {
+                el.remove();
+            });
+        });
+    </script>
 
     <!-- Custom CSS: Commented out as file doesn't exist -->
     
@@ -72,18 +129,7 @@
             overflow-y: auto;
         }
 
-        /* The instruction provided PHP array elements within a CSS block.
-           To maintain syntactical correctness, these PHP elements are placed
-           within a PHP comment block. If these are intended for a PHP file,
-           they should be moved to the appropriate PHP translation file. */
-            {
-                {
-                -- 'posted_by'=>'Posted By',
-                'cash_customer'=>'Cash Customer',
-                ];
-                --
-            }
-        }
+
 
         .sidebar.collapsed {
             width: var(--sidebar-collapsed-width);
@@ -122,6 +168,10 @@
             letter-spacing: 0.5px;
             color: #94a3b8;
             font-weight: 600;
+            text-align:
+                <?php echo e(app()->getLocale() === 'ar' ? 'right' : 'left'); ?>
+
+            ;
         }
 
         .menu-item {
@@ -147,8 +197,9 @@
 
         .menu-link i {
             width: 24px;
-            font-size: 1rem;
-            margin-<?php echo e(app()->getLocale() === 'ar' ? 'left' : 'right'); ?>: 12px;
+            font-size: 1.1rem;
+            margin-<?php echo e(app()->getLocale() === 'ar' ? 'left' : 'right'); ?>: 15px;
+            text-align: center;
         }
 
         .menu-arrow {
@@ -179,10 +230,12 @@
             margin-<?php echo e(app()->getLocale() === 'ar' ? 'right' : 'left'); ?>: var(--sidebar-width);
             transition: all 0.3s ease;
             min-height: 100vh;
+            width: calc(100% - var(--sidebar-width));
         }
 
         .sidebar.collapsed+.main-content {
             margin-<?php echo e(app()->getLocale() === 'ar' ? 'right' : 'left'); ?>: var(--sidebar-collapsed-width);
+            width: calc(100% - var(--sidebar-collapsed-width));
         }
 
         /* Header */
@@ -435,75 +488,6 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        /* Glassy Form Controls */
-        .glassy-form .form-control,
-        .glassy-form .form-select,
-        .glassy-form .input-group-text,
-        .glassy-form .btn-outline-secondary {
-            background: rgba(255, 255, 255, 0.7) !important;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        .glassy-form .form-control:focus,
-        .glassy-form .form-select:focus {
-            background: rgba(255, 255, 255, 0.9) !important;
-            border-color: var(--primary-color);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.1);
-        }
-
-        .glassy-form .card {
-            background: rgba(255, 255, 255, 0.8) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-
-        .search-results-container.glassy {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-            margin-top: 5px;
-            overflow: hidden;
-            z-index: 2000;
-            width: max-content;
-            min-width: 500px;
-            max-width: 80vw;
-        }
-
-        .search-result-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease;
-        }
-
-        .search-result-item:last-child {
-            border-bottom: none;
-        }
-
-        .search-result-item:hover {
-            background: rgba(37, 99, 235, 0.08);
-            padding-left: 20px;
-        }
-
-        .search-result-item .item-title {
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        .search-result-item .item-subtitle {
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-
         .search-result-item .item-meta {
             font-size: 0.75rem;
             color: var(--primary-color);
@@ -527,7 +511,8 @@
             }
 
             .main-content {
-                margin-<?php echo e(app()->getLocale() === 'ar' ? 'right' : 'left'); ?>: 0;
+                margin-<?php echo e(app()->getLocale() === 'ar' ? 'right' : 'left'); ?>: 0 !important;
+                width: 100% !important;
             }
         }
 
@@ -561,7 +546,7 @@
         <!-- Header -->
         <header class="header">
             <div class="header-left">
-                <button class="sidebar-toggle d-lg-none" onclick="toggleSidebar()">
+                <button class="sidebar-toggle d-lg-none">
                     <i class="fas fa-bars"></i>
                 </button>
 
@@ -647,7 +632,8 @@
                         </div>
                         <div class="user-info d-none d-md-block">
                             <div class="user-name"><?php echo e(auth()->user()->name); ?></div>
-                            <div class="user-role"><?php echo e(auth()->user()->roles->first()?->display_name_en ?? 'User'); ?>
+                            <div class="user-role">
+                                <?php echo e(app()->getLocale() === 'ar' ? (auth()->user()->roles->first()?->display_name_ar ?? 'مستخدم') : (auth()->user()->roles->first()?->display_name_en ?? 'User')); ?>
 
                             </div>
                         </div>
@@ -677,60 +663,13 @@
 
         <!-- Content -->
         <div class="content-wrapper">
-            <?php if(session('success')): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <?php echo e(session('success')); ?>
-
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-
-            <?php if(session('error')): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <?php echo e(session('error')); ?>
-
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-
             <?php echo $__env->yieldContent('content'); ?>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-    <script>
-        function toggleSidebar() {
-            document.querySelector('.sidebar').classList.toggle('show');
-        }
-
-        // Initialize functionality on Turbo load
-        document.addEventListener('turbo:load', function () {
-            // Auto-hide alerts after 5 seconds
-            setTimeout(function () {
-                document.querySelectorAll('.alert').forEach(function (alert) {
-                    var bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                });
-            }, 5000);
-
-            // Submenu toggle
-            document.querySelectorAll('.menu-link[data-submenu]').forEach(function (link) {
-                // Remove existing click listeners to avoid duplicates
-                link.onclick = null;
-                link.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    this.closest('.menu-item').classList.toggle('open');
-                });
-            });
-        });
-
-        // SweetAlert2 Global Configuration
-        <?php if(session('success')): ?>
+    <!-- Notifications -->
+    <?php if(session('success')): ?>
+        <script>
             Swal.fire({
                 icon: 'success',
                 title: '<?php echo e(__("messages.success")); ?>',
@@ -740,17 +679,19 @@
                 background: 'rgba(255, 255, 255, 0.9)',
                 backdrop: `rgba(0,0,123,0.1)`
             });
-        <?php endif; ?>
+        </script>
+    <?php endif; ?>
 
-        <?php if(session('error')): ?>
+    <?php if(session('error')): ?>
+        <script>
             Swal.fire({
                 icon: 'error',
                 title: '<?php echo e(__("messages.error")); ?>',
                 text: '<?php echo e(session("error")); ?>',
                 background: 'rgba(255, 255, 255, 0.9)'
             });
-        <?php endif; ?>
-    </script>
+        </script>
+    <?php endif; ?>
 
     <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>

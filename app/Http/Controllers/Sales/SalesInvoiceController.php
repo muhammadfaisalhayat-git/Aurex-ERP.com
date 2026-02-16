@@ -87,18 +87,7 @@ class SalesInvoiceController extends Controller
             $query->whereDate('invoice_date', '<=', $request->date_to);
         }
 
-        // Branch filter for non-super-admin
-        if (!auth()->user()->isSuperAdmin()) {
-            $userBranchIds = auth()->user()->branch_id ? [auth()->user()->branch_id] : [];
-            $userWarehouseIds = auth()->user()->warehouses->pluck('id')->toArray();
-
-            if (!empty($userBranchIds)) {
-                $query->whereIn('branch_id', $userBranchIds);
-            }
-            if (!empty($userWarehouseIds)) {
-                $query->whereIn('warehouse_id', $userWarehouseIds);
-            }
-        }
+        // Global scope BelongsToTenant now handles filtering by active_company_id and active_branch_id
 
         $invoices = $query->orderBy('created_at', 'desc')->paginate(20);
         $customers = Customer::active()->get();
@@ -118,35 +107,72 @@ class SalesInvoiceController extends Controller
             case 'quotation':
                 $results = Quotation::where('document_number', 'LIKE', "%$query%")
                     ->orWhereHas('customer', function ($q) use ($query) {
-                        $q->where('name_en', 'LIKE', "%$query%");
+                        $q->where('name_en', 'LIKE', "%$query%")
+                            ->orWhere('name_ar', 'LIKE', "%$query%");
                     })
                     ->active()
-                    ->limit(10)
-                    ->get(['id', 'document_number as text']);
+                    ->limit(20)
+                    ->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'text' => $item->document_number,
+                            'customer_name' => $item->customer->name_en ?? '',
+                            'date' => ($item->quotation_date instanceof \Carbon\Carbon) ? $item->quotation_date->format('Y-m-d') : ($item->quotation_date ? date('Y-m-d', strtotime($item->quotation_date)) : ''),
+                            'total_amount' => $item->total_amount
+                        ];
+                    });
                 break;
             case 'customer_request':
                 $results = \App\Models\CustomerRequest::where('document_number', 'LIKE', "%$query%")
                     ->orWhereHas('customer', function ($q) use ($query) {
-                        $q->where('name_en', 'LIKE', "%$query%");
+                        $q->where('name_en', 'LIKE', "%$query%")
+                            ->orWhere('name_ar', 'LIKE', "%$query%");
                     })
-                    ->limit(10)
-                    ->get(['id', 'document_number as text']);
+                    ->limit(20)
+                    ->get()
+                    ->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'text' => $item->document_number,
+                            'customer_name' => $item->customer->name_en ?? '',
+                            'date' => ($item->request_date instanceof \Carbon\Carbon) ? $item->request_date->format('Y-m-d') : ($item->request_date ? date('Y-m-d', strtotime($item->request_date)) : ''),
+                            'total_amount' => $item->total_amount
+                        ];
+                    });
                 break;
             case 'sales_return':
                 $results = \App\Models\SalesReturn::where('document_number', 'LIKE', "%$query%")
                     ->orWhereHas('customer', function ($q) use ($query) {
                         $q->where('name_en', 'LIKE', "%$query%");
                     })
-                    ->limit(10)
-                    ->get(['id', 'document_number as text']);
+                    ->limit(20)
+                    ->get()
+                    ->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'text' => $item->document_number,
+                            'customer_name' => $item->customer->name_en ?? '',
+                            'date' => ($item->return_date instanceof \Carbon\Carbon) ? $item->return_date->format('Y-m-d') : ($item->return_date ? date('Y-m-d', strtotime($item->return_date)) : ''),
+                            'total_amount' => $item->total_amount
+                        ];
+                    });
                 break;
             case 'sales_order':
                 $results = \App\Models\SalesOrder::where('document_number', 'LIKE', "%$query%")
                     ->orWhereHas('customer', function ($q) use ($query) {
                         $q->where('name_en', 'LIKE', "%$query%");
                     })
-                    ->limit(10)
-                    ->get(['id', 'document_number as text']);
+                    ->limit(20)
+                    ->get()
+                    ->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'text' => $item->document_number,
+                            'customer_name' => $item->customer->name_en ?? '',
+                            'date' => ($item->order_date instanceof \Carbon\Carbon) ? $item->order_date->format('Y-m-d') : ($item->order_date ? date('Y-m-d', strtotime($item->order_date)) : ''),
+                            'total_amount' => $item->total_amount
+                        ];
+                    });
                 break;
         }
 
@@ -207,14 +233,7 @@ class SalesInvoiceController extends Controller
         $products = Product::sellable()->active()->get();
         $taxSetting = TaxSetting::first();
 
-        // Filter by user permissions
-        if (!auth()->user()->isSuperAdmin()) {
-            if (auth()->user()->branch_id) {
-                $branches = $branches->where('id', auth()->user()->branch_id);
-            }
-            $userWarehouseIds = auth()->user()->warehouses->pluck('id')->toArray();
-            $warehouses = $warehouses->whereIn('id', $userWarehouseIds);
-        }
+        // Global scope BelongsToTenant now handles filtering
 
         $documentNumber = DocumentNumber::generate('sales_invoice');
         $salesmen = User::active()->get();
@@ -663,8 +682,38 @@ class SalesInvoiceController extends Controller
         }
 
         $message = $this->whatsappService->formatDocumentMessage($invoice, 'invoice');
-        $link = $this->whatsappService->generateLink($phone, $message);
 
+        // Check if UltraMsg is configured
+        $instanceId = \App\Models\SystemSetting::getValue('whatsapp_instance_id');
+        $token = \App\Models\SystemSetting::getValue('whatsapp_token');
+
+        if ($instanceId && $token) {
+            // Generate PDF
+            $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator']);
+            $pdfContent = PDF::loadView('sales.invoices.pdf', compact('invoice'))->output();
+
+            // Save temporarily
+            $fileName = "invoice_{$invoice->document_number}.pdf";
+            $tempPath = storage_path("app/public/{$fileName}");
+            file_put_contents($tempPath, $pdfContent);
+
+            // Send via API
+            $result = $this->whatsappService->sendDocument($phone, $tempPath, $fileName, $message);
+
+            // Clean up
+            if (file_exists($tempPath)) {
+                unlink($tempPath);
+            }
+
+            if ($result['success']) {
+                return back()->with('success', 'Invoice sent successfully via WhatsApp.');
+            } else {
+                return back()->with('error', 'Failed to send WhatsApp: ' . $result['message']);
+            }
+        }
+
+        // Fallback to link if not configured
+        $link = $this->whatsappService->generateLink($phone, $message);
         return redirect()->away($link);
     }
 }

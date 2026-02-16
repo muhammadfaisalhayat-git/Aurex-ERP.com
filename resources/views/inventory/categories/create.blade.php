@@ -20,15 +20,60 @@
                     @if(isset($category)) @method('PUT') @endif
 
                     <div class="row g-3">
-                        <div class="col-md-12">
-                            <label class="form-label">{{ __('messages.name') }}</label>
-                            <input type="text" name="name" class="form-control"
-                                value="{{ old('name', $category->name ?? '') }}" required>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('messages.code') }}</label>
+                            <input type="text" name="code" class="form-control @error('code') is-invalid @enderror"
+                                value="{{ old('code', $category->code ?? '') }}" required>
+                            @error('code')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('messages.name_en') }}</label>
+                            <input type="text" name="name_en" class="form-control @error('name_en') is-invalid @enderror"
+                                value="{{ old('name_en', $category->name_en ?? '') }}" required>
+                            @error('name_en')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('messages.name_ar') }}</label>
+                            <input type="text" name="name_ar" class="form-control @error('name_ar') is-invalid @enderror"
+                                value="{{ old('name_ar', $category->name_ar ?? '') }}" required>
+                            @error('name_ar')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ __('messages.parent_category') }}</label>
+                            <select name="parent_id" class="form-select @error('parent_id') is-invalid @enderror">
+                                <option value="">{{ __('messages.no_parent') }}</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id }}" {{ (old('parent_id', $category->parent_id ?? '') == $cat->id) ? 'selected' : '' }}>
+                                        {{ $cat->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('parent_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ __('messages.status') }}</label>
+                            <select name="is_active" class="form-select">
+                                <option value="1" {{ old('is_active', $category->is_active ?? true) ? 'selected' : '' }}>
+                                    {{ __('messages.active') }}</option>
+                                <option value="0" {{ !old('is_active', $category->is_active ?? true) ? 'selected' : '' }}>
+                                    {{ __('messages.inactive') }}</option>
+                            </select>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">{{ __('messages.description') }}</label>
-                            <textarea name="description" class="form-control"
+                            <textarea name="description" class="form-control @error('description') is-invalid @enderror"
                                 rows="3">{{ old('description', $category->description ?? '') }}</textarea>
+                            @error('description')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
 

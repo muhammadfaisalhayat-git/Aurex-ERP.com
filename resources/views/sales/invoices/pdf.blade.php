@@ -173,7 +173,7 @@
                 <th width="45%">{{ __('sales.product') }}</th>
                 <th class="text-right">{{ __('sales.quantity') }}</th>
                 <th class="text-right">{{ __('sales.unit_price') }}</th>
-                <th class="text-right">{{ __('sales.tax') }}</th>
+                <th class="text-right" style="display: none;">{{ __('sales.tax') }}</th>
                 <th class="text-right">{{ __('sales.total') }}</th>
             </tr>
         </thead>
@@ -188,7 +188,7 @@
                     </td>
                     <td class="text-right">{{ number_format($item->quantity, 3) }}</td>
                     <td class="text-right">{{ number_format($item->unit_price, 2) }}</td>
-                    <td class="text-right">{{ number_format($item->tax_amount, 2) }}</td>
+                    <td class="text-right" style="display: none;">{{ number_format($item->tax_amount, 2) }}</td>
                     <td class="text-right">{{ number_format($item->gross_amount, 2) }}</td>
                 </tr>
             @endforeach

@@ -3,9 +3,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\BelongsToTenant;
+
 class CustomerRequest extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BelongsToTenant;
     protected $fillable = ['company_id', 'document_number', 'request_date', 'customer_id', 'branch_id', 'needed_date', 'status', 'notes', 'created_by', 'converted_by', 'converted_at', 'quotation_id', 'subtotal', 'tax_amount', 'total_amount'];
     protected $casts = ['request_date' => 'date', 'needed_date' => 'date', 'converted_at' => 'datetime'];
     public function customer()

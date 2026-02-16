@@ -138,7 +138,7 @@
                                         <th class="text-end">{{ __('sales.quantity') }}</th>
                                         <th class="text-end">{{ __('sales.unit_price') }}</th>
                                         <th class="text-end">{{ __('sales.discount') }}</th>
-                                        <th class="text-end">{{ __('sales.tax') }}</th>
+                                        <th class="text-end d-none">{{ __('sales.tax') }}</th>
                                         <th class="text-end">{{ __('sales.total') }}</th>
                                     </tr>
                                 </thead>
@@ -159,7 +159,7 @@
                                                     <small class="text-muted">({{ $item->discount_percentage }}%)</small>
                                                 @endif
                                             </td>
-                                            <td class="text-end">
+                                            <td class="text-end d-none">
                                                 {{ number_format($item->tax_amount, 2) }}
                                                 <small class="text-muted">({{ $item->tax_rate }}%)</small>
                                             </td>
