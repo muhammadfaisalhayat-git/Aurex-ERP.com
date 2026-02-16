@@ -6,11 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseInvoiceItem;
 use App\Models\Vendor;
+use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\Branch;
 use App\Models\Warehouse;
 use App\Models\AuditLog;
+use App\Models\VendorDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class PurchaseInvoiceController extends Controller
 {
@@ -59,14 +64,14 @@ class PurchaseInvoiceController extends Controller
             'invoice_number' => 'required|string|max:50',
             'invoice_date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:invoice_date',
-            'vendor_id' => 'required|exists:vendors,id',
+            'vendor_id' => 'required',
             'branch_id' => 'required|exists:branches,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'purchase_order_number' => 'nullable|string|max:50',
             'payment_terms' => 'required|in:cash,credit,installment',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_id' => 'required',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.tax_rate' => 'nullable|numeric|min:0',
@@ -75,21 +80,113 @@ class PurchaseInvoiceController extends Controller
             'tax_rate' => 'nullable|numeric|min:0',
         ]);
 
+        // Default due_date to invoice_date if missing
+        if (empty($validated['due_date'])) {
+            $validated['due_date'] = $validated['invoice_date'];
+        }
+
         try {
             DB::beginTransaction();
+
+            // Handle New Vendor
+            if (str_starts_with($request->vendor_id, 'new:')) {
+                $vendorName = str_replace('new:', '', $request->vendor_id);
+                $vendor = Vendor::create([
+                    'name_en' => $vendorName,
+                    'name_ar' => $vendorName,
+                    'code' => Vendor::generateNextCode(),
+                    'branch_id' => $request->branch_id,
+                    'tax_number' => $request->vendor_tax_id,
+                    'address' => $request->vendor_address,
+                    'status' => 'active',
+                ]);
+                $validated['vendor_id'] = $vendor->id;
+            } else {
+                // Confirm valid ID if not new
+                $vendor = Vendor::findOrFail($request->vendor_id);
+                $validated['vendor_id'] = $vendor->id;
+            }
+
+            // Handle OCR Document Persistence
+            if ($request->filled('ocr_temp_file')) {
+                $tempPath = config('ocr.upload_path') . DIRECTORY_SEPARATOR . $request->ocr_temp_file;
+                if (File::exists($tempPath)) {
+                    $newPath = 'vendors/documents/' . $vendor->id . '_' . time() . '_' . $request->ocr_temp_file;
+                    Storage::disk('public')->put($newPath, File::get($tempPath));
+
+                    VendorDocument::create([
+                        'vendor_id' => $vendor->id,
+                        'document_type' => 'invoice',
+                        'file_path' => $newPath,
+                        'original_filename' => $request->ocr_temp_file,
+                        'notes' => 'Auto-uploaded via OCR on ' . now()->format('Y-m-d'),
+                        'uploaded_by' => auth()->id(),
+                    ]);
+
+                    // Clean up temp
+                    File::delete($tempPath);
+                }
+            }
 
             $validated['document_number'] = PurchaseInvoice::generateNextDocumentNumber();
             $validated['status'] = 'draft';
             $validated['created_by'] = auth()->id();
 
-            // Calculate totals
+            // Pre-process items to handle new products
+            $items = [];
             $subtotal = 0;
             $totalTax = 0;
+
+            // Get or create a default category for OCR products
+            $defaultCategory = ProductCategory::where('name_en', 'General')
+                ->orWhere('name_ar', 'عام')
+                ->first();
+
+            if (!$defaultCategory) {
+                $defaultCategory = ProductCategory::create([
+                    'name_en' => 'General',
+                    'name_ar' => 'عام',
+                    'code' => 'GEN',
+                    'is_active' => true
+                ]);
+            }
+
             foreach ($request->items as $item) {
+                $productId = $item['product_id'];
+                if (str_starts_with($productId, 'new:')) {
+                    $productName = str_replace('new:', '', $productId);
+                    $product = Product::create([
+                        'name_en' => $productName,
+                        'name_ar' => $productName,
+                        'category_id' => $defaultCategory->id,
+                        'code' => 'PRD-' . strtoupper(uniqid()),
+                        'branch_id' => $request->branch_id,
+                        'is_active' => true,
+                        'is_purchasable' => true,
+                        'is_sellable' => true,
+                        'cost_price' => $item['unit_price'],
+                        'tax_rate' => $item['tax_rate'] ?? 0,
+                    ]);
+                    $productId = $product->id;
+                } else {
+                    if (!Product::where('id', $productId)->exists()) {
+                        throw new \Exception(__('messages.invalid_product') . ': ' . $productId);
+                    }
+                }
+
                 $lineSubtotal = $item['quantity'] * $item['unit_price'];
                 $subtotal += $lineSubtotal;
                 $lineTax = $lineSubtotal * (($item['tax_rate'] ?? 0) / 100);
                 $totalTax += $lineTax;
+
+                $items[] = [
+                    'product_id' => $productId,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'tax_rate' => $item['tax_rate'] ?? 0,
+                    'tax_amount' => $lineTax,
+                    'total_amount' => $lineSubtotal + $lineTax,
+                ];
             }
 
             $validated['subtotal'] = $subtotal;
@@ -99,20 +196,8 @@ class PurchaseInvoiceController extends Controller
 
             $invoice = PurchaseInvoice::create($validated);
 
-            foreach ($request->items as $item) {
-                $lineSubtotal = $item['quantity'] * $item['unit_price'];
-                $lineTax = $lineSubtotal * (($item['tax_rate'] ?? 0) / 100);
-
-                PurchaseInvoiceItem::create([
-                    'purchase_invoice_id' => $invoice->id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'tax_rate' => $item['tax_rate'] ?? 0,
-                    'tax_amount' => $lineTax,
-                    'subtotal' => $lineSubtotal,
-                    'total_amount' => $lineSubtotal + $lineTax,
-                ]);
+            foreach ($items as $itemData) {
+                $invoice->items()->create($itemData);
             }
 
             AuditLog::create([
