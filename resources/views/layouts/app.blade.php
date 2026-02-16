@@ -69,28 +69,6 @@
                     if (bsAlert) bsAlert.close();
                 });
             }, 50000);
-
-            // SweetAlert2 Global Configuration
-            @if(session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: '{{ __("messages.success") }}',
-                    text: '{{ session("success") }}',
-                    timer: 3000,
-                    showConfirmButton: false,
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdrop: `rgba(0,0,123,0.1)`
-                });
-            @endif
-
-            @if(session('error'))
-                Swal.fire({
-                    icon: 'error',
-                    title: '{{ __("messages.error") }}',
-                    text: '{{ session("error") }}',
-                    background: 'rgba(255, 255, 255, 0.9)'
-                });
-            @endif
         });
 
         // Cleanup Bootstrap state before Turbo caches/replaces the body
@@ -677,6 +655,32 @@
             @yield('content')
         </div>
     </div>
+
+    <!-- Notifications -->
+    @if(session('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: '{{ __("messages.success") }}',
+                text: '{{ session("success") }}',
+                timer: 3000,
+                showConfirmButton: false,
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdrop: `rgba(0,0,123,0.1)`
+            });
+        </script>
+    @endif
+
+    @if(session('error'))
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: '{{ __("messages.error") }}',
+                text: '{{ session("error") }}',
+                background: 'rgba(255, 255, 255, 0.9)'
+            });
+        </script>
+    @endif
 
     @stack('scripts')
 </body>
