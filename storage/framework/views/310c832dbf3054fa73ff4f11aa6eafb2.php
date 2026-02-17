@@ -482,6 +482,15 @@
             font-size: 0.875rem;
         }
 
+        .form-select {
+            padding-inline-end: 40px;
+            /* Ensure space for the arrow */
+        }
+
+        .text-force-left {
+            text-align: left !important;
+        }
+
         .form-control:focus,
         .form-select:focus {
             border-color: var(--primary-color);

@@ -347,6 +347,20 @@
 
                         </a>
                     <?php endif; ?>
+                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view employees')): ?>
+                        <a href="<?php echo e(route('hr.salaries.index')); ?>"
+                            class="menu-link <?php echo e(request()->routeIs('hr.salaries.*') ? 'active' : ''); ?>">
+                            <?php echo e(__('messages.salaries')); ?>
+
+                        </a>
+                    <?php endif; ?>
+                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view employees')): ?>
+                        <a href="<?php echo e(route('hr.experience.index')); ?>"
+                            class="menu-link <?php echo e(request()->routeIs('hr.experience.*') ? 'active' : ''); ?>">
+                            <?php echo e(__('messages.experience_letters')); ?>
+
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
         <?php endif; ?>

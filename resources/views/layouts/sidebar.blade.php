@@ -326,6 +326,18 @@
                             {{ __('messages.designations') }}
                         </a>
                     @endcan
+                    @can('view employees')
+                        <a href="{{ route('hr.salaries.index') }}"
+                            class="menu-link {{ request()->routeIs('hr.salaries.*') ? 'active' : '' }}">
+                            {{ __('messages.salaries') }}
+                        </a>
+                    @endcan
+                    @can('view employees')
+                        <a href="{{ route('hr.experience.index') }}"
+                            class="menu-link {{ request()->routeIs('hr.experience.*') ? 'active' : '' }}">
+                            {{ __('messages.experience_letters') }}
+                        </a>
+                    @endcan
                 </div>
             </div>
         @endcanany

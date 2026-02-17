@@ -17,7 +17,10 @@ trait BelongsToTenant
             }
 
             if (empty($model->branch_id) && Session::has('active_branch_id')) {
-                $model->branch_id = Session::get('active_branch_id');
+                // Safety check: only set branch_id if the column exists
+                if (\Schema::hasColumn($model->getTable(), 'branch_id')) {
+                    $model->branch_id = Session::get('active_branch_id');
+                }
             }
         });
 

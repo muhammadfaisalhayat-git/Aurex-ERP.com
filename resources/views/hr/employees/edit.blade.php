@@ -17,61 +17,194 @@
                     @csrf
                     @method('PUT')
                     <div class="row g-3">
+                        <!-- Row 1: Identity -->
                         <div class="col-md-3">
                             <label class="form-label">{{ __('messages.employee_code') }}</label>
-                            <input type="text" name="employee_code" class="form-control"
-                                value="{{ $employee->employee_code }}" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">{{ __('messages.first_name_en') }}</label>
-                            <input type="text" name="first_name_en" class="form-control"
-                                value="{{ $employee->first_name_en }}" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">{{ __('messages.last_name_en') }}</label>
-                            <input type="text" name="last_name_en" class="form-control"
-                                value="{{ $employee->last_name_en }}" required>
+                            <input type="text" name="employee_code"
+                                class="form-control @error('employee_code') is-invalid @enderror"
+                                value="{{ old('employee_code', $employee->employee_code) }}" required>
+                            @error('employee_code')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">{{ __('messages.email') }}</label>
-                            <input type="email" name="email" class="form-control" value="{{ $employee->email }}" required>
+                            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                                value="{{ old('email', $employee->email) }}" required>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.phone') }}</label>
+                            <input type="text" name="phone"
+                                class="form-control @error('phone', $employee->phone) is-invalid @enderror"
+                                value="{{ old('phone', $employee->phone) }}">
+                            @error('phone')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.nationality') }}</label>
+                            <input type="text" name="nationality"
+                                class="form-control @error('nationality') is-invalid @enderror"
+                                value="{{ old('nationality', $employee->nationality) }}">
+                            @error('nationality')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Row 2: Names -->
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.first_name_en') }}</label>
+                            <input type="text" name="first_name_en"
+                                class="form-control @error('first_name_en') is-invalid @enderror"
+                                value="{{ old('first_name_en', $employee->first_name_en) }}" required>
+                            @error('first_name_en')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.last_name_en') }}</label>
+                            <input type="text" name="last_name_en"
+                                class="form-control @error('last_name_en') is-invalid @enderror"
+                                value="{{ old('last_name_en', $employee->last_name_en) }}" required>
+                            @error('last_name_en')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.first_name_ar') }}</label>
+                            <input type="text" name="first_name_ar"
+                                class="form-control @error('first_name_ar') is-invalid @enderror"
+                                value="{{ old('first_name_ar', $employee->first_name_ar) }}">
+                            @error('first_name_ar')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.last_name_ar') }}</label>
+                            <input type="text" name="last_name_ar"
+                                class="form-control @error('last_name_ar') is-invalid @enderror"
+                                value="{{ old('last_name_ar', $employee->last_name_ar) }}">
+                            @error('last_name_ar')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Row 3: Employment -->
+                        <div class="col-md-3 text-force-left">
                             <label class="form-label">{{ __('messages.department') }}</label>
-                            <select name="department_id" class="form-select">
+                            <select name="department_id" class="form-select @error('department_id') is-invalid @enderror">
                                 <option value="">{{ __('messages.select_department') }}</option>
                                 @foreach($departments as $dept)
-                                    <option value="{{ $dept->id }}" {{ $employee->department_id == $dept->id ? 'selected' : '' }}>
-                                        {{ $dept->name }}</option>
+                                    <option value="{{ $dept->id }}" {{ old('department_id', $employee->department_id) == $dept->id ? 'selected' : '' }}>
+                                        {{ $dept->name }}
+                                    </option>
                                 @endforeach
                             </select>
+                            @error('department_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3 text-force-left">
                             <label class="form-label">{{ __('messages.designation') }}</label>
-                            <select name="designation_id" class="form-select">
+                            <select name="designation_id" class="form-select @error('designation_id') is-invalid @enderror">
                                 <option value="">{{ __('messages.select_designation') }}</option>
                                 @foreach($designations as $desig)
-                                    <option value="{{ $desig->id }}" {{ $employee->designation_id == $desig->id ? 'selected' : '' }}>{{ $desig->name }}</option>
+                                    <option value="{{ $desig->id }}" {{ old('designation_id', $employee->designation_id) == $desig->id ? 'selected' : '' }}>{{ $desig->name }}</option>
                                 @endforeach
                             </select>
+                            @error('designation_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3 text-force-left">
                             <label class="form-label">{{ __('messages.joining_date') }}</label>
-                            <input type="date" name="joining_date" class="form-control"
-                                value="{{ $employee->joining_date->format('Y-m-d') }}" required>
+                            <input type="date" name="joining_date"
+                                class="form-control @error('joining_date') is-invalid @enderror"
+                                value="{{ old('joining_date', $employee->joining_date->format('Y-m-d')) }}" required>
+                            @error('joining_date')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3 text-force-left">
                             <label class="form-label">{{ __('messages.status') }}</label>
-                            <select name="status" class="form-select">
-                                <option value="active" {{ $employee->status == 'active' ? 'selected' : '' }}>
-                                    {{ __('messages.active') }}</option>
-                                <option value="inactive" {{ $employee->status == 'inactive' ? 'selected' : '' }}>
-                                    {{ __('messages.inactive') }}</option>
-                                <option value="on_leave" {{ $employee->status == 'on_leave' ? 'selected' : '' }}>
-                                    {{ __('messages.on_leave') }}</option>
-                                <option value="terminated" {{ $employee->status == 'terminated' ? 'selected' : '' }}>
-                                    {{ __('messages.terminated') }}</option>
+                            <select name="status" class="form-select @error('status') is-invalid @enderror">
+                                <option value="active" {{ old('status', $employee->status) == 'active' ? 'selected' : '' }}>
+                                    {{ __('messages.active') }}
+                                </option>
+                                <option value="inactive" {{ old('status', $employee->status) == 'inactive' ? 'selected' : '' }}>
+                                    {{ __('messages.inactive') }}
+                                </option>
+                                <option value="on_leave" {{ old('status', $employee->status) == 'on_leave' ? 'selected' : '' }}>
+                                    {{ __('messages.on_leave') }}
+                                </option>
+                                <option value="terminated" {{ old('status', $employee->status) == 'terminated' ? 'selected' : '' }}>
+                                    {{ __('messages.terminated') }}
+                                </option>
                             </select>
+                            @error('status')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Row 4: Salary components -->
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.basic_salary') }}</label>
+                            <input type="number" step="0.01" name="basic_salary"
+                                class="form-control @error('basic_salary') is-invalid @enderror"
+                                value="{{ old('basic_salary', $employee->basic_salary) }}">
+                            @error('basic_salary')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.house_rent_allowance') }}</label>
+                            <input type="number" step="0.01" name="house_rent_allowance"
+                                class="form-control @error('house_rent_allowance') is-invalid @enderror"
+                                value="{{ old('house_rent_allowance', $employee->house_rent_allowance) }}">
+                            @error('house_rent_allowance')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.conveyance_allowance') }}</label>
+                            <input type="number" step="0.01" name="conveyance_allowance"
+                                class="form-control @error('conveyance_allowance') is-invalid @enderror"
+                                value="{{ old('conveyance_allowance', $employee->conveyance_allowance) }}">
+                            @error('conveyance_allowance')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.dearness_allowance') }}</label>
+                            <input type="number" step="0.01" name="dearness_allowance"
+                                class="form-control @error('dearness_allowance') is-invalid @enderror"
+                                value="{{ old('dearness_allowance', $employee->dearness_allowance) }}">
+                            @error('dearness_allowance')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Row 5 -->
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.overtime_allowance') }}</label>
+                            <input type="number" step="0.01" name="overtime_allowance"
+                                class="form-control @error('overtime_allowance') is-invalid @enderror"
+                                value="{{ old('overtime_allowance', $employee->overtime_allowance) }}">
+                            @error('overtime_allowance')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('messages.other_allowance') }}</label>
+                            <input type="number" step="0.01" name="other_allowance"
+                                class="form-control @error('other_allowance') is-invalid @enderror"
+                                value="{{ old('other_allowance', $employee->other_allowance) }}">
+                            @error('other_allowance')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
 

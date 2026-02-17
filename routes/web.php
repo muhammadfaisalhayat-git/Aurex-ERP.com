@@ -44,6 +44,7 @@ use App\Http\Controllers\Inventory\StockIssueOrderController;
 use App\Http\Controllers\Inventory\CompositeAssemblyController;
 use App\Http\Controllers\Inventory\StockLedgerController;
 use App\Http\Controllers\Inventory\BarcodeController;
+use App\Http\Controllers\Inventory\BarcodeSettingController;
 
 // Transport Controllers
 use App\Http\Controllers\Transport\TrailerController;
@@ -267,9 +268,12 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
 
     // HR Routes
     Route::prefix('hr')->name('hr.')->group(function () {
+        Route::get('employees/{employee}/salary-slip', [\App\Http\Controllers\HR\EmployeeController::class, 'salarySlip'])->name('employees.salary-slip');
         Route::resource('employees', \App\Http\Controllers\HR\EmployeeController::class);
         Route::resource('departments', \App\Http\Controllers\HR\DepartmentController::class);
         Route::resource('designations', \App\Http\Controllers\HR\DesignationController::class);
+        Route::resource('salaries', \App\Http\Controllers\HR\SalaryController::class);
+        Route::resource('experience', \App\Http\Controllers\HR\ExperienceController::class);
     });
 
     Route::prefix('inventory')->name('inventory.')->group(function () {
@@ -283,6 +287,11 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::get('barcodes', [BarcodeController::class, 'index'])->name('barcodes.index');
         Route::get('barcodes/search', [BarcodeController::class, 'search'])->name('barcodes.search');
         Route::get('barcodes/print', [BarcodeController::class, 'print'])->name('barcodes.print');
+
+        // Barcode Settings
+        Route::get('barcodes/settings', [BarcodeSettingController::class, 'edit'])->name('barcodes.settings.edit');
+        Route::put('barcodes/settings', [BarcodeSettingController::class, 'update'])->name('barcodes.settings.update');
+        Route::post('barcodes/settings/reset', [BarcodeSettingController::class, 'reset'])->name('barcodes.settings.reset');
 
         // Stock Supply
         Route::resource('stock-supply', StockSupplyController::class);

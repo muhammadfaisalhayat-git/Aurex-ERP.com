@@ -57,11 +57,17 @@ class EmployeeController extends Controller
             'last_name_ar' => 'nullable|string|max:255',
             'email' => 'required|email|unique:employees,email',
             'phone' => 'nullable|string|max:20',
+            'nationality' => 'nullable|string|max:255',
             'department_id' => 'nullable|exists:departments,id',
             'designation_id' => 'nullable|exists:designations,id',
             'user_id' => 'nullable|exists:users,id',
             'joining_date' => 'required|date',
             'basic_salary' => 'nullable|numeric|min:0',
+            'house_rent_allowance' => 'nullable|numeric|min:0',
+            'conveyance_allowance' => 'nullable|numeric|min:0',
+            'dearness_allowance' => 'nullable|numeric|min:0',
+            'overtime_allowance' => 'nullable|numeric|min:0',
+            'other_allowance' => 'nullable|numeric|min:0',
             'status' => 'required|in:active,inactive,on_leave,terminated',
         ]);
 
@@ -81,11 +87,17 @@ class EmployeeController extends Controller
             'last_name_ar' => 'nullable|string|max:255',
             'email' => 'required|email|unique:employees,email,' . $employee->id,
             'phone' => 'nullable|string|max:20',
+            'nationality' => 'nullable|string|max:255',
             'department_id' => 'nullable|exists:departments,id',
             'designation_id' => 'nullable|exists:designations,id',
             'user_id' => 'nullable|exists:users,id',
             'joining_date' => 'required|date',
             'basic_salary' => 'nullable|numeric|min:0',
+            'house_rent_allowance' => 'nullable|numeric|min:0',
+            'conveyance_allowance' => 'nullable|numeric|min:0',
+            'dearness_allowance' => 'nullable|numeric|min:0',
+            'overtime_allowance' => 'nullable|numeric|min:0',
+            'other_allowance' => 'nullable|numeric|min:0',
             'status' => 'required|in:active,inactive,on_leave,terminated',
         ]);
 
@@ -100,5 +112,14 @@ class EmployeeController extends Controller
         $employee->delete();
         return redirect()->route('hr.employees.index')
             ->with('success', __('messages.deleted_successfully'));
+    }
+
+    public function salarySlip(Employee $employee)
+    {
+        $employee->load(['department', 'designation', 'company', 'branch']);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('hr.employees.salary-slip', compact('employee'));
+
+        return $pdf->stream('salary-slip-' . $employee->employee_code . '.pdf');
     }
 }

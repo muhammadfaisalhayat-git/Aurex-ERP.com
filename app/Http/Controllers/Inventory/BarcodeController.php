@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
+use App\Models\BarcodeSetting;
+
 class BarcodeController extends Controller
 {
     /**
@@ -62,7 +64,7 @@ class BarcodeController extends Controller
             if ($product) {
                 for ($i = 0; $i < ($item['quantity'] ?? 1); $i++) {
                     $barcodeData[] = [
-                        'name' => $product->name,
+                        'name' => $product->getAttribute('name') ?? $product->name_en ?? 'Unnamed Product',
                         'code' => $product->code,
                         'price' => $product->sale_price,
                     ];
@@ -70,6 +72,8 @@ class BarcodeController extends Controller
             }
         }
 
-        return view('inventory.barcodes.print', compact('barcodeData'));
+        $settings = BarcodeSetting::current();
+
+        return view('inventory.barcodes.print', compact('barcodeData', 'settings'));
     }
 }

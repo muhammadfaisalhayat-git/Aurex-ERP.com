@@ -11,6 +11,7 @@ class DocumentNumber extends Model
 
     protected $fillable = [
         'company_id',
+        'branch_id',
         'entity_type',
         'prefix',
         'current_number',
@@ -20,11 +21,17 @@ class DocumentNumber extends Model
 
     public static function generate($entityType, $prefix = null)
     {
+        $criteria = [
+            'entity_type' => $entityType,
+            'company_id' => session('active_company_id')
+        ];
+
+        if (session()->has('active_branch_id')) {
+            $criteria['branch_id'] = session('active_branch_id');
+        }
+
         $sequence = self::firstOrCreate(
-            [
-                'entity_type' => $entityType,
-                'company_id' => session('active_company_id')
-            ],
+            $criteria,
             [
                 'prefix' => $prefix ?? self::getDefaultPrefix($entityType),
                 'current_number' => 0,
