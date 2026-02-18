@@ -96,4 +96,26 @@ class PurchaseInvoice extends Model
         $nextNumber = intval($matches[1]) + 1;
         return 'PINV-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
+
+    public function post()
+    {
+        if ($this->isPosted()) {
+            return false;
+        }
+
+        $this->status = 'posted';
+        $this->posted_by = auth()->id();
+        $this->posted_at = now();
+        $this->save();
+
+        // Update vendor balance
+        if ($this->vendor) {
+            $this->vendor->updateBalance($this->total_amount);
+        }
+
+        // Accounting integration
+        app(\App\Services\AccountingService::class)->postPurchaseInvoice($this);
+
+        return true;
+    }
 }

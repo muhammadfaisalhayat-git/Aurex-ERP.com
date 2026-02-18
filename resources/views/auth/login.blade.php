@@ -155,31 +155,6 @@
             border: none;
             margin-bottom: 20px;
         }
-
-        .demo-credentials {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-
-        .demo-credentials h6 {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #64748b;
-            margin-bottom: 10px;
-        }
-
-        .demo-credentials code {
-            display: block;
-            background: #1e293b;
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            margin-bottom: 5px;
-        }
     </style>
 </head>
 
@@ -236,12 +211,6 @@
                     class="{{ app()->getLocale() === 'ar' ? 'active' : '' }}">عربي</a>
             </div>
 
-            <div class="demo-credentials">
-                <h6>{{ __('messages.demo_credentials') }}</h6>
-                <code>superadmin@aurex.com / password</code>
-                <code>admin@aurex.com / password</code>
-                <code>sales@aurex.com / password</code>
-            </div>
         </div>
     </div>
 

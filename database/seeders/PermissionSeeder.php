@@ -113,16 +113,29 @@ class PermissionSeeder extends Seeder
 
             // Settings
             ['name' => 'manage settings', 'display_name_en' => 'Manage Settings', 'display_name_ar' => 'إدارة الإعدادات', 'module' => 'settings'],
+            // Accounting
+            ['name' => 'view accounting', 'display_name_en' => 'View Accounting', 'display_name_ar' => 'عرض المحاسبة', 'module' => 'accounting'],
+            ['name' => 'view journal_vouchers', 'display_name_en' => 'View Journal Vouchers', 'display_name_ar' => 'عرض قيود اليومية', 'module' => 'accounting'],
+            ['name' => 'create journal_vouchers', 'display_name_en' => 'Create Journal Vouchers', 'display_name_ar' => 'إنشاء قيود اليومية', 'module' => 'accounting'],
+            ['name' => 'edit journal_vouchers', 'display_name_en' => 'Edit Journal Vouchers', 'display_name_ar' => 'تعديل قيود اليومية', 'module' => 'accounting'],
+            ['name' => 'delete journal_vouchers', 'display_name_en' => 'Delete Journal Vouchers', 'display_name_ar' => 'حذف قيود اليومية', 'module' => 'accounting'],
+            ['name' => 'view chart_of_accounts', 'display_name_en' => 'View Chart of Accounts', 'display_name_ar' => 'عرض شجرة الحسابات', 'module' => 'accounting'],
+            ['name' => 'create chart_of_accounts', 'display_name_en' => 'Create Chart of Accounts', 'display_name_ar' => 'إنشاء شجرة الحسابات', 'module' => 'accounting'],
+            ['name' => 'edit chart_of_accounts', 'display_name_en' => 'Edit Chart of Accounts', 'display_name_ar' => 'تعديل شجرة الحسابات', 'module' => 'accounting'],
+            ['name' => 'delete chart_of_accounts', 'display_name_en' => 'Delete Chart of Accounts', 'display_name_ar' => 'حذف شجرة الحسابات', 'module' => 'accounting'],
+            ['name' => 'view ledger', 'display_name_en' => 'View Ledger', 'display_name_ar' => 'عرض دفتر الأستاذ', 'module' => 'accounting'],
+            ['name' => 'edit posted journal vouchers', 'display_name_en' => 'Edit Posted Journal Vouchers', 'display_name_ar' => 'تعديل قيود اليومية المرحلة', 'module' => 'accounting'],
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create([
-                'name' => $permission['name'],
-                'guard_name' => 'web',
-                'display_name_en' => $permission['display_name_en'],
-                'display_name_ar' => $permission['display_name_ar'],
-                'module' => $permission['module'],
-            ]);
+            Permission::firstOrCreate(
+                ['name' => $permission['name'], 'guard_name' => 'web'],
+                [
+                    'display_name_en' => $permission['display_name_en'],
+                    'display_name_ar' => $permission['display_name_ar'],
+                    'module' => $permission['module'],
+                ]
+            );
         }
     }
 }

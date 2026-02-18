@@ -11,36 +11,76 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         // Super Admin - has all permissions
-        $superAdmin = Role::create([
-            'name' => 'Super Admin',
+        $superAdmin = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web'], [
             'display_name_en' => 'Super Administrator',
             'display_name_ar' => 'مدير النظام',
-            'guard_name' => 'web',
             'is_system' => true,
+        ]);
+
+        $admin = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web'], [
+            'display_name_en' => 'Administrator',
+            'display_name_ar' => 'مدير',
+            'is_system' => true,
+        ]);
+
+        $accountant = Role::firstOrCreate(['name' => 'Accountant', 'guard_name' => 'web'], [
+            'display_name_en' => 'Accountant',
+            'display_name_ar' => 'محاسب',
+            'is_system' => false,
+        ]);
+
+        $salesManager = Role::firstOrCreate(['name' => 'Sales Manager', 'guard_name' => 'web'], [
+            'display_name_en' => 'Sales Manager',
+            'display_name_ar' => 'مدير المبيعات',
+            'is_system' => false,
+        ]);
+
+        $salesman = Role::firstOrCreate(['name' => 'Salesman', 'guard_name' => 'web'], [
+            'display_name_en' => 'Salesman',
+            'display_name_ar' => 'مندوب مبيعات',
+            'is_system' => false,
+        ]);
+
+        $dataAnalyst = Role::firstOrCreate(['name' => 'Data Analyst', 'guard_name' => 'web'], [
+            'display_name_en' => 'Data Analyst',
+            'display_name_ar' => 'محلل بيانات',
+            'is_system' => false,
+        ]);
+
+        $dataEntry = Role::firstOrCreate(['name' => 'Data Entry', 'guard_name' => 'web'], [
+            'display_name_en' => 'Data Entry',
+            'display_name_ar' => 'مدخل بيانات',
+            'is_system' => false,
+        ]);
+
+        $inventoryManager = Role::firstOrCreate(['name' => 'Inventory Manager', 'guard_name' => 'web'], [
+            'display_name_en' => 'Inventory Manager',
+            'display_name_ar' => 'مدير المخزون',
+            'is_system' => false,
+        ]);
+
+        $warehouseUser = Role::firstOrCreate(['name' => 'Warehouse User', 'guard_name' => 'web'], [
+            'display_name_en' => 'Warehouse User',
+            'display_name_ar' => 'مستخدم المستودع',
+            'is_system' => false,
+        ]);
+
+        $hrManager = Role::firstOrCreate(['name' => 'HR Manager', 'guard_name' => 'web'], [
+            'display_name_en' => 'HR Manager',
+            'display_name_ar' => 'مدير الموارد البشرية',
+            'is_system' => false,
         ]);
         $superAdmin->syncPermissions(Permission::all());
 
         // Admin
-        $admin = Role::create([
-            'name' => 'Admin',
-            'display_name_en' => 'Administrator',
-            'display_name_ar' => 'مدير',
-            'guard_name' => 'web',
-            'is_system' => true,
-        ]);
+
         $admin->syncPermissions(Permission::whereNotIn('name', [
             'manage roles',
             'delete users'
         ])->get());
 
         // Accountant
-        $accountant = Role::create([
-            'name' => 'Accountant',
-            'display_name_en' => 'Accountant',
-            'display_name_ar' => 'محاسب',
-            'guard_name' => 'web',
-            'is_system' => false,
-        ]);
+
         $accountant->syncPermissions(Permission::whereIn('name', [
             'view customers',
             'view vendors',
@@ -58,16 +98,20 @@ class RoleSeeder extends Seeder
             'edit invoices',
             'create purchases',
             'edit purchases',
+            'view accounting',
+            'view journal_vouchers',
+            'create journal_vouchers',
+            'edit journal_vouchers',
+            'delete journal_vouchers',
+            'view chart_of_accounts',
+            'create chart_of_accounts',
+            'edit chart_of_accounts',
+            'delete chart_of_accounts',
+            'view ledger',
         ])->get());
 
         // Sales Manager
-        $salesManager = Role::create([
-            'name' => 'Sales Manager',
-            'display_name_en' => 'Sales Manager',
-            'display_name_ar' => 'مدير المبيعات',
-            'guard_name' => 'web',
-            'is_system' => false,
-        ]);
+
         $salesManager->syncPermissions(Permission::whereIn('name', [
             'view customers',
             'create customers',
@@ -92,13 +136,7 @@ class RoleSeeder extends Seeder
         ])->get());
 
         // Salesman
-        $salesman = Role::create([
-            'name' => 'Salesman',
-            'display_name_en' => 'Salesman',
-            'display_name_ar' => 'مندوب مبيعات',
-            'guard_name' => 'web',
-            'is_system' => false,
-        ]);
+
         $salesman->syncPermissions(Permission::whereIn('name', [
             'view customers',
             'create customers',
@@ -112,13 +150,7 @@ class RoleSeeder extends Seeder
         ])->get());
 
         // Data Analyst
-        $dataAnalyst = Role::create([
-            'name' => 'Data Analyst',
-            'display_name_en' => 'Data Analyst',
-            'display_name_ar' => 'محلل بيانات',
-            'guard_name' => 'web',
-            'is_system' => false,
-        ]);
+
         $dataAnalyst->syncPermissions(Permission::whereIn('name', [
             'view customers',
             'view vendors',
@@ -134,13 +166,7 @@ class RoleSeeder extends Seeder
         ])->get());
 
         // Data Entry
-        $dataEntry = Role::create([
-            'name' => 'Data Entry',
-            'display_name_en' => 'Data Entry',
-            'display_name_ar' => 'مدخل بيانات',
-            'guard_name' => 'web',
-            'is_system' => false,
-        ]);
+
         $dataEntry->syncPermissions(Permission::whereIn('name', [
             'view customers',
             'create customers',
@@ -158,13 +184,7 @@ class RoleSeeder extends Seeder
         ])->get());
 
         // Inventory Manager
-        $inventoryManager = Role::create([
-            'name' => 'Inventory Manager',
-            'display_name_en' => 'Inventory Manager',
-            'display_name_ar' => 'مدير المخزون',
-            'guard_name' => 'web',
-            'is_system' => false,
-        ]);
+
         $inventoryManager->syncPermissions(Permission::whereIn('name', [
             'view products',
             'create products',
@@ -179,13 +199,7 @@ class RoleSeeder extends Seeder
         ])->get());
 
         // Warehouse User
-        $warehouseUser = Role::create([
-            'name' => 'Warehouse User',
-            'display_name_en' => 'Warehouse User',
-            'display_name_ar' => 'مستخدم المستودع',
-            'guard_name' => 'web',
-            'is_system' => false,
-        ]);
+
         $warehouseUser->syncPermissions(Permission::whereIn('name', [
             'view products',
             'view inventory',
@@ -193,13 +207,7 @@ class RoleSeeder extends Seeder
         ])->get());
 
         // HR Manager
-        $hrManager = Role::create([
-            'name' => 'HR Manager',
-            'display_name_en' => 'HR Manager',
-            'display_name_ar' => 'مدير الموارد البشرية',
-            'guard_name' => 'web',
-            'is_system' => false,
-        ]);
+
         $hrManager->syncPermissions(Permission::where('module', 'hr')->get());
     }
 }

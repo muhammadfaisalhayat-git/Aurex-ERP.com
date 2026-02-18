@@ -61,6 +61,9 @@ use App\Http\Controllers\Reports\SalesReportController;
 use App\Http\Controllers\Reports\InventoryReportController;
 use App\Http\Controllers\Reports\TaxReportController;
 use App\Http\Controllers\Reports\SupplierReportController;
+use App\Http\Controllers\Accounting\ChartOfAccountController;
+use App\Http\Controllers\Accounting\JournalVoucherController;
+use App\Http\Controllers\Accounting\AccountingReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -102,6 +105,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/widgets/reorder', [DashboardController::class, 'reorderWidgets'])->name('dashboard.widgets.reorder');
     Route::post('/dashboard/widgets/toggle', [DashboardController::class, 'toggleWidget'])->name('dashboard.widgets.toggle');
+    Route::post('/dashboard/widgets/reset', [DashboardController::class, 'resetWidgets'])->name('dashboard.widgets.reset');
 
     /*
     |--------------------------------------------------------------------------
@@ -161,6 +165,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::post('quotations/{quotation}/send', [QuotationController::class, 'send'])->name('quotations.send');
         Route::post('quotations/{quotation}/convert', [QuotationController::class, 'convert'])->name('quotations.convert');
         Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'downloadPdf'])->name('quotations.pdf');
+        Route::get('quotations/{quotation}/print', [QuotationController::class, 'print'])->name('quotations.print');
         Route::get('quotations/{quotation}/whatsapp', [QuotationController::class, 'sendWhatsApp'])->name('quotations.whatsapp');
         Route::post('quotations/{quotation}/revise', [QuotationController::class, 'revise'])->name('quotations.revise');
 
@@ -241,6 +246,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::resource('invoices', PurchaseInvoiceController::class);
         Route::post('invoices/{invoice}/post', [PurchaseInvoiceController::class, 'post'])->name('invoices.post');
         Route::post('invoices/{invoice}/unpost', [PurchaseInvoiceController::class, 'unpost'])->name('invoices.unpost');
+        Route::get('invoices/{invoice}/print', [PurchaseInvoiceController::class, 'print'])->name('invoices.print');
         Route::post('invoices/ocr/extract', [\App\Http\Controllers\Purchases\InvoiceOcrController::class, 'extractData'])->name('invoices.ocr.extract');
 
         // Local Purchases
@@ -401,6 +407,35 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::get('inventory/valuation', [InventoryReportController::class, 'valuation'])->name('inventory.valuation');
         Route::get('inventory/movements', [InventoryReportController::class, 'movements'])->name('inventory.movements');
         Route::get('inventory/low-stock', [InventoryReportController::class, 'lowStock'])->name('inventory.low-stock');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Accounting Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::prefix('accounting')->name('accounting.')->group(function () {
+        Route::prefix('gl')->name('gl.')->group(function () {
+            // Chart of Accounts
+            Route::resource('coa', ChartOfAccountController::class);
+            Route::post('account-types', [App\Http\Controllers\Accounting\AccountTypeController::class, 'store'])->name('account-types.store');
+            Route::get('account-types/{accountType}', [App\Http\Controllers\Accounting\AccountTypeController::class, 'show'])->name('account-types.show');
+            Route::put('account-types/{accountType}', [App\Http\Controllers\Accounting\AccountTypeController::class, 'update'])->name('account-types.update');
+
+            // Transactions
+            Route::prefix('transactions')->name('transactions.')->group(function () {
+                Route::resource('jv', JournalVoucherController::class);
+                Route::get('jv/{jv}/print', [JournalVoucherController::class, 'print'])->name('jv.print');
+                Route::post('jv/{jv}/post', [JournalVoucherController::class, 'post'])->name('jv.post');
+            });
+
+            // Reports
+            Route::prefix('reports')->name('reports.')->group(function () {
+                Route::get('account-statement', [AccountingReportController::class, 'accountStatement'])->name('account-statement');
+                Route::post('account-statement', [AccountingReportController::class, 'generateAccountStatement']);
+            });
+        });
     });
 
     /*

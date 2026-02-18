@@ -110,6 +110,7 @@
                                 <th><?php echo e(__('messages.customer')); ?></th>
                                 <th><?php echo e(__('messages.total')); ?></th>
                                 <th><?php echo e(__('messages.status')); ?></th>
+                                <th><?php echo e(__('messages.created_by')); ?></th>
                                 <th><?php echo e(__('messages.actions')); ?></th>
                             </tr>
                         </thead>
@@ -143,6 +144,7 @@
 
                                         </span>
                                     </td>
+                                    <td><?php echo e($invoice->creator->name ?? '-'); ?></td>
                                     <td>
                                         <div class="btn-group">
                                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view invoices')): ?>
@@ -151,17 +153,19 @@
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                             <?php endif; ?>
-                                            <?php if($invoice->isEditable()): ?>
-                                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('edit invoices')): ?>
-                                                    <a href="<?php echo e(route('sales.invoices.edit', $invoice)); ?>"
-                                                        class="btn btn-sm btn-primary" title="<?php echo e(__('messages.edit')); ?>">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                <?php endif; ?>
+                                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('edit invoices')): ?>
+                                                <a href="<?php echo e(route('sales.invoices.edit', $invoice)); ?>"
+                                                    class="btn btn-sm btn-primary" title="<?php echo e(__('messages.edit')); ?>">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
                                             <?php endif; ?>
                                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('view invoices')): ?>
+                                                <a href="<?php echo e(route('sales.invoices.print', $invoice)); ?>" target="_blank"
+                                                    class="btn btn-sm btn-secondary" title="<?php echo e(__('messages.print')); ?>">
+                                                    <i class="fas fa-print"></i>
+                                                </a>
                                                 <a href="<?php echo e(route('sales.invoices.pdf', $invoice)); ?>"
-                                                    class="btn btn-sm btn-secondary" title="<?php echo e(__('messages.download_pdf')); ?>">
+                                                    class="btn btn-sm btn-outline-danger" title="<?php echo e(__('messages.download_pdf')); ?>">
                                                     <i class="fas fa-file-pdf"></i>
                                                 </a>
                                             <?php endif; ?>
@@ -237,11 +241,11 @@
                     }
 
                     container.innerHTML = data.map(item => `
-                                                                                <div class="search-result-item" data-id="${item.id}">
-                                                                                    <div class="item-title">${item.name}</div>
-                                                                                    ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
-                                                                                </div>
-                                                                            `).join('');
+                                                                                        <div class="search-result-item" data-id="${item.id}">
+                                                                                            <div class="item-title">${item.name}</div>
+                                                                                            ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
+                                                                                        </div>
+                                                                                    `).join('');
 
                     container.style.display = 'block';
 

@@ -9,6 +9,8 @@ use App\Models\Product;
 use App\Models\SalesReturn;
 use App\Models\StockTransferRequest;
 use App\Models\DashboardWidget;
+use App\Models\Employee;
+use App\Models\Department;
 use App\Models\AuditLog;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -26,8 +28,14 @@ class DashboardController extends Controller
             ->orderBy('position_x')
             ->get();
 
-        // If no widgets configured, create defaults
-        if ($widgets->isEmpty()) {
+        // If no widgets configured, or HR Manager has no HR widgets, create defaults
+        $hasHrWidget = $widgets->whereIn('widget_type', ['total_employees', 'payroll_cost', 'active_departments'])->count() > 0;
+
+        if ($widgets->isEmpty() || ($user->hasRole('HR Manager') && !$hasHrWidget)) {
+            // If we are forcing defaults for HR Manager, clear old ones first
+            if ($user->hasRole('HR Manager') && !$hasHrWidget && !$widgets->isEmpty()) {
+                DashboardWidget::where('user_id', $user->id)->delete();
+            }
             $widgets = $this->createDefaultWidgets($user);
         }
 
@@ -99,17 +107,47 @@ class DashboardController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function resetWidgets()
+    {
+        DashboardWidget::where('user_id', auth()->id())->delete();
+        return redirect()->route('dashboard')->with('success', __('messages.dashboard_reset_success'));
+    }
+
     protected function createDefaultWidgets($user)
     {
-        $defaultWidgets = [
-            ['type' => 'sales_today', 'name' => 'Sales Today', 'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2],
-            ['type' => 'sales_month', 'name' => 'Sales This Month', 'x' => 3, 'y' => 0, 'w' => 3, 'h' => 2],
-            ['type' => 'tax_collected', 'name' => 'Tax Collected', 'x' => 6, 'y' => 0, 'w' => 3, 'h' => 2],
-            ['type' => 'pending_invoices', 'name' => 'Pending Invoices', 'x' => 9, 'y' => 0, 'w' => 3, 'h' => 2],
-            ['type' => 'top_customers', 'name' => 'Top Customers', 'x' => 0, 'y' => 2, 'w' => 4, 'h' => 4],
-            ['type' => 'top_products', 'name' => 'Top Products', 'x' => 4, 'y' => 2, 'w' => 4, 'h' => 4],
-            ['type' => 'returns_summary', 'name' => 'Returns Summary', 'x' => 8, 'y' => 2, 'w' => 4, 'h' => 4],
-        ];
+        $defaultWidgets = [];
+
+        if ($user->hasRole('HR Manager')) {
+            $defaultWidgets = [
+                ['type' => 'total_employees', 'name' => 'Total Employees', 'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2],
+                ['type' => 'new_hires_month', 'name' => 'New Hires (Month)', 'x' => 3, 'y' => 0, 'w' => 3, 'h' => 2],
+                ['type' => 'active_departments', 'name' => 'Active Departments', 'x' => 6, 'y' => 0, 'w' => 3, 'h' => 2],
+                ['type' => 'payroll_cost', 'name' => 'Payroll Cost', 'x' => 9, 'y' => 0, 'w' => 3, 'h' => 2],
+                ['type' => 'employee_distribution', 'name' => 'Employee Distribution', 'x' => 0, 'y' => 2, 'w' => 6, 'h' => 4],
+            ];
+        } elseif ($user->hasRole(['Sales Manager', 'Accountant'])) {
+            $defaultWidgets = [
+                ['type' => 'sales_today', 'name' => 'Sales Today', 'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2],
+                ['type' => 'sales_month', 'name' => 'Sales This Month', 'x' => 3, 'y' => 0, 'w' => 3, 'h' => 2],
+                ['type' => 'tax_collected', 'name' => 'Tax Collected', 'x' => 6, 'y' => 0, 'w' => 3, 'h' => 2],
+                ['type' => 'pending_invoices', 'name' => 'Pending Invoices', 'x' => 9, 'y' => 0, 'w' => 3, 'h' => 2],
+            ];
+        } else {
+            // Default Mix for Super Admin or others
+            $defaultWidgets = [
+                ['type' => 'sales_today', 'name' => 'Sales Today', 'x' => 0, 'y' => 0, 'w' => 3, 'h' => 2],
+                ['type' => 'total_employees', 'name' => 'Total Employees', 'x' => 3, 'y' => 0, 'w' => 3, 'h' => 2],
+                ['type' => 'sales_month', 'name' => 'Sales This Month', 'x' => 6, 'y' => 0, 'w' => 3, 'h' => 2],
+                ['type' => 'pending_invoices', 'name' => 'Pending Invoices', 'x' => 9, 'y' => 0, 'w' => 3, 'h' => 2],
+            ];
+        }
+
+        // Add some table widgets if relevant
+        if (!$user->hasRole('HR Manager')) {
+            $defaultWidgets[] = ['type' => 'top_customers', 'name' => 'Top Customers', 'x' => 0, 'y' => 2, 'w' => 4, 'h' => 4];
+            $defaultWidgets[] = ['type' => 'top_products', 'name' => 'Top Products', 'x' => 4, 'y' => 2, 'w' => 4, 'h' => 4];
+            $defaultWidgets[] = ['type' => 'returns_summary', 'name' => 'Returns Summary', 'x' => 8, 'y' => 2, 'w' => 4, 'h' => 4];
+        }
 
         $widgets = [];
         foreach ($defaultWidgets as $index => $widget) {
@@ -202,6 +240,49 @@ class DashboardController extends Controller
                         ->sum('total_amount'),
                 ];
 
+            // HR Widgets
+            case 'total_employees':
+                return [
+                    'count' => Employee::where('status', 'active')->count(),
+                ];
+
+            case 'new_hires_month':
+                return [
+                    'count' => Employee::whereBetween('joining_date', [$startOfMonth, $endOfMonth])->count(),
+                ];
+
+            case 'active_departments':
+                return [
+                    'count' => Department::where('is_active', true)->count(),
+                ];
+
+            case 'payroll_cost':
+                $employees = Employee::where('status', 'active')->get();
+                $total = $employees->sum(function ($emp) {
+                    return $emp->basic_salary +
+                        $emp->house_rent_allowance +
+                        $emp->conveyance_allowance +
+                        $emp->dearness_allowance +
+                        $emp->overtime_allowance +
+                        $emp->other_allowance;
+                });
+                return [
+                    'amount' => $total,
+                ];
+
+            case 'employee_distribution':
+                return Employee::select('department_id', DB::raw('count(*) as total'))
+                    ->where('status', 'active')
+                    ->with('department')
+                    ->groupBy('department_id')
+                    ->get()
+                    ->map(function ($item) {
+                        return [
+                            'label' => $item->department ? $item->department->name : 'Unassigned',
+                            'total' => $item->total
+                        ];
+                    });
+
             default:
                 return null;
         }
@@ -232,6 +313,11 @@ class DashboardController extends Controller
             'top_products' => 'Top Products',
             'returns_summary' => 'Returns Summary',
             'low_stock' => 'Low Stock Alert',
+            'total_employees' => 'Total Employees',
+            'new_hires_month' => 'New Hires (Month)',
+            'active_departments' => 'Active Departments',
+            'payroll_cost' => 'Payroll Cost',
+            'employee_distribution' => 'Employee Distribution',
         ];
 
         return $names[$type] ?? 'Widget';

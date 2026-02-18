@@ -548,16 +548,20 @@
 
 <body>
     <!-- Sidebar -->
-    <?php echo $__env->make('layouts.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php if(!request()->routeIs('dashboard')): ?>
+        <?php echo $__env->make('layouts.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php endif; ?>
 
     <!-- Main Content -->
-    <div class="main-content">
+    <div class="main-content" <?php echo request()->routeIs('dashboard') ? 'style="margin-left: 0; margin-right: 0; width: 100%;"' : ''; ?>>
         <!-- Header -->
         <header class="header">
             <div class="header-left">
-                <button class="sidebar-toggle d-lg-none">
-                    <i class="fas fa-bars"></i>
-                </button>
+                <?php if(!request()->routeIs('dashboard')): ?>
+                    <button class="sidebar-toggle d-lg-none">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                <?php endif; ?>
 
                 <!-- Company/Branch Switcher -->
                 <div class="d-none d-lg-flex align-items-center gap-3 ms-4">

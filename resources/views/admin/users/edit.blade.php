@@ -138,7 +138,7 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="password_reset_key" class="form-label">{{ __('messages.password_reset_key') }} ({{ __('messages.superadmin_only') }})</label>
+                            <label for="password_reset_key" class="form-label">{{ __('messages.password_reset_key') }} ({{ __('messages.administrative_access_only') }})</label>
                             <input type="text" class="form-control @error('password_reset_key') is-invalid @enderror"
                                 id="password_reset_key" name="password_reset_key"
                                 value="{{ old('password_reset_key', $user->password_reset_key) }}"

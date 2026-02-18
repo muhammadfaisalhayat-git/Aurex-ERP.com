@@ -24,6 +24,7 @@
                                 <th>{{ __('messages.customer') }}</th>
                                 <th>{{ __('messages.total') }}</th>
                                 <th>{{ __('messages.status') }}</th>
+                                <th>{{ __('messages.created_by') }}</th>
                                 <th>{{ __('messages.actions') }}</th>
                             </tr>
                         </thead>
@@ -64,22 +65,25 @@
                                             {{ __('messages.' . $quotation->status) }}
                                         </span>
                                     </td>
+                                    <td>{{ $quotation->creator->name ?? '-' }}</td>
                                     <td>
                                         <div class="btn-group">
                                             <a href="{{ route('sales.quotations.show', $quotation) }}"
                                                 class="btn btn-sm btn-info" title="{{ __('messages.view') }}">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            @if($quotation->status === 'draft')
-                                                @can('edit quotations')
-                                                    <a href="{{ route('sales.quotations.edit', $quotation) }}"
-                                                        class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                @endcan
-                                            @endif
+                                            @can('edit quotations')
+                                                <a href="{{ route('sales.quotations.edit', $quotation) }}"
+                                                    class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            @endcan
+                                            <a href="{{ route('sales.quotations.print', $quotation) }}" target="_blank"
+                                                class="btn btn-sm btn-secondary" title="{{ __('messages.print') }}">
+                                                <i class="fas fa-print"></i>
+                                            </a>
                                             <a href="{{ route('sales.quotations.pdf', $quotation) }}"
-                                                class="btn btn-sm btn-secondary" title="{{ __('messages.download_pdf') }}">
+                                                class="btn btn-sm btn-outline-danger" title="{{ __('messages.download_pdf') }}">
                                                 <i class="fas fa-file-pdf"></i>
                                             </a>
                                         </div>

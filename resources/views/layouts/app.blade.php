@@ -545,16 +545,20 @@
 
 <body>
     <!-- Sidebar -->
-    @include('layouts.sidebar')
+    @if(!request()->routeIs('dashboard'))
+        @include('layouts.sidebar')
+    @endif
 
     <!-- Main Content -->
-    <div class="main-content">
+    <div class="main-content" {!! request()->routeIs('dashboard') ? 'style="margin-left: 0; margin-right: 0; width: 100%;"' : '' !!}>
         <!-- Header -->
         <header class="header">
             <div class="header-left">
-                <button class="sidebar-toggle d-lg-none">
-                    <i class="fas fa-bars"></i>
-                </button>
+                @if(!request()->routeIs('dashboard'))
+                    <button class="sidebar-toggle d-lg-none">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                @endif
 
                 <!-- Company/Branch Switcher -->
                 <div class="d-none d-lg-flex align-items-center gap-3 ms-4">

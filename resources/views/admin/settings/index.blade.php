@@ -31,6 +31,9 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax" type="button" role="tab">{{ __('messages.tax') }}</button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="visibility-tab" data-bs-toggle="tab" data-bs-target="#visibility" type="button" role="tab">{{ __('messages.module_visibility_control') }}</button>
+                </li>
             </ul>
         </div>
         <div class="card-body">
@@ -40,7 +43,11 @@
                     <!-- General Settings -->
                     <div class="tab-pane fade show active" id="general" role="tabpanel">
                         <div class="row">
-                            @foreach($systemSettings as $group => $settings)
+                            @php
+                                $generalSettings = $systemSettings->reject(fn($val, $key) => $key === 'module_visibility');
+                            @endphp
+
+                            @forelse($generalSettings as $group => $settings)
                                 <div class="col-12 mb-4">
                                     <h5 class="fw-bold border-bottom pb-2">{{ ucfirst($group) }}</h5>
                                     <div class="row">
@@ -66,13 +73,11 @@
                                         @endforeach
                                     </div>
                                 </div>
-                            @endforeach
-
-                            @if($systemSettings->isEmpty())
+                            @empty
                                 <div class="col-12 text-center py-5">
-                                    <div class="text-muted">No system settings found.</div>
+                                    <div class="text-muted">No general system settings found.</div>
                                 </div>
-                            @endif
+                            @endforelse
                         </div>
                     </div>
 
@@ -109,6 +114,62 @@
                                     <option value="per_total" {{ $taxSettings->rounding_mode == 'per_total' ? 'selected' : '' }}>Per Total</option>
                                 </select>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Module Visibility Settings -->
+                    <div class="tab-pane fade" id="visibility" role="tabpanel">
+                        <div class="row">
+                            @if(isset($systemSettings['module_visibility']))
+                                <div class="col-12 mb-4">
+                                    <div class="alert alert-info border-0 shadow-sm glassy">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        {{ __('messages.module_visibility_description') }}
+                                    </div>
+                                </div>
+                                
+                                @php
+                                    $visibilitySettings = $systemSettings['module_visibility'];
+                                    $sections = $visibilitySettings->filter(fn($s) => str_starts_with($s->key, 'module_'));
+                                    $options = $visibilitySettings->filter(fn($s) => str_starts_with($s->key, 'sidebar_'));
+                                @endphp
+
+                                <div class="col-md-6 mb-4">
+                                    <h5 class="fw-bold border-bottom pb-2">{{ __('messages.sidebar_sections_visibility') }}</h5>
+                                    @foreach($sections as $setting)
+                                        <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-2 rounded">
+                                            <label class="form-label fw-semibold mb-0">
+                                                {{ app()->getLocale() == 'ar' ? $setting->display_name_ar : $setting->display_name_en }}
+                                            </label>
+                                            <div class="form-check form-switch">
+                                                <input type="hidden" name="settings[{{ $setting->id }}]" value="0">
+                                                <input class="form-check-input" type="checkbox" name="settings[{{ $setting->id }}]" value="1" {{ $setting->value ? 'checked' : '' }}>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="col-md-6 mb-4">
+                                    <h5 class="fw-bold border-bottom pb-2">{{ __('messages.sidebar_items_visibility') }}</h5>
+                                    <div class="visibility-options-grid" style="max-height: 500px; overflow-y: auto; padding-right: 10px;">
+                                        @foreach($options as $setting)
+                                            <div class="mb-2 d-flex justify-content-between align-items-center border-bottom pb-2">
+                                                <span class="small">
+                                                    {{ app()->getLocale() == 'ar' ? $setting->display_name_ar : $setting->display_name_en }}
+                                                </span>
+                                                <div class="form-check form-switch">
+                                                    <input type="hidden" name="settings[{{ $setting->id }}]" value="0">
+                                                    <input class="form-check-input" type="checkbox" name="settings[{{ $setting->id }}]" value="1" {{ $setting->value ? 'checked' : '' }}>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @else
+                                <div class="col-12 text-center py-5">
+                                    <div class="text-muted">No visibility settings found.</div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>

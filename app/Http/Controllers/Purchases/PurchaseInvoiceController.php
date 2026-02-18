@@ -355,17 +355,9 @@ class PurchaseInvoiceController extends Controller
         try {
             DB::beginTransaction();
 
-            $invoice->update([
-                'status' => 'posted',
-                'posted_by' => auth()->id(),
-                'posted_at' => now(),
-            ]);
-
-            // Add logic to update vendor balance and stock levels
-            $vendor = $invoice->vendor;
-            $vendor->updateBalance($invoice->total_amount);
-
-            // TODO: Add stock movement logic here
+            if (!$invoice->post()) {
+                throw new \Exception(__('messages.invoice_already_posted'));
+            }
 
             AuditLog::create([
                 'action' => 'post',
@@ -394,5 +386,11 @@ class PurchaseInvoiceController extends Controller
     {
         $warehouses = Warehouse::where('branch_id', $branch_id)->active()->get();
         return response()->json($warehouses);
+    }
+
+    public function print($id)
+    {
+        $invoice = PurchaseInvoice::with(['vendor', 'branch', 'warehouse', 'items.product', 'creator'])->findOrFail($id);
+        return view('purchases.invoices.print', compact('invoice'));
     }
 }

@@ -164,6 +164,9 @@ class SalesInvoice extends Model
         // Create stock issue order
         $this->createStockIssueOrder();
 
+        // Accounting integration
+        app(\App\Services\AccountingService::class)->postSalesInvoice($this);
+
         return true;
     }
 

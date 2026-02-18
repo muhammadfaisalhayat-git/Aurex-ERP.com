@@ -6,6 +6,13 @@
         </a>
     </div>
 
+    @php
+        $visibility = \App\Models\SystemSetting::where('group', 'module_visibility')->get()->pluck('value', 'key');
+        $checkVisibility = function ($key) use ($visibility) {
+            return $visibility->get($key, '1') == '1';
+        };
+    @endphp
+
     <nav class="sidebar-menu">
         <!-- Dashboard -->
         <div class="menu-item">
@@ -15,463 +22,600 @@
             </a>
         </div>
 
-        @canany(['view users', 'manage roles', 'manage settings'])
-            <!-- Admin Section -->
-            <div class="menu-section">{{ __('messages.administration') }}</div>
+        @if($checkVisibility('module_administration'))
+            @canany(['view users', 'manage roles', 'manage settings'])
+                <!-- Admin Section -->
+                <div class="menu-section">{{ __('messages.administration') }}</div>
 
-            @canany(['view users', 'manage roles'])
-                <div
-                    class="menu-item {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*') ? 'open' : '' }}">
-                    <a href="#" class="menu-link" data-submenu>
-                        <i class="fas fa-users-cog fa-fw"></i>
-                        <span>{{ __('messages.user_management') }}</span>
-                        <i class="fas fa-chevron-down menu-arrow"></i>
-                    </a>
-                    <div class="submenu">
-                        @can('view users')
-                            <a href="{{ route('admin.users.index') }}"
-                                class="menu-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                                {{ __('messages.users') }}
+                @if($checkVisibility('sidebar_user_management'))
+                    @canany(['view users', 'manage roles'])
+                        <div
+                            class="menu-item {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*') ? 'open' : '' }}">
+                            <a href="#" class="menu-link" data-submenu>
+                                <i class="fas fa-users-cog fa-fw"></i>
+                                <span>{{ __('messages.user_management') }}</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
                             </a>
-                        @endcan
-                        @can('manage roles')
-                            <a href="{{ route('admin.roles.index') }}"
-                                class="menu-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
-                                {{ __('messages.roles') }}
+                            <div class="submenu">
+                                @can('view users')
+                                    <a href="{{ route('admin.users.index') }}"
+                                        class="menu-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                                        {{ __('messages.users') }}
+                                    </a>
+                                @endcan
+                                @can('manage roles')
+                                    <a href="{{ route('admin.roles.index') }}"
+                                        class="menu-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                                        {{ __('messages.roles') }}
+                                    </a>
+                                @endcan
+                            </div>
+                        </div>
+                    @endcanany
+                @endif
+
+                @if($checkVisibility('sidebar_organization'))
+                    @canany(['view users'])
+                        <div
+                            class="menu-item {{ request()->routeIs('admin.companies.*') || request()->routeIs('admin.branches.*') || request()->routeIs('admin.warehouses.*') ? 'open' : '' }}">
+                            <a href="#" class="menu-link" data-submenu>
+                                <i class="fas fa-building fa-fw"></i>
+                                <span>{{ __('messages.organization') }}</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
                             </a>
-                        @endcan
-                    </div>
-                </div>
+                            <div class="submenu">
+                                @if(auth()->user()->hasRole('Super Admin'))
+                                    <a href="{{ route('admin.companies.index') }}"
+                                        class="menu-link {{ request()->routeIs('admin.companies.*') ? 'active' : '' }}">
+                                        {{ __('messages.companies') }}
+                                    </a>
+                                @endif
+                                <a href="{{ route('admin.branches.index') }}"
+                                    class="menu-link {{ request()->routeIs('admin.branches.*') ? 'active' : '' }}">
+                                    {{ __('messages.branches') }}
+                                </a>
+                                <a href="{{ route('admin.warehouses.index') }}"
+                                    class="menu-link {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">
+                                    {{ __('messages.warehouses') }}
+                                </a>
+                            </div>
+                        </div>
+                    @endcanany
+                @endif
+
+                @if($checkVisibility('sidebar_settings'))
+                    @can('manage settings')
+                        <div class="menu-item">
+                            <a href="{{ route('admin.settings.index') }}"
+                                class="menu-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                                <i class="fas fa-cog fa-fw"></i>
+                                <span>{{ __('messages.settings') }}</span>
+                            </a>
+                        </div>
+                    @endcan
+                @endif
             @endcanany
+        @endif
 
-            @canany(['view users'])
-                <div
-                    class="menu-item {{ request()->routeIs('admin.companies.*') || request()->routeIs('admin.branches.*') || request()->routeIs('admin.warehouses.*') ? 'open' : '' }}">
-                    <a href="#" class="menu-link" data-submenu>
-                        <i class="fas fa-building fa-fw"></i>
-                        <span>{{ __('messages.organization') }}</span>
-                        <i class="fas fa-chevron-down menu-arrow"></i>
-                    </a>
-                    <div class="submenu">
-                        @if(auth()->user()->hasRole('Super Admin'))
-                            <a href="{{ route('admin.companies.index') }}"
-                                class="menu-link {{ request()->routeIs('admin.companies.*') ? 'active' : '' }}">
-                                {{ __('messages.companies') }}
+        @if($checkVisibility('module_sales'))
+            @canany(['view customers', 'view quotations', 'view invoices', 'view returns', 'view commissions', 'view customer_registration'])
+                <!-- Sales Section -->
+                <div class="menu-section">{{ __('messages.sales') }}</div>
+
+                @if($checkVisibility('sidebar_customers'))
+                    @can('view customers')
+                        <div class="menu-item">
+                            <a href="{{ route('sales.customers.index') }}"
+                                class="menu-link {{ request()->routeIs('sales.customers.*') ? 'active' : '' }}">
+                                <i class="fas fa-users fa-fw"></i>
+                                <span>{{ __('messages.customers') }}</span>
                             </a>
+                        </div>
+                    @endcan
+                @endif
+
+                @if($checkVisibility('sidebar_sales_documents'))
+                    @canany(['view quotations', 'view customer_registration', 'view customer_requests', 'view sales_orders', 'view sales_contracts'])
+                        <div
+                            class="menu-item {{ request()->routeIs('sales.customer-registrations.*') || request()->routeIs('sales.customer-requests.*') || request()->routeIs('sales.quotations.*') || request()->routeIs('sales.contracts.*') || request()->routeIs('sales.sales-orders.*') ? 'open' : '' }}">
+                            <a href="#" class="menu-link" data-submenu>
+                                <i class="fas fa-file-invoice fa-fw"></i>
+                                <span>{{ __('messages.sales_documents') }}</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <div class="submenu">
+                                <a href="{{ route('sales.customer-requests.index') }}"
+                                    class="menu-link {{ request()->routeIs('sales.customer-requests.*') ? 'active' : '' }}">
+                                    {{ __('messages.customer_requests') }}
+                                </a>
+                                @can('view quotations')
+                                    <a href="{{ route('sales.quotations.index') }}"
+                                        class="menu-link {{ request()->routeIs('sales.quotations.*') ? 'active' : '' }}">
+                                        {{ __('messages.quotations') }}
+                                    </a>
+                                @endcan
+                                <a href="{{ route('sales.sales-orders.index') }}"
+                                    class="menu-link {{ request()->routeIs('sales.sales-orders.*') ? 'active' : '' }}">
+                                    {{ __('messages.sales_orders') }}
+                                </a>
+                                <a href="{{ route('sales.contracts.index') }}"
+                                    class="menu-link {{ request()->routeIs('sales.contracts.*') ? 'active' : '' }}">
+                                    {{ __('messages.sales_contracts') }}
+                                </a>
+                            </div>
+                        </div>
+                    @endcanany
+                @endif
+
+                @if($checkVisibility('sidebar_sales_invoices'))
+                    @can('view invoices')
+                        <div class="menu-item">
+                            <a href="{{ route('sales.invoices.index') }}"
+                                class="menu-link {{ request()->routeIs('sales.invoices.*') ? 'active' : '' }}">
+                                <i class="fas fa-file-invoice-dollar fa-fw"></i>
+                                <span>{{ __('messages.sales_invoices') }}</span>
+                            </a>
+                        </div>
+                    @endcan
+                @endif
+
+                @if($checkVisibility('sidebar_sales_returns'))
+                    @can('view returns')
+                        <div class="menu-item">
+                            <a href="{{ route('sales.returns.index') }}"
+                                class="menu-link {{ request()->routeIs('sales.returns.*') ? 'active' : '' }}">
+                                <i class="fas fa-undo fa-fw"></i>
+                                <span>{{ __('messages.sales_returns') }}</span>
+                            </a>
+                        </div>
+                    @endcan
+                @endif
+
+                @if($checkVisibility('sidebar_commissions'))
+                    @can('view commissions')
+                        <div class="menu-item">
+                            <a href="{{ route('sales.commissions.rules') }}"
+                                class="menu-link {{ request()->routeIs('sales.commissions.*') ? 'active' : '' }}">
+                                <i class="fas fa-percentage fa-fw"></i>
+                                <span>{{ __('messages.commissions') }}</span>
+                            </a>
+                        </div>
+                    @endcan
+                @endif
+
+                @if($checkVisibility('sidebar_customer_registrations'))
+                    @can('view customer_registration')
+                        <div class="menu-item">
+                            <a href="{{ route('sales.customer-registrations.index') }}"
+                                class="menu-link {{ request()->routeIs('sales.customer-registrations.*') ? 'active' : '' }}">
+                                <i class="fas fa-user-plus fa-fw"></i>
+                                <span>{{ __('messages.customer_registrations') }}</span>
+                            </a>
+                        </div>
+                    @endcan
+                @endif
+            @endcanany
+        @endif
+
+        @if($checkVisibility('module_purchases'))
+            @canany(['view vendors', 'view purchases', 'view local_purchase', 'view supplier_registration', 'view purchase_invoices'])
+                <!-- Purchases Section -->
+                <div class="menu-section">{{ __('messages.purchases') }}</div>
+
+                @if($checkVisibility('sidebar_vendors'))
+                    @can('view vendors')
+                        <div class="menu-item">
+                            <a href="{{ route('purchases.vendors.index') }}"
+                                class="menu-link {{ request()->routeIs('purchases.vendors.*') ? 'active' : '' }}">
+                                <i class="fas fa-truck fa-fw"></i>
+                                <span>{{ __('messages.vendors') }}</span>
+                            </a>
+                        </div>
+                    @endcan
+                @endif
+
+                @if($checkVisibility('sidebar_supply_orders'))
+                    @canany(['view purchases', 'view purchase_invoices'])
+                        <div class="menu-item">
+                            <a href="{{ route('purchases.supply-orders.index') }}"
+                                class="menu-link {{ request()->routeIs('purchases.supply-orders.*') ? 'active' : '' }}">
+                                <i class="fas fa-clipboard-list fa-fw"></i>
+                                <span>{{ __('messages.supply_orders') }}</span>
+                            </a>
+                        </div>
+
+                        @if($checkVisibility('sidebar_purchase_invoices'))
+                            @can('view purchase_invoices')
+                                <div class="menu-item">
+                                    <a href="{{ route('purchases.invoices.index') }}"
+                                        class="menu-link {{ request()->routeIs('purchases.invoices.*') ? 'active' : '' }}">
+                                        <i class="fas fa-shopping-cart fa-fw"></i>
+                                        <span>{{ __('messages.purchase_invoices') }}</span>
+                                    </a>
+                                </div>
+                            @endcan
                         @endif
-                        <a href="{{ route('admin.branches.index') }}"
-                            class="menu-link {{ request()->routeIs('admin.branches.*') ? 'active' : '' }}">
-                            {{ __('messages.branches') }}
-                        </a>
-                        <a href="{{ route('admin.warehouses.index') }}"
-                            class="menu-link {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">
-                            {{ __('messages.warehouses') }}
+                    @endcanany
+                @endif
+
+                @if($checkVisibility('sidebar_local_purchases'))
+                    @can('view local_purchase')
+                        <div class="menu-item">
+                            <a href="{{ route('purchases.local-purchases.index') }}"
+                                class="menu-link {{ request()->routeIs('purchases.local-purchases.*') ? 'active' : '' }}">
+                                <i class="fas fa-store fa-fw"></i>
+                                <span>{{ __('messages.local_purchases') }}</span>
+                            </a>
+                        </div>
+                    @endcan
+                @endif
+
+                @if($checkVisibility('sidebar_supplier_registrations'))
+                    @can('view supplier_registration')
+                        <div class="menu-item">
+                            <a href="{{ route('purchases.supplier-registrations.index') }}"
+                                class="menu-link {{ request()->routeIs('purchases.supplier-registrations.*') ? 'active' : '' }}">
+                                <i class="fas fa-user-plus fa-fw"></i>
+                                <span>{{ __('messages.supplier_registrations') }}</span>
+                            </a>
+                        </div>
+                    @endcan
+                @endif
+            @endcanany
+        @endif
+
+        @if($checkVisibility('module_inventory'))
+            @canany(['view products', 'view inventory'])
+                <!-- Inventory Section -->
+                <div class="menu-section">{{ __('messages.inventory') }}</div>
+
+                @if($checkVisibility('sidebar_products'))
+                    @can('view products')
+                        <div
+                            class="menu-item {{ request()->routeIs('inventory.products.*') || request()->routeIs('inventory.categories.*') || request()->routeIs('inventory.barcodes.*') ? 'open' : '' }}">
+                            <a href="#" class="menu-link" data-submenu>
+                                <i class="fas fa-boxes fa-fw"></i>
+                                <span>{{ __('messages.products') }}</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <div class="submenu">
+                                <a href="{{ route('inventory.products.index') }}"
+                                    class="menu-link {{ request()->routeIs('inventory.products.*') ? 'active' : '' }}">
+                                    {{ __('messages.products') }}
+                                </a>
+                                <a href="{{ route('inventory.categories.index') }}"
+                                    class="menu-link {{ request()->routeIs('inventory.categories.*') ? 'active' : '' }}">
+                                    {{ __('messages.categories') }}
+                                </a>
+                                <a href="{{ route('inventory.barcodes.index') }}"
+                                    class="menu-link {{ request()->routeIs('inventory.barcodes.*') ? 'active' : '' }}">
+                                    {{ __('messages.barcode_generator') }}
+                                </a>
+                            </div>
+                        </div>
+                    @endcan
+                @endif
+
+                @if($checkVisibility('sidebar_stock_management'))
+                    @can('view inventory')
+                        <div
+                            class="menu-item {{ request()->routeIs('inventory.stock-supply.*') || request()->routeIs('inventory.stock-receiving.*') || request()->routeIs('inventory.stock-transfers.*') || request()->routeIs('inventory.transfer-requests.*') || request()->routeIs('inventory.issue-orders.*') || request()->routeIs('inventory.assemblies.*') ? 'open' : '' }}">
+                            <a href="#" class="menu-link" data-submenu>
+                                <i class="fas fa-warehouse fa-fw"></i>
+                                <span>{{ __('messages.stock_management') }}</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <div class="submenu">
+                                <a href="{{ route('inventory.stock-supply.index') }}"
+                                    class="menu-link {{ request()->routeIs('inventory.stock-supply.*') ? 'active' : '' }}">
+                                    {{ __('messages.stock_supply') }}
+                                </a>
+                                <a href="{{ route('inventory.stock-receiving.index') }}"
+                                    class="menu-link {{ request()->routeIs('inventory.stock-receiving.*') ? 'active' : '' }}">
+                                    {{ __('messages.stock_receiving') }}
+                                </a>
+                                <a href="{{ route('inventory.stock-transfers.index') }}"
+                                    class="menu-link {{ request()->routeIs('inventory.stock-transfers.*') ? 'active' : '' }}">
+                                    {{ __('messages.stock_transfers') }}
+                                </a>
+                                <a href="{{ route('inventory.transfer-requests.index') }}"
+                                    class="menu-link {{ request()->routeIs('inventory.transfer-requests.*') ? 'active' : '' }}">
+                                    {{ __('messages.transfer_requests') }}
+                                </a>
+                                <a href="{{ route('inventory.issue-orders.index') }}"
+                                    class="menu-link {{ request()->routeIs('inventory.issue-orders.*') ? 'active' : '' }}">
+                                    {{ __('messages.issue_orders') }}
+                                </a>
+                                <a href="{{ route('inventory.assemblies.index') }}"
+                                    class="menu-link {{ request()->routeIs('inventory.assemblies.*') ? 'active' : '' }}">
+                                    {{ __('messages.composite_assemblies') }}
+                                </a>
+                            </div>
+                        </div>
+                    @endcan
+                @endif
+
+                @if($checkVisibility('sidebar_stock_ledger'))
+                    <div class="menu-item">
+                        <a href="{{ route('inventory.stock-ledger.index') }}"
+                            class="menu-link {{ request()->routeIs('inventory.stock-ledger.*') ? 'active' : '' }}">
+                            <i class="fas fa-list-alt fa-fw"></i>
+                            <span>{{ __('messages.stock_ledger') }}</span>
                         </a>
                     </div>
-                </div>
+                @endif
             @endcanany
+        @endif
 
-            @can('manage settings')
-                <div class="menu-item">
-                    <a href="{{ route('admin.settings.index') }}"
-                        class="menu-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-                        <i class="fas fa-cog fa-fw"></i>
-                        <span>{{ __('messages.settings') }}</span>
-                    </a>
-                </div>
-            @endcan
-        @endcanany
+        @if($checkVisibility('module_hr'))
+            @canany(['view employees', 'view departments', 'view designations'])
+                <!-- Human Resources Section -->
+                <div class="menu-section">{{ __('messages.human_resources') }}</div>
 
-        @canany(['view customers', 'view quotations', 'view invoices', 'view returns', 'view commissions', 'view customer_registration'])
-            <!-- Sales Section -->
-            <div class="menu-section">{{ __('messages.sales') }}</div>
-
-            @can('view customers')
-                <div class="menu-item">
-                    <a href="{{ route('sales.customers.index') }}"
-                        class="menu-link {{ request()->routeIs('sales.customers.*') ? 'active' : '' }}">
-                        <i class="fas fa-users fa-fw"></i>
-                        <span>{{ __('messages.customers') }}</span>
-                    </a>
-                </div>
-            @endcan
-
-            @canany(['view quotations', 'view customer_registration'])
                 <div
-                    class="menu-item {{ request()->routeIs('sales.customer-registrations.*') || request()->routeIs('sales.customer-requests.*') || request()->routeIs('sales.quotations.*') || request()->routeIs('sales.contracts.*') || request()->routeIs('sales.sales-orders.*') ? 'open' : '' }}">
+                    class="menu-item {{ request()->routeIs('hr.*') || request()->routeIs('hr.employees.*') || request()->routeIs('hr.departments.*') || request()->routeIs('hr.designations.*') || request()->routeIs('hr.salaries.*') || request()->routeIs('hr.experience.*') ? 'open' : '' }}">
                     <a href="#" class="menu-link" data-submenu>
-                        <i class="fas fa-file-invoice fa-fw"></i>
-                        <span>{{ __('messages.sales_documents') }}</span>
+                        <i class="fas fa-users fa-fw"></i>
+                        <span>{{ __('messages.human_resources') }}</span>
                         <i class="fas fa-chevron-down menu-arrow"></i>
                     </a>
                     <div class="submenu">
-                        <a href="{{ route('sales.customer-requests.index') }}"
-                            class="menu-link {{ request()->routeIs('sales.customer-requests.*') ? 'active' : '' }}">
-                            {{ __('messages.customer_requests') }}
+                        @if($checkVisibility('sidebar_employees'))
+                            @can('view employees')
+                                <a href="{{ route('hr.employees.index') }}"
+                                    class="menu-link {{ request()->routeIs('hr.employees.*') ? 'active' : '' }}">
+                                    {{ __('messages.employees') }}
+                                </a>
+                            @endcan
+                        @endif
+                        @if($checkVisibility('sidebar_departments'))
+                            @can('view departments')
+                                <a href="{{ route('hr.departments.index') }}"
+                                    class="menu-link {{ request()->routeIs('hr.departments.*') ? 'active' : '' }}">
+                                    {{ __('messages.departments') }}
+                                </a>
+                            @endcan
+                        @endif
+                        @if($checkVisibility('sidebar_designations'))
+                            @can('view designations')
+                                <a href="{{ route('hr.designations.index') }}"
+                                    class="menu-link {{ request()->routeIs('hr.designations.*') ? 'active' : '' }}">
+                                    {{ __('messages.designations') }}
+                                </a>
+                            @endcan
+                        @endif
+                        @if($checkVisibility('sidebar_salaries'))
+                            @can('view employees')
+                                <a href="{{ route('hr.salaries.index') }}"
+                                    class="menu-link {{ request()->routeIs('hr.salaries.*') ? 'active' : '' }}">
+                                    {{ __('messages.salaries') }}
+                                </a>
+                            @endcan
+                        @endif
+                        @if($checkVisibility('sidebar_experience_letters'))
+                            @can('view employees')
+                                <a href="{{ route('hr.experience.index') }}"
+                                    class="menu-link {{ request()->routeIs('hr.experience.*') ? 'active' : '' }}">
+                                    {{ __('messages.experience_letters') }}
+                                </a>
+                            @endcan
+                        @endif
+                    </div>
+                </div>
+            @endcanany
+        @endif
+
+        @if($checkVisibility('module_transport'))
+            @can('view transport')
+                <!-- Transport Section -->
+                <div class="menu-section">{{ __('messages.transport') }}</div>
+
+                @if($checkVisibility('sidebar_trailers'))
+                    <div class="menu-item">
+                        <a href="{{ route('transport.trailers.index') }}"
+                            class="menu-link {{ request()->routeIs('transport.trailers.*') ? 'active' : '' }}">
+                            <i class="fas fa-truck-moving fa-fw"></i>
+                            <span>{{ __('messages.trailers') }}</span>
                         </a>
-                        @can('view quotations')
-                            <a href="{{ route('sales.quotations.index') }}"
-                                class="menu-link {{ request()->routeIs('sales.quotations.*') ? 'active' : '' }}">
-                                {{ __('messages.quotations') }}
+                    </div>
+                @endif
+
+                @if($checkVisibility('sidebar_transport_orders'))
+                    <div class="menu-item">
+                        <a href="{{ route('transport.orders.index') }}"
+                            class="menu-link {{ request()->routeIs('transport.orders.*') ? 'active' : '' }}">
+                            <i class="fas fa-shipping-fast fa-fw"></i>
+                            <span>{{ __('messages.transport_orders') }}</span>
+                        </a>
+                    </div>
+                @endif
+
+                @if($checkVisibility('sidebar_transport_contracts'))
+                    <div class="menu-item">
+                        <a href="{{ route('transport.contracts.index') }}"
+                            class="menu-link {{ request()->routeIs('transport.contracts.*') ? 'active' : '' }}">
+                            <i class="fas fa-file-contract fa-fw"></i>
+                            <span>{{ __('messages.transport_contracts') }}</span>
+                        </a>
+                    </div>
+                @endif
+
+                @if($checkVisibility('sidebar_transport_claims'))
+                    <div class="menu-item">
+                        <a href="{{ route('transport.claims.index') }}"
+                            class="menu-link {{ request()->routeIs('transport.claims.*') ? 'active' : '' }}">
+                            <i class="fas fa-exclamation-triangle fa-fw"></i>
+                            <span>{{ __('messages.transport_claims') }}</span>
+                        </a>
+                    </div>
+                @endif
+            @endcan
+        @endif
+
+        @if($checkVisibility('module_maintenance'))
+            @can('view maintenance')
+                <!-- Maintenance Section -->
+                <div class="menu-section">{{ __('messages.maintenance') }}</div>
+
+                @if($checkVisibility('sidebar_workshops'))
+                    <div class="menu-item">
+                        <a href="{{ route('maintenance.workshops.index') }}"
+                            class="menu-link {{ request()->routeIs('maintenance.workshops.*') ? 'active' : '' }}">
+                            <i class="fas fa-tools fa-fw"></i>
+                            <span>{{ __('messages.workshops') }}</span>
+                        </a>
+                    </div>
+                @endif
+
+                @if($checkVisibility('sidebar_maintenance_vouchers'))
+                    <div class="menu-item">
+                        <a href="{{ route('maintenance.vouchers.index') }}"
+                            class="menu-link {{ request()->routeIs('maintenance.vouchers.*') ? 'active' : '' }}">
+                            <i class="fas fa-wrench fa-fw"></i>
+                            <span>{{ __('messages.maintenance_vouchers') }}</span>
+                        </a>
+                    </div>
+                @endif
+            @endcan
+        @endif
+
+        @if($checkVisibility('module_reports'))
+            @can('view reports')
+                <!-- Reports Section -->
+                <div class="menu-section">{{ __('messages.reports') }}</div>
+
+                @if($checkVisibility('sidebar_sales_reports'))
+                    <div class="menu-item {{ request()->routeIs('reports.sales.*') ? 'open' : '' }}">
+                        <a href="#" class="menu-link" data-submenu>
+                            <i class="fas fa-chart-line fa-fw"></i>
+                            <span>{{ __('messages.sales_reports') }}</span>
+                            <i class="fas fa-chevron-down menu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="{{ route('reports.sales.index') }}"
+                                class="menu-link {{ request()->routeIs('reports.sales.index') ? 'active' : '' }}">
+                                {{ __('messages.overview') }}
+                            </a>
+                            <a href="{{ route('reports.sales.by-customer') }}"
+                                class="menu-link {{ request()->routeIs('reports.sales.by-customer') ? 'active' : '' }}">
+                                {{ __('messages.reports_by_customer') }}
+                            </a>
+                            <a href="{{ route('reports.sales.by-item') }}"
+                                class="menu-link {{ request()->routeIs('reports.sales.by-item') ? 'active' : '' }}">
+                                {{ __('messages.reports_by_item') }}
+                            </a>
+                            <a href="{{ route('reports.sales.date-wise') }}"
+                                class="menu-link {{ request()->routeIs('reports.sales.date-wise') ? 'active' : '' }}">
+                                {{ __('messages.reports_date_wise') }}
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
+                @if($checkVisibility('sidebar_supplier_reports'))
+                    <div class="menu-item {{ request()->routeIs('reports.suppliers.*') ? 'open' : '' }}">
+                        <a href="#" class="menu-link" data-submenu>
+                            <i class="fas fa-truck fa-fw"></i>
+                            <span>{{ __('messages.supplier_reports') }}</span>
+                            <i class="fas fa-chevron-down menu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="{{ route('reports.suppliers.index') }}"
+                                class="menu-link {{ request()->routeIs('reports.suppliers.index') ? 'active' : '' }}">
+                                {{ __('messages.overview') }}
+                            </a>
+                            <a href="{{ route('reports.suppliers.by-code-name') }}"
+                                class="menu-link {{ request()->routeIs('reports.suppliers.by-code-name') ? 'active' : '' }}">
+                                {{ __('messages.reports_by_code_name') }}
+                            </a>
+                            <a href="{{ route('reports.suppliers.local-purchases') }}"
+                                class="menu-link {{ request()->routeIs('reports.suppliers.local-purchases') ? 'active' : '' }}">
+                                {{ __('messages.local_purchases') }}
+                            </a>
+                            <a href="{{ route('reports.suppliers.purchase-summary') }}"
+                                class="menu-link {{ request()->routeIs('reports.suppliers.purchase-summary') ? 'active' : '' }}">
+                                {{ __('messages.reports_purchase_summary') }}
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
+                @if($checkVisibility('sidebar_tax_reports'))
+                    <div class="menu-item">
+                        <a href="{{ route('reports.tax.summary') }}"
+                            class="menu-link {{ request()->routeIs('reports.tax.*') ? 'active' : '' }}">
+                            <i class="fas fa-calculator fa-fw"></i>
+                            <span>{{ __('messages.tax_reports') }}</span>
+                        </a>
+                    </div>
+                @endif
+
+                @if($checkVisibility('sidebar_inventory_reports'))
+                    <div class="menu-item">
+                        <a href="{{ route('reports.inventory.valuation') }}"
+                            class="menu-link {{ request()->routeIs('reports.inventory.*') ? 'active' : '' }}">
+                            <i class="fas fa-box fa-fw"></i>
+                            <span>{{ __('messages.inventory_reports') }}</span>
+                        </a>
+                    </div>
+                @endif
+            @endcan
+        @endif
+
+        @if($checkVisibility('module_accounting'))
+            @can('view accounting')
+                <!-- Accounting System Section -->
+
+                <!-- General Ledger System -->
+                <div class="menu-item {{ request()->routeIs('accounting.gl.*') ? 'open' : '' }}">
+                    <a href="#" class="menu-link" data-submenu>
+                        <i class="fas fa-book fa-fw"></i>
+                        <span>{{ __('messages.general_ledger_system') }}</span>
+                        <i class="fas fa-chevron-down menu-arrow"></i>
+                    </a>
+                    <div class="submenu">
+                        @can('manage chart of accounts')
+                            <a href="{{ route('accounting.gl.coa.index') }}"
+                                class="menu-link {{ request()->routeIs('accounting.gl.coa.*') ? 'active' : '' }}">
+                                {{ __('messages.chart_of_accounts') }}
                             </a>
                         @endcan
-                        <a href="{{ route('sales.sales-orders.index') }}"
-                            class="menu-link {{ request()->routeIs('sales.sales-orders.*') ? 'active' : '' }}">
-                            {{ __('messages.sales_orders') }}
-                        </a>
-                        <a href="{{ route('sales.contracts.index') }}"
-                            class="menu-link {{ request()->routeIs('sales.contracts.*') ? 'active' : '' }}">
-                            {{ __('messages.sales_contracts') }}
-                        </a>
-                    </div>
-                </div>
-            @endcanany
 
-            @can('view invoices')
-                <div class="menu-item">
-                    <a href="{{ route('sales.invoices.index') }}"
-                        class="menu-link {{ request()->routeIs('sales.invoices.*') ? 'active' : '' }}">
-                        <i class="fas fa-file-invoice-dollar fa-fw"></i>
-                        <span>{{ __('messages.sales_invoices') }}</span>
-                    </a>
-                </div>
-            @endcan
+                        <!-- Transactions Submenu -->
+                        <div class="menu-item {{ request()->routeIs('accounting.gl.transactions.*') ? 'open' : '' }}"
+                            style="margin-left: 10px;">
+                            <a href="#" class="menu-link" data-submenu>
+                                <i class="fas fa-exchange-alt fa-fw"></i>
+                                <span>{{ __('messages.transactions') }}</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <div class="submenu">
+                                <a href="{{ route('accounting.gl.transactions.jv.index') }}"
+                                    class="menu-link {{ request()->routeIs('accounting.gl.transactions.jv.*') ? 'active' : '' }}">
+                                    {{ __('messages.journal_vouchers') }}
+                                </a>
+                            </div>
+                        </div>
 
-            @can('view returns')
-                <div class="menu-item">
-                    <a href="{{ route('sales.returns.index') }}"
-                        class="menu-link {{ request()->routeIs('sales.returns.*') ? 'active' : '' }}">
-                        <i class="fas fa-undo fa-fw"></i>
-                        <span>{{ __('messages.sales_returns') }}</span>
-                    </a>
-                </div>
-            @endcan
-
-            @can('view commissions')
-                <div class="menu-item">
-                    <a href="{{ route('sales.commissions.rules') }}"
-                        class="menu-link {{ request()->routeIs('sales.commissions.*') ? 'active' : '' }}">
-                        <i class="fas fa-percentage fa-fw"></i>
-                        <span>{{ __('messages.commissions') }}</span>
-                    </a>
-                </div>
-            @endcan
-
-            @can('view customer_registration')
-                <div class="menu-item">
-                    <a href="{{ route('sales.customer-registrations.index') }}"
-                        class="menu-link {{ request()->routeIs('sales.customer-registrations.*') ? 'active' : '' }}">
-                        <i class="fas fa-user-plus fa-fw"></i>
-                        <span>{{ __('messages.customer_registrations') }}</span>
-                    </a>
-                </div>
-            @endcan
-        @endcanany
-
-        @canany(['view vendors', 'view purchases', 'view local_purchase', 'view supplier_registration'])
-            <!-- Purchases Section -->
-            <div class="menu-section">{{ __('messages.purchases') }}</div>
-
-            @can('view vendors')
-                <div class="menu-item">
-                    <a href="{{ route('purchases.vendors.index') }}"
-                        class="menu-link {{ request()->routeIs('purchases.vendors.*') ? 'active' : '' }}">
-                        <i class="fas fa-truck fa-fw"></i>
-                        <span>{{ __('messages.vendors') }}</span>
-                    </a>
-                </div>
-            @endcan
-
-            @can('view purchases')
-                <div class="menu-item">
-                    <a href="{{ route('purchases.supply-orders.index') }}"
-                        class="menu-link {{ request()->routeIs('purchases.supply-orders.*') ? 'active' : '' }}">
-                        <i class="fas fa-clipboard-list fa-fw"></i>
-                        <span>{{ __('messages.supply_orders') }}</span>
-                    </a>
-                </div>
-
-                <div class="menu-item">
-                    <a href="{{ route('purchases.invoices.index') }}"
-                        class="menu-link {{ request()->routeIs('purchases.invoices.*') ? 'active' : '' }}">
-                        <i class="fas fa-shopping-cart fa-fw"></i>
-                        <span>{{ __('messages.purchase_invoices') }}</span>
-                    </a>
-                </div>
-            @endcan
-
-            @can('view local_purchase')
-                <div class="menu-item">
-                    <a href="{{ route('purchases.local-purchases.index') }}"
-                        class="menu-link {{ request()->routeIs('purchases.local-purchases.*') ? 'active' : '' }}">
-                        <i class="fas fa-store fa-fw"></i>
-                        <span>{{ __('messages.local_purchases') }}</span>
-                    </a>
-                </div>
-            @endcan
-
-            @can('view supplier_registration')
-                <div class="menu-item">
-                    <a href="{{ route('purchases.supplier-registrations.index') }}"
-                        class="menu-link {{ request()->routeIs('purchases.supplier-registrations.*') ? 'active' : '' }}">
-                        <i class="fas fa-user-plus fa-fw"></i>
-                        <span>{{ __('messages.supplier_registrations') }}</span>
-                    </a>
-                </div>
-            @endcan
-        @endcanany
-
-        @canany(['view products', 'view inventory'])
-            <!-- Inventory Section -->
-            <div class="menu-section">{{ __('messages.inventory') }}</div>
-
-            @can('view products')
-                <div
-                    class="menu-item {{ request()->routeIs('inventory.products.*') || request()->routeIs('inventory.categories.*') ? 'open' : '' }}">
-                    <a href="#" class="menu-link" data-submenu>
-                        <i class="fas fa-boxes fa-fw"></i>
-                        <span>{{ __('messages.products') }}</span>
-                        <i class="fas fa-chevron-down menu-arrow"></i>
-                    </a>
-                    <div class="submenu">
-                        <a href="{{ route('inventory.products.index') }}"
-                            class="menu-link {{ request()->routeIs('inventory.products.*') ? 'active' : '' }}">
-                            {{ __('messages.products') }}
-                        </a>
-                        <a href="{{ route('inventory.categories.index') }}"
-                            class="menu-link {{ request()->routeIs('inventory.categories.*') ? 'active' : '' }}">
-                            {{ __('messages.categories') }}
-                        </a>
-                        <a href="{{ route('inventory.barcodes.index') }}"
-                            class="menu-link {{ request()->routeIs('inventory.barcodes.*') ? 'active' : '' }}">
-                            {{ __('messages.barcode_generator') }}
-                        </a>
+                        <!-- Reports Submenu -->
+                        <div class="menu-item {{ request()->routeIs('accounting.gl.reports.*') ? 'open' : '' }}"
+                            style="margin-left: 10px;">
+                            <a href="#" class="menu-link" data-submenu>
+                                <i class="fas fa-file-invoice-dollar fa-fw"></i>
+                                <span>{{ __('messages.reports') }}</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <div class="submenu">
+                                <a href="{{ route('accounting.gl.reports.account-statement') }}"
+                                    class="menu-link {{ request()->routeIs('accounting.gl.reports.account-statement') ? 'active' : '' }}">
+                                    {{ __('messages.account_statement_report') }}
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endcan
-
-            @can('view inventory')
-                <div
-                    class="menu-item {{ request()->routeIs('inventory.stock-supply.*') || request()->routeIs('inventory.stock-receiving.*') || request()->routeIs('inventory.stock-transfers.*') ? 'open' : '' }}">
-                    <a href="#" class="menu-link" data-submenu>
-                        <i class="fas fa-warehouse fa-fw"></i>
-                        <span>{{ __('messages.stock_management') }}</span>
-                        <i class="fas fa-chevron-down menu-arrow"></i>
-                    </a>
-                    <div class="submenu">
-                        <a href="{{ route('inventory.stock-supply.index') }}"
-                            class="menu-link {{ request()->routeIs('inventory.stock-supply.*') ? 'active' : '' }}">
-                            {{ __('messages.stock_supply') }}
-                        </a>
-                        <a href="{{ route('inventory.stock-receiving.index') }}"
-                            class="menu-link {{ request()->routeIs('inventory.stock-receiving.*') ? 'active' : '' }}">
-                            {{ __('messages.stock_receiving') }}
-                        </a>
-                        <a href="{{ route('inventory.stock-transfers.index') }}"
-                            class="menu-link {{ request()->routeIs('inventory.stock-transfers.*') ? 'active' : '' }}">
-                            {{ __('messages.stock_transfers') }}
-                        </a>
-                        <a href="{{ route('inventory.transfer-requests.index') }}"
-                            class="menu-link {{ request()->routeIs('inventory.transfer-requests.*') ? 'active' : '' }}">
-                            {{ __('messages.transfer_requests') }}
-                        </a>
-                        <a href="{{ route('inventory.issue-orders.index') }}"
-                            class="menu-link {{ request()->routeIs('inventory.issue-orders.*') ? 'active' : '' }}">
-                            {{ __('messages.issue_orders') }}
-                        </a>
-                        <a href="{{ route('inventory.assemblies.index') }}"
-                            class="menu-link {{ request()->routeIs('inventory.assemblies.*') ? 'active' : '' }}">
-                            {{ __('messages.composite_assemblies') }}
-                        </a>
-                    </div>
-                </div>
-
-                <div class="menu-item">
-                    <a href="{{ route('inventory.stock-ledger.index') }}"
-                        class="menu-link {{ request()->routeIs('inventory.stock-ledger.*') ? 'active' : '' }}">
-                        <i class="fas fa-list-alt fa-fw"></i>
-                        <span>{{ __('messages.stock_ledger') }}</span>
-                    </a>
-                </div>
-            @endcan
-        @endcanany
-
-        @canany(['view employees', 'view departments', 'view designations'])
-            <!-- Human Resources Section -->
-            <div class="menu-section">{{ __('messages.human_resources') }}</div>
-
-            <div
-                class="menu-item {{ request()->routeIs('hr.*') || request()->routeIs('hr.employees.*') || request()->routeIs('hr.departments.*') || request()->routeIs('hr.designations.*') ? 'open' : '' }}">
-                <a href="#" class="menu-link" data-submenu>
-                    <i class="fas fa-users fa-fw"></i>
-                    <span>{{ __('messages.human_resources') }}</span>
-                    <i class="fas fa-chevron-down menu-arrow"></i>
-                </a>
-                <div class="submenu">
-                    @can('view employees')
-                        <a href="{{ route('hr.employees.index') }}"
-                            class="menu-link {{ request()->routeIs('hr.employees.*') ? 'active' : '' }}">
-                            {{ __('messages.employees') }}
-                        </a>
-                    @endcan
-                    @can('view departments')
-                        <a href="{{ route('hr.departments.index') }}"
-                            class="menu-link {{ request()->routeIs('hr.departments.*') ? 'active' : '' }}">
-                            {{ __('messages.departments') }}
-                        </a>
-                    @endcan
-                    @can('view designations')
-                        <a href="{{ route('hr.designations.index') }}"
-                            class="menu-link {{ request()->routeIs('hr.designations.*') ? 'active' : '' }}">
-                            {{ __('messages.designations') }}
-                        </a>
-                    @endcan
-                    @can('view employees')
-                        <a href="{{ route('hr.salaries.index') }}"
-                            class="menu-link {{ request()->routeIs('hr.salaries.*') ? 'active' : '' }}">
-                            {{ __('messages.salaries') }}
-                        </a>
-                    @endcan
-                    @can('view employees')
-                        <a href="{{ route('hr.experience.index') }}"
-                            class="menu-link {{ request()->routeIs('hr.experience.*') ? 'active' : '' }}">
-                            {{ __('messages.experience_letters') }}
-                        </a>
-                    @endcan
-                </div>
-            </div>
-        @endcanany
-
-        @can('view transport')
-            <!-- Transport Section -->
-            <div class="menu-section">{{ __('messages.transport') }}</div>
-
-            <div class="menu-item">
-                <a href="{{ route('transport.trailers.index') }}"
-                    class="menu-link {{ request()->routeIs('transport.trailers.*') ? 'active' : '' }}">
-                    <i class="fas fa-truck-moving fa-fw"></i>
-                    <span>{{ __('messages.trailers') }}</span>
-                </a>
-            </div>
-
-            <div class="menu-item">
-                <a href="{{ route('transport.orders.index') }}"
-                    class="menu-link {{ request()->routeIs('transport.orders.*') ? 'active' : '' }}">
-                    <i class="fas fa-shipping-fast fa-fw"></i>
-                    <span>{{ __('messages.transport_orders') }}</span>
-                </a>
-            </div>
-
-            <div class="menu-item">
-                <a href="{{ route('transport.contracts.index') }}"
-                    class="menu-link {{ request()->routeIs('transport.contracts.*') ? 'active' : '' }}">
-                    <i class="fas fa-file-contract fa-fw"></i>
-                    <span>{{ __('messages.transport_contracts') }}</span>
-                </a>
-            </div>
-
-            <div class="menu-item">
-                <a href="{{ route('transport.claims.index') }}"
-                    class="menu-link {{ request()->routeIs('transport.claims.*') ? 'active' : '' }}">
-                    <i class="fas fa-exclamation-triangle fa-fw"></i>
-                    <span>{{ __('messages.transport_claims') }}</span>
-                </a>
-            </div>
-        @endcan
-
-        @can('view maintenance')
-            <!-- Maintenance Section -->
-            <div class="menu-section">{{ __('messages.maintenance') }}</div>
-
-            <div class="menu-item">
-                <a href="{{ route('maintenance.workshops.index') }}"
-                    class="menu-link {{ request()->routeIs('maintenance.workshops.*') ? 'active' : '' }}">
-                    <i class="fas fa-tools fa-fw"></i>
-                    <span>{{ __('messages.workshops') }}</span>
-                </a>
-            </div>
-
-            <div class="menu-item">
-                <a href="{{ route('maintenance.vouchers.index') }}"
-                    class="menu-link {{ request()->routeIs('maintenance.vouchers.*') ? 'active' : '' }}">
-                    <i class="fas fa-wrench fa-fw"></i>
-                    <span>{{ __('messages.maintenance_vouchers') }}</span>
-                </a>
-            </div>
-        @endcan
-
-        @can('view reports')
-            <!-- Reports Section -->
-            <div class="menu-section">{{ __('messages.reports') }}</div>
-
-            <div class="menu-item {{ request()->routeIs('reports.sales.*') ? 'open' : '' }}">
-                <a href="#" class="menu-link" data-submenu>
-                    <i class="fas fa-chart-line fa-fw"></i>
-                    <span>{{ __('messages.sales_reports') }}</span>
-                    <i class="fas fa-chevron-down menu-arrow"></i>
-                </a>
-                <div class="submenu">
-                    <a href="{{ route('reports.sales.index') }}"
-                        class="menu-link {{ request()->routeIs('reports.sales.index') ? 'active' : '' }}">
-                        {{ __('messages.overview') }}
-                    </a>
-                    <a href="{{ route('reports.sales.by-customer') }}"
-                        class="menu-link {{ request()->routeIs('reports.sales.by-customer') ? 'active' : '' }}">
-                        {{ __('messages.reports_by_customer') }}
-                    </a>
-                    <a href="{{ route('reports.sales.by-item') }}"
-                        class="menu-link {{ request()->routeIs('reports.sales.by-item') ? 'active' : '' }}">
-                        {{ __('messages.reports_by_item') }}
-                    </a>
-                    <a href="{{ route('reports.sales.date-wise') }}"
-                        class="menu-link {{ request()->routeIs('reports.sales.date-wise') ? 'active' : '' }}">
-                        {{ __('messages.reports_date_wise') }}
-                    </a>
-                </div>
-            </div>
-
-            <div class="menu-item {{ request()->routeIs('reports.suppliers.*') ? 'open' : '' }}">
-                <a href="#" class="menu-link" data-submenu>
-                    <i class="fas fa-truck fa-fw"></i>
-                    <span>{{ __('messages.supplier_reports') }}</span>
-                    <i class="fas fa-chevron-down menu-arrow"></i>
-                </a>
-                <div class="submenu">
-                    <a href="{{ route('reports.suppliers.index') }}"
-                        class="menu-link {{ request()->routeIs('reports.suppliers.index') ? 'active' : '' }}">
-                        {{ __('messages.overview') }}
-                    </a>
-                    <a href="{{ route('reports.suppliers.by-code-name') }}"
-                        class="menu-link {{ request()->routeIs('reports.suppliers.by-code-name') ? 'active' : '' }}">
-                        {{ __('messages.reports_by_code_name') }}
-                    </a>
-                    <a href="{{ route('reports.suppliers.local-purchases') }}"
-                        class="menu-link {{ request()->routeIs('reports.suppliers.local-purchases') ? 'active' : '' }}">
-                        {{ __('messages.local_purchases') }}
-                    </a>
-                    <a href="{{ route('reports.suppliers.purchase-summary') }}"
-                        class="menu-link {{ request()->routeIs('reports.suppliers.purchase-summary') ? 'active' : '' }}">
-                        {{ __('messages.reports_purchase_summary') }}
-                    </a>
-                </div>
-            </div>
-
-            <div class="menu-item">
-                <a href="{{ route('reports.tax.summary') }}"
-                    class="menu-link {{ request()->routeIs('reports.tax.*') ? 'active' : '' }}">
-                    <i class="fas fa-calculator fa-fw"></i>
-                    <span>{{ __('messages.tax_reports') }}</span>
-                </a>
-            </div>
-
-            <div class="menu-item">
-                <a href="{{ route('reports.inventory.valuation') }}"
-                    class="menu-link {{ request()->routeIs('reports.inventory.*') ? 'active' : '' }}">
-                    <i class="fas fa-box fa-fw"></i>
-                    <span>{{ __('messages.inventory_reports') }}</span>
-                </a>
-            </div>
-        @endcan
+        @endif
 
     </nav>
 </aside>

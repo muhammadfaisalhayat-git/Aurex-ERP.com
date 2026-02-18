@@ -24,6 +24,7 @@
                                 <th>{{ __('messages.vendor') }}</th>
                                 <th>{{ __('messages.total') }}</th>
                                 <th>{{ __('messages.status') }}</th>
+                                <th>{{ __('messages.created_by') }}</th>
                                 <th>{{ __('messages.actions') }}</th>
                             </tr>
                         </thead>
@@ -55,6 +56,7 @@
                                             {{ __('messages.' . $invoice->status) }}
                                         </span>
                                     </td>
+                                    <td>{{ $invoice->creator->name ?? '-' }}</td>
                                     <td>
                                         <div class="btn-group">
                                             <a href="{{ route('purchases.invoices.show', $invoice) }}"
@@ -69,6 +71,10 @@
                                                     </a>
                                                 @endcan
                                             @endif
+                                            <a href="{{ route('purchases.invoices.print', $invoice) }}" target="_blank"
+                                                class="btn btn-sm btn-secondary" title="{{ __('messages.print') }}">
+                                                <i class="fas fa-print"></i>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>

@@ -286,4 +286,10 @@ class QuotationController extends Controller
 
         return redirect()->away($link);
     }
+
+    public function print(Quotation $quotation)
+    {
+        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator']);
+        return view('sales.quotations.print', compact('quotation'));
+    }
 }
