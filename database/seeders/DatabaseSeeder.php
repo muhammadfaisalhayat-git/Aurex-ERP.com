@@ -44,8 +44,8 @@ class DatabaseSeeder extends Seeder
             CommissionRuleSeeder::class,
             CommissionRunSeeder::class,
             LocalPurchaseSeeder::class,
-            // SupplierRegistrationSeeder::class,
-            // CustomerRegistrationSeeder::class,
+            AccountingSeeder::class,
+            JournalVoucherSeeder::class,
         ]);
     }
 }

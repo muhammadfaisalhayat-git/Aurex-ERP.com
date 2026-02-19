@@ -639,9 +639,24 @@
                                 <i class="fas fa-chevron-down menu-arrow"></i>
                             </a>
                             <div class="submenu">
+                                <a href="<?php echo e(route('accounting.gl.dashboard')); ?>"
+                                    class="menu-link <?php echo e(request()->routeIs('accounting.gl.dashboard') ? 'active' : ''); ?>">
+                                    <?php echo e(__('messages.dashboard')); ?>
+
+                                </a>
                                 <a href="<?php echo e(route('accounting.gl.reports.account-statement')); ?>"
                                     class="menu-link <?php echo e(request()->routeIs('accounting.gl.reports.account-statement') ? 'active' : ''); ?>">
                                     <?php echo e(__('messages.account_statement_report')); ?>
+
+                                </a>
+                                <a href="<?php echo e(route('accounting.gl.reports.daily-ledger')); ?>"
+                                    class="menu-link <?php echo e(request()->routeIs('accounting.gl.reports.daily-ledger') ? 'active' : ''); ?>">
+                                    <?php echo e(__('messages.daily_ledger')); ?>
+
+                                </a>
+                                <a href="<?php echo e(route('accounting.gl.explorer.index')); ?>"
+                                    class="menu-link <?php echo e(request()->routeIs('accounting.gl.explorer.*') ? 'active' : ''); ?>">
+                                    <?php echo e(__('messages.account_explorer')); ?>
 
                                 </a>
                             </div>

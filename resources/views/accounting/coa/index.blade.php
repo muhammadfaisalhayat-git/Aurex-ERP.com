@@ -48,6 +48,10 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
+                                            <a href="{{ route('accounting.gl.transactions.modern_jv') }}?account_id={{ $account->id }}"
+                                                class="btn btn-outline-info" title="{{ __('messages.journal_voucher') }}">
+                                                <i class="fas fa-book"></i>
+                                            </a>
                                             <a href="{{ route('accounting.gl.coa.edit', $account->id) }}"
                                                 class="btn btn-outline-primary">
                                                 <i class="fas fa-edit"></i>

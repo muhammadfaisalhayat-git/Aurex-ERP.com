@@ -168,4 +168,24 @@ class CustomerController extends Controller
         return redirect()->route('sales.customers.index')
             ->with('success', __('messages.customer_deleted'));
     }
+
+    public function ajaxSearch(Request $request)
+    {
+        $search = $request->get('q');
+        $customers = Customer::active()
+            ->where(function ($query) use ($search) {
+                $query->where('name_en', 'like', "%$search%")
+                    ->orWhere('name_ar', 'like', "%$search%")
+                    ->orWhere('code', 'like', "%$search%");
+            })
+            ->limit(10)
+            ->get();
+
+        return response()->json($customers->map(function ($customer) {
+            return [
+                'id' => $customer->id,
+                'name' => $customer->name . ' (' . $customer->code . ')',
+            ];
+        }));
+    }
 }

@@ -160,6 +160,19 @@
                                                     <i class="fas fa-file-pdf"></i>
                                                 </a>
                                             @endcan
+                                            @if($invoice->status === 'draft')
+                                                @can('post invoices')
+                                                    <form action="{{ route('sales.invoices.post', $invoice->id) }}" method="POST"
+                                                        class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-success"
+                                                            title="{{ __('sales.post') }}"
+                                                            onclick="return confirm('{{ __('common.confirm_action') }}')">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </button>
+                                                    </form>
+                                                @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -231,11 +244,11 @@
                     }
 
                     container.innerHTML = data.map(item => `
-                                                                                        <div class="search-result-item" data-id="${item.id}">
-                                                                                            <div class="item-title">${item.name}</div>
-                                                                                            ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
-                                                                                        </div>
-                                                                                    `).join('');
+                                                                                                <div class="search-result-item" data-id="${item.id}">
+                                                                                                    <div class="item-title">${item.name}</div>
+                                                                                                    ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
+                                                                                                </div>
+                                                                                            `).join('');
 
                     container.style.display = 'block';
 

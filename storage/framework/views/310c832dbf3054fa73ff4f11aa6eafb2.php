@@ -548,46 +548,76 @@
 
 <body>
     <!-- Sidebar -->
-    <?php if(!request()->routeIs('dashboard')): ?>
+    <?php if(!request()->routeIs('dashboard') && !request()->routeIs('accounting.gl.transactions.modern_jv')): ?>
         <?php echo $__env->make('layouts.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php endif; ?>
 
     <!-- Main Content -->
     <div class="main-content" <?php echo request()->routeIs('dashboard') ? 'style="margin-left: 0; margin-right: 0; width: 100%;"' : ''; ?>>
         <!-- Header -->
-        <header class="header">
-            <div class="header-left">
-                <?php if(!request()->routeIs('dashboard')): ?>
-                    <button class="sidebar-toggle d-lg-none">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                <?php endif; ?>
+        <?php if(!request()->routeIs('accounting.gl.transactions.modern_jv')): ?>
+            <header class="header">
+                <div class="header-left">
+                    <?php if(!request()->routeIs('dashboard') && !request()->routeIs('accounting.gl.transactions.modern_jv')): ?>
+                        <button class="sidebar-toggle d-lg-none">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    <?php endif; ?>
 
-                <!-- Company/Branch Switcher -->
-                <div class="d-none d-lg-flex align-items-center gap-3 ms-4">
-                    <?php
-                        $activeCompany = \App\Models\Company::find(session('active_company_id'));
-                        $activeBranch = \App\Models\Branch::find(session('active_branch_id'));
-                        $userCompanies = auth()->user()->hasRole('Super Admin') ? \App\Models\Company::all() : collect([auth()->user()->company]);
-                        $companyBranches = \App\Models\Branch::where('company_id', session('active_company_id'))->get();
-                    ?>
+                    <!-- Company/Branch Switcher -->
+                    <div class="d-none d-lg-flex align-items-center gap-3 ms-4">
+                        <?php
+                            $activeCompany = \App\Models\Company::find(session('active_company_id'));
+                            $activeBranch = \App\Models\Branch::find(session('active_branch_id'));
+                            $userCompanies = auth()->user()->hasRole('Super Admin') ? \App\Models\Company::all() : collect([auth()->user()->company]);
+                            $companyBranches = \App\Models\Branch::where('company_id', session('active_company_id'))->get();
+                        ?>
 
-                    <?php if(auth()->user()->hasRole('Super Admin')): ?>
+                        <?php if(auth()->user()->hasRole('Super Admin')): ?>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown">
+                                    <i class="fas fa-building me-1"></i> <?php echo e($activeCompany->name ?? __('Select Company')); ?>
+
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <?php $__currentLoopData = $userCompanies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $company): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <li>
+                                            <form action="<?php echo e(route('switch-company')); ?>" method="POST">
+                                                <?php echo csrf_field(); ?>
+                                                <input type="hidden" name="company_id" value="<?php echo e($company->id); ?>">
+                                                <button type="submit"
+                                                    class="dropdown-item <?php echo e($company->id == session('active_company_id') ? 'active' : ''); ?>">
+                                                    <?php echo e($company->name); ?>
+
+                                                </button>
+                                            </form>
+                                        </li>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </ul>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-muted small fw-bold">
+                                <i class="fas fa-building me-1"></i> <?php echo e($activeCompany->name ?? ''); ?>
+
+                            </div>
+                        <?php endif; ?>
+
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
                                 data-bs-toggle="dropdown">
-                                <i class="fas fa-building me-1"></i> <?php echo e($activeCompany->name ?? __('Select Company')); ?>
+                                <i class="fas fa-map-marker-alt me-1"></i> <?php echo e($activeBranch->name ?? __('Select Branch')); ?>
 
                             </button>
                             <ul class="dropdown-menu">
-                                <?php $__currentLoopData = $userCompanies; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $company): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php $__currentLoopData = $companyBranches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <li>
-                                        <form action="<?php echo e(route('switch-company')); ?>" method="POST">
+                                        <form action="<?php echo e(route('switch-branch')); ?>" method="POST">
                                             <?php echo csrf_field(); ?>
-                                            <input type="hidden" name="company_id" value="<?php echo e($company->id); ?>">
+                                            <input type="hidden" name="branch_id" value="<?php echo e($branch->id); ?>">
                                             <button type="submit"
-                                                class="dropdown-item <?php echo e($company->id == session('active_company_id') ? 'active' : ''); ?>">
-                                                <?php echo e($company->name); ?>
+                                                class="dropdown-item <?php echo e($branch->id == session('active_branch_id') ? 'active' : ''); ?>">
+                                                <?php echo e($branch->name); ?>
 
                                             </button>
                                         </form>
@@ -595,87 +625,59 @@
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </ul>
                         </div>
-                    <?php else: ?>
-                        <div class="text-muted small fw-bold">
-                            <i class="fas fa-building me-1"></i> <?php echo e($activeCompany->name ?? ''); ?>
+                    </div>
+                </div>
 
-                        </div>
-                    <?php endif; ?>
+                <div class="header-right">
+                    <!-- Language Switcher -->
+                    <div class="language-switcher">
+                        <a href="<?php echo e(route('language.switch', 'en')); ?>"
+                            class="<?php echo e(app()->getLocale() === 'en' ? 'active' : ''); ?>">EN</a>
+                        <a href="<?php echo e(route('language.switch', 'ar')); ?>"
+                            class="<?php echo e(app()->getLocale() === 'ar' ? 'active' : ''); ?>">عربي</a>
+                    </div>
 
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                            data-bs-toggle="dropdown">
-                            <i class="fas fa-map-marker-alt me-1"></i> <?php echo e($activeBranch->name ?? __('Select Branch')); ?>
+                    <!-- User Dropdown -->
+                    <div class="dropdown user-dropdown">
+                        <button class="dropdown-toggle" data-bs-toggle="dropdown">
+                            <div class="user-avatar">
+                                <?php echo e(substr(auth()->user()->name, 0, 1)); ?>
 
+                            </div>
+                            <div class="user-info d-none d-md-block">
+                                <div class="user-name"><?php echo e(auth()->user()->name); ?></div>
+                                <div class="user-role">
+                                    <?php echo e(app()->getLocale() === 'ar' ? (auth()->user()->roles->first()?->display_name_ar ?? 'مستخدم') : (auth()->user()->roles->first()?->display_name_en ?? 'User')); ?>
+
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down ms-2" style="font-size: 0.75rem; color: #64748b;"></i>
                         </button>
-                        <ul class="dropdown-menu">
-                            <?php $__currentLoopData = $companyBranches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <li>
-                                    <form action="<?php echo e(route('switch-branch')); ?>" method="POST">
-                                        <?php echo csrf_field(); ?>
-                                        <input type="hidden" name="branch_id" value="<?php echo e($branch->id); ?>">
-                                        <button type="submit"
-                                            class="dropdown-item <?php echo e($branch->id == session('active_branch_id') ? 'active' : ''); ?>">
-                                            <?php echo e($branch->name); ?>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i
+                                        class="fas fa-user me-2"></i><?php echo e(__('messages.profile')); ?></a></li>
+                            <li><a class="dropdown-item" href="#"><i
+                                        class="fas fa-cog me-2"></i><?php echo e(__('messages.settings')); ?></a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <form action="<?php echo e(route('logout')); ?>" method="POST">
+                                    <?php echo csrf_field(); ?>
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt me-2"></i><?php echo e(__('messages.logout')); ?>
 
-                                        </button>
-                                    </form>
-                                </li>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </button>
+                                </form>
+                            </li>
                         </ul>
                     </div>
                 </div>
-            </div>
-
-            <div class="header-right">
-                <!-- Language Switcher -->
-                <div class="language-switcher">
-                    <a href="<?php echo e(route('language.switch', 'en')); ?>"
-                        class="<?php echo e(app()->getLocale() === 'en' ? 'active' : ''); ?>">EN</a>
-                    <a href="<?php echo e(route('language.switch', 'ar')); ?>"
-                        class="<?php echo e(app()->getLocale() === 'ar' ? 'active' : ''); ?>">عربي</a>
-                </div>
-
-                <!-- User Dropdown -->
-                <div class="dropdown user-dropdown">
-                    <button class="dropdown-toggle" data-bs-toggle="dropdown">
-                        <div class="user-avatar">
-                            <?php echo e(substr(auth()->user()->name, 0, 1)); ?>
-
-                        </div>
-                        <div class="user-info d-none d-md-block">
-                            <div class="user-name"><?php echo e(auth()->user()->name); ?></div>
-                            <div class="user-role">
-                                <?php echo e(app()->getLocale() === 'ar' ? (auth()->user()->roles->first()?->display_name_ar ?? 'مستخدم') : (auth()->user()->roles->first()?->display_name_en ?? 'User')); ?>
-
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down ms-2" style="font-size: 0.75rem; color: #64748b;"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i
-                                    class="fas fa-user me-2"></i><?php echo e(__('messages.profile')); ?></a></li>
-                        <li><a class="dropdown-item" href="#"><i
-                                    class="fas fa-cog me-2"></i><?php echo e(__('messages.settings')); ?></a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <form action="<?php echo e(route('logout')); ?>" method="POST">
-                                <?php echo csrf_field(); ?>
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fas fa-sign-out-alt me-2"></i><?php echo e(__('messages.logout')); ?>
-
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </header>
+            </header>
+        <?php endif; ?>
 
         <!-- Content -->
-        <div class="content-wrapper">
+        <div class="content-wrapper" <?php echo request()->routeIs('accounting.gl.transactions.modern_jv') ? 'style="padding: 0; background-color: #fff;"' : ''; ?>>
             <?php echo $__env->yieldContent('content'); ?>
         </div>
     </div>

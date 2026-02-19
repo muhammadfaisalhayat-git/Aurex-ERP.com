@@ -66,6 +66,12 @@ class AccountingService
                     'description' => $voucher->description,
                     'customer_id' => $item->customer_id,
                     'vendor_id' => $item->vendor_id,
+                    'cost_center_no' => $item->cost_center_no,
+                    'activity_no' => $item->activity_no,
+                    'lc_no' => $item->lc_no,
+                    'rep' => $item->rep,
+                    'collector_no' => $item->collector_no,
+                    'promoter_code' => $item->promoter_code,
                 ]);
             }
 
@@ -107,6 +113,12 @@ class AccountingService
                     'description' => $voucher->description,
                     'customer_id' => $item->customer_id,
                     'vendor_id' => $item->vendor_id,
+                    'cost_center_no' => $item->cost_center_no,
+                    'activity_no' => $item->activity_no,
+                    'lc_no' => $item->lc_no,
+                    'rep' => $item->rep,
+                    'collector_no' => $item->collector_no,
+                    'promoter_code' => $item->promoter_code,
                 ]);
             }
 

@@ -13,12 +13,20 @@ class JournalVoucherItem extends Model
         'journal_voucher_id',
         'main_account_id',
         'chart_of_account_id',
+        'currency',
+        'percentage',
         'debit',
         'credit',
         'tax_amount',
         'notes',
         'customer_id',
         'vendor_id',
+        'cost_center_no',
+        'activity_no',
+        'lc_no',
+        'rep',
+        'collector_no',
+        'promoter_code',
     ];
 
     public function journalVoucher()

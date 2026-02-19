@@ -64,6 +64,9 @@ use App\Http\Controllers\Reports\SupplierReportController;
 use App\Http\Controllers\Accounting\ChartOfAccountController;
 use App\Http\Controllers\Accounting\JournalVoucherController;
 use App\Http\Controllers\Accounting\AccountingReportController;
+use App\Http\Controllers\Accounting\AccountExplorerController;
+use App\Http\Controllers\Accounting\DailyLedgerController;
+use App\Http\Controllers\Accounting\AccountingDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -434,7 +437,19 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             Route::prefix('reports')->name('reports.')->group(function () {
                 Route::get('account-statement', [AccountingReportController::class, 'accountStatement'])->name('account-statement');
                 Route::post('account-statement', [AccountingReportController::class, 'generateAccountStatement']);
+
+                // Daily Ledger
+                Route::get('daily-ledger', [DailyLedgerController::class, 'index'])->name('daily-ledger');
+                Route::post('daily-ledger/fetch', [DailyLedgerController::class, 'fetch'])->name('daily-ledger.fetch');
+                Route::get('daily-ledger/pdf', [DailyLedgerController::class, 'exportPdf'])->name('daily-ledger.pdf');
+                Route::get('daily-ledger/excel', [DailyLedgerController::class, 'exportExcel'])->name('daily-ledger.excel');
             });
+
+            // Dashboard
+            Route::get('dashboard', [AccountingDashboardController::class, 'index'])->name('dashboard');
+
+            // Hierarchical Explorer
+            Route::get('explorer', [AccountExplorerController::class, 'index'])->name('explorer.index');
         });
     });
 
@@ -451,5 +466,16 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         Route::get('warehouses/by-branch', [WarehouseController::class, 'ajaxByBranch'])->name('warehouses.by-branch');
         Route::get('products/stock', [ProductController::class, 'ajaxStock'])->name('products.stock');
         Route::post('purchases/scan', [PurchaseAIController::class, 'scan'])->name('purchases.scan');
+
+        // Accounting Ajax
+        Route::get('accounting/sub-accounts/{account}', [AccountExplorerController::class, 'getSubAccounts'])->name('accounting.sub-accounts');
+        Route::get('accounting/account-data/{account}', [AccountExplorerController::class, 'getAccountData'])->name('accounting.account-data');
+        Route::get('accounting/accounts/search', [JournalVoucherController::class, 'ajaxSearchAccounts'])->name('accounts.search');
+        Route::get('accounting/cost-centers/search', [JournalVoucherController::class, 'ajaxSearchCostCenters'])->name('cost-centers.search');
+        Route::get('accounting/activities/search', [JournalVoucherController::class, 'ajaxSearchActivities'])->name('activities.search');
+        Route::get('accounting/lcs/search', [JournalVoucherController::class, 'ajaxSearchLCs'])->name('lcs.search');
+        Route::get('accounting/promoters/search', [JournalVoucherController::class, 'ajaxSearchPromoters'])->name('promoters.search');
+        Route::get('accounting/employees/search', [JournalVoucherController::class, 'ajaxSearchEmployees'])->name('employees.search');
+        Route::get('accounting/amount-to-words', [JournalVoucherController::class, 'ajaxAmountToWords'])->name('amount-to-words');
     });
 });

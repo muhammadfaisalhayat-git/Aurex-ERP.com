@@ -606,9 +606,21 @@
                                 <i class="fas fa-chevron-down menu-arrow"></i>
                             </a>
                             <div class="submenu">
+                                <a href="{{ route('accounting.gl.dashboard') }}"
+                                    class="menu-link {{ request()->routeIs('accounting.gl.dashboard') ? 'active' : '' }}">
+                                    {{ __('messages.dashboard') }}
+                                </a>
                                 <a href="{{ route('accounting.gl.reports.account-statement') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.reports.account-statement') ? 'active' : '' }}">
                                     {{ __('messages.account_statement_report') }}
+                                </a>
+                                <a href="{{ route('accounting.gl.reports.daily-ledger') }}"
+                                    class="menu-link {{ request()->routeIs('accounting.gl.reports.daily-ledger') ? 'active' : '' }}">
+                                    {{ __('messages.daily_ledger') }}
+                                </a>
+                                <a href="{{ route('accounting.gl.explorer.index') }}"
+                                    class="menu-link {{ request()->routeIs('accounting.gl.explorer.*') ? 'active' : '' }}">
+                                    {{ __('messages.account_explorer') }}
                                 </a>
                             </div>
                         </div>

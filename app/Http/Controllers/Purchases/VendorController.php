@@ -177,6 +177,11 @@ class VendorController extends Controller
             ->limit(10)
             ->get(['id', 'code', 'name_en', 'name_ar']);
 
-        return response()->json($vendors);
+        return response()->json($vendors->map(function ($vendor) {
+            return [
+                'id' => $vendor->id,
+                'name' => $vendor->name . ' (' . $vendor->code . ')',
+            ];
+        }));
     }
 }

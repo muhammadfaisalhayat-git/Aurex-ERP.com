@@ -70,6 +70,17 @@
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 @endcan
+                                                @can('post purchase invoices')
+                                                    <form action="{{ route('purchases.invoices.post', $invoice->id) }}" method="POST"
+                                                        class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-success"
+                                                            title="{{ __('messages.post') }}"
+                                                            onclick="return confirm('{{ __('messages.confirm_post_invoice') }}')">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </button>
+                                                    </form>
+                                                @endcan
                                             @endif
                                             <a href="{{ route('purchases.invoices.print', $invoice) }}" target="_blank"
                                                 class="btn btn-sm btn-secondary" title="{{ __('messages.print') }}">

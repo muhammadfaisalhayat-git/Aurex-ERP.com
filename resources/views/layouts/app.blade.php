@@ -545,126 +545,128 @@
 
 <body>
     <!-- Sidebar -->
-    @if(!request()->routeIs('dashboard'))
+    @if(!request()->routeIs('dashboard') && !request()->routeIs('accounting.gl.transactions.modern_jv'))
         @include('layouts.sidebar')
     @endif
 
     <!-- Main Content -->
     <div class="main-content" {!! request()->routeIs('dashboard') ? 'style="margin-left: 0; margin-right: 0; width: 100%;"' : '' !!}>
         <!-- Header -->
-        <header class="header">
-            <div class="header-left">
-                @if(!request()->routeIs('dashboard'))
-                    <button class="sidebar-toggle d-lg-none">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                @endif
+        @if(!request()->routeIs('accounting.gl.transactions.modern_jv'))
+            <header class="header">
+                <div class="header-left">
+                    @if(!request()->routeIs('dashboard') && !request()->routeIs('accounting.gl.transactions.modern_jv'))
+                        <button class="sidebar-toggle d-lg-none">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    @endif
 
-                <!-- Company/Branch Switcher -->
-                <div class="d-none d-lg-flex align-items-center gap-3 ms-4">
-                    @php
-                        $activeCompany = \App\Models\Company::find(session('active_company_id'));
-                        $activeBranch = \App\Models\Branch::find(session('active_branch_id'));
-                        $userCompanies = auth()->user()->hasRole('Super Admin') ? \App\Models\Company::all() : collect([auth()->user()->company]);
-                        $companyBranches = \App\Models\Branch::where('company_id', session('active_company_id'))->get();
-                    @endphp
+                    <!-- Company/Branch Switcher -->
+                    <div class="d-none d-lg-flex align-items-center gap-3 ms-4">
+                        @php
+                            $activeCompany = \App\Models\Company::find(session('active_company_id'));
+                            $activeBranch = \App\Models\Branch::find(session('active_branch_id'));
+                            $userCompanies = auth()->user()->hasRole('Super Admin') ? \App\Models\Company::all() : collect([auth()->user()->company]);
+                            $companyBranches = \App\Models\Branch::where('company_id', session('active_company_id'))->get();
+                        @endphp
 
-                    @if(auth()->user()->hasRole('Super Admin'))
+                        @if(auth()->user()->hasRole('Super Admin'))
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown">
+                                    <i class="fas fa-building me-1"></i> {{ $activeCompany->name ?? __('Select Company') }}
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @foreach($userCompanies as $company)
+                                        <li>
+                                            <form action="{{ route('switch-company') }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="company_id" value="{{ $company->id }}">
+                                                <button type="submit"
+                                                    class="dropdown-item {{ $company->id == session('active_company_id') ? 'active' : '' }}">
+                                                    {{ $company->name }}
+                                                </button>
+                                            </form>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @else
+                            <div class="text-muted small fw-bold">
+                                <i class="fas fa-building me-1"></i> {{ $activeCompany->name ?? '' }}
+                            </div>
+                        @endif
+
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
                                 data-bs-toggle="dropdown">
-                                <i class="fas fa-building me-1"></i> {{ $activeCompany->name ?? __('Select Company') }}
+                                <i class="fas fa-map-marker-alt me-1"></i> {{ $activeBranch->name ?? __('Select Branch') }}
                             </button>
                             <ul class="dropdown-menu">
-                                @foreach($userCompanies as $company)
+                                @foreach($companyBranches as $branch)
                                     <li>
-                                        <form action="{{ route('switch-company') }}" method="POST">
+                                        <form action="{{ route('switch-branch') }}" method="POST">
                                             @csrf
-                                            <input type="hidden" name="company_id" value="{{ $company->id }}">
+                                            <input type="hidden" name="branch_id" value="{{ $branch->id }}">
                                             <button type="submit"
-                                                class="dropdown-item {{ $company->id == session('active_company_id') ? 'active' : '' }}">
-                                                {{ $company->name }}
+                                                class="dropdown-item {{ $branch->id == session('active_branch_id') ? 'active' : '' }}">
+                                                {{ $branch->name }}
                                             </button>
                                         </form>
                                     </li>
                                 @endforeach
                             </ul>
                         </div>
-                    @else
-                        <div class="text-muted small fw-bold">
-                            <i class="fas fa-building me-1"></i> {{ $activeCompany->name ?? '' }}
-                        </div>
-                    @endif
+                    </div>
+                </div>
 
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                            data-bs-toggle="dropdown">
-                            <i class="fas fa-map-marker-alt me-1"></i> {{ $activeBranch->name ?? __('Select Branch') }}
+                <div class="header-right">
+                    <!-- Language Switcher -->
+                    <div class="language-switcher">
+                        <a href="{{ route('language.switch', 'en') }}"
+                            class="{{ app()->getLocale() === 'en' ? 'active' : '' }}">EN</a>
+                        <a href="{{ route('language.switch', 'ar') }}"
+                            class="{{ app()->getLocale() === 'ar' ? 'active' : '' }}">عربي</a>
+                    </div>
+
+                    <!-- User Dropdown -->
+                    <div class="dropdown user-dropdown">
+                        <button class="dropdown-toggle" data-bs-toggle="dropdown">
+                            <div class="user-avatar">
+                                {{ substr(auth()->user()->name, 0, 1) }}
+                            </div>
+                            <div class="user-info d-none d-md-block">
+                                <div class="user-name">{{ auth()->user()->name }}</div>
+                                <div class="user-role">
+                                    {{ app()->getLocale() === 'ar' ? (auth()->user()->roles->first()?->display_name_ar ?? 'مستخدم') : (auth()->user()->roles->first()?->display_name_en ?? 'User') }}
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down ms-2" style="font-size: 0.75rem; color: #64748b;"></i>
                         </button>
-                        <ul class="dropdown-menu">
-                            @foreach($companyBranches as $branch)
-                                <li>
-                                    <form action="{{ route('switch-branch') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="branch_id" value="{{ $branch->id }}">
-                                        <button type="submit"
-                                            class="dropdown-item {{ $branch->id == session('active_branch_id') ? 'active' : '' }}">
-                                            {{ $branch->name }}
-                                        </button>
-                                    </form>
-                                </li>
-                            @endforeach
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i
+                                        class="fas fa-user me-2"></i>{{ __('messages.profile') }}</a></li>
+                            <li><a class="dropdown-item" href="#"><i
+                                        class="fas fa-cog me-2"></i>{{ __('messages.settings') }}</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt me-2"></i>{{ __('messages.logout') }}
+                                    </button>
+                                </form>
+                            </li>
                         </ul>
                     </div>
                 </div>
-            </div>
-
-            <div class="header-right">
-                <!-- Language Switcher -->
-                <div class="language-switcher">
-                    <a href="{{ route('language.switch', 'en') }}"
-                        class="{{ app()->getLocale() === 'en' ? 'active' : '' }}">EN</a>
-                    <a href="{{ route('language.switch', 'ar') }}"
-                        class="{{ app()->getLocale() === 'ar' ? 'active' : '' }}">عربي</a>
-                </div>
-
-                <!-- User Dropdown -->
-                <div class="dropdown user-dropdown">
-                    <button class="dropdown-toggle" data-bs-toggle="dropdown">
-                        <div class="user-avatar">
-                            {{ substr(auth()->user()->name, 0, 1) }}
-                        </div>
-                        <div class="user-info d-none d-md-block">
-                            <div class="user-name">{{ auth()->user()->name }}</div>
-                            <div class="user-role">
-                                {{ app()->getLocale() === 'ar' ? (auth()->user()->roles->first()?->display_name_ar ?? 'مستخدم') : (auth()->user()->roles->first()?->display_name_en ?? 'User') }}
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-down ms-2" style="font-size: 0.75rem; color: #64748b;"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i
-                                    class="fas fa-user me-2"></i>{{ __('messages.profile') }}</a></li>
-                        <li><a class="dropdown-item" href="#"><i
-                                    class="fas fa-cog me-2"></i>{{ __('messages.settings') }}</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fas fa-sign-out-alt me-2"></i>{{ __('messages.logout') }}
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </header>
+            </header>
+        @endif
 
         <!-- Content -->
-        <div class="content-wrapper">
+        <div class="content-wrapper" {!! request()->routeIs('accounting.gl.transactions.modern_jv') ? 'style="padding: 0; background-color: #fff;"' : '' !!}>
             @yield('content')
         </div>
     </div>
