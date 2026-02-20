@@ -446,6 +446,7 @@
             </form>
         </div>
     </div>
+    <div id="select2-dropdown-parent" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 10000;"></div>
 
     <!-- Styles from create.blade.php ... (copied for consistency) -->
     <style>
@@ -488,6 +489,30 @@
         .select2-container {
             width: 100% !important;
             display: block !important;
+        }
+
+        .select2-dropdown {
+            background-color: #ffffff !important;
+            border: 1px solid #ced4da !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+            z-index: 9999 !important;
+            width: auto !important;
+            min-width: 400px !important;
+            max-width: 600px !important;
+        }
+
+        .select2-search__field {
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        .select2-results__options {
+            background-color: #ffffff !important;
+        }
+
+        .select2-results__option--highlighted {
+            background-color: var(--primary-blue) !important;
+            color: white !important;
         }
 
         .select2-selection--single {
@@ -588,6 +613,10 @@
             border: none;
         }
 
+        .grid-container {
+            padding-bottom: 250px !important;
+        }
+
         .dense-table th {
             background-color: #edf2f7;
             color: #4a5568 !important;
@@ -627,7 +656,7 @@
 
     @push('scripts')
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
+            function initJournalVoucherEditPage() {
                 let rowCount = {{ count($jv->items) }};
 
                 // Toggle Explorer
@@ -668,7 +697,7 @@
                     $(el).select2({
                         theme: 'bootstrap-5',
                         width: '100%',
-                        dropdownAutoWidth: true,
+                        dropdownParent: $('#select2-dropdown-parent'),
                         placeholder: placeholder,
                         allowClear: true,
                         minimumInputLength: 0,
@@ -696,7 +725,7 @@
                     $(el).select2({
                         theme: 'bootstrap-5',
                         width: '100%',
-                        dropdownAutoWidth: true,
+                        dropdownParent: $('#select2-dropdown-parent'),
                         placeholder: 'Search Code...',
                         allowClear: true,
                         minimumInputLength: 0,
@@ -732,8 +761,12 @@
                         const linkIcon = row.find('.fa-link').parent();
 
                         entityWrapper.addClass('d-none');
-                        cust.prop('disabled', true).addClass('d-none');
-                        vend.prop('disabled', true).addClass('d-none');
+                        
+                        // Robust cleanup: destroy select2 and hide containers
+                        if (cust.data('select2')) { cust.select2('destroy'); }
+                        if (vend.data('select2')) { vend.select2('destroy'); }
+                        cust.prop('disabled', true).addClass('d-none').siblings('.select2-container').addClass('d-none');
+                        vend.prop('disabled', true).addClass('d-none').siblings('.select2-container').addClass('d-none');
                         linkIcon.removeClass('d-none');
 
                         if (data.sub_ledger_type === 'customer') {
@@ -755,7 +788,8 @@
                     $(el).select2({
                         theme: 'bootstrap-5',
                         width: '100%',
-                        dropdownAutoWidth: true,
+                        dropdownParent: $('#select2-dropdown-parent'),
+                        placeholder: 'Search Entity...',
                         minimumInputLength: 0,
                         ajax: {
                             url: url,
@@ -898,7 +932,20 @@
                         target.find('.account-select').append(opt).trigger('change').trigger({ type: 'select2:select', params: { data: { original: acc } } });
                     });
                 };
+            }
+
+            // Initialization and Turbo Support
+            document.addEventListener('turbo:load', initJournalVoucherEditPage);
+            document.addEventListener('turbo:before-cache', function() {
+                $('.select2-hidden-accessible').select2('destroy');
             });
+
+            // Fallback
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                if (typeof Turbo === 'undefined') {
+                    initJournalVoucherEditPage();
+                }
+            }
         </script>
     @endpush
 @endsection

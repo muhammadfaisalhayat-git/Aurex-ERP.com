@@ -239,7 +239,7 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('turbo:load', function() {
     let itemIndex = {{ $localPurchase->items->count() }};
     const itemsBody = document.getElementById('itemsBody');
     const template = document.getElementById('itemRowTemplate');

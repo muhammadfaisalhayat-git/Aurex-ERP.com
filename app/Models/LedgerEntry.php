@@ -33,20 +33,32 @@ class LedgerEntry extends Model
         'created_by',
         'customer_id',
         'vendor_id',
+        'beneficiary_id',
+        'beneficiary_type',
     ];
+
+    public function beneficiary()
+    {
+        return $this->morphTo();
+    }
 
     protected $casts = [
         'transaction_date' => 'date',
     ];
 
+    public function chartOfAccount()
+    {
+        return $this->belongsTo(ChartOfAccount::class , 'chart_of_account_id');
+    }
+
     public function account()
     {
-        return $this->belongsTo(ChartOfAccount::class, 'chart_of_account_id');
+        return $this->chartOfAccount();
     }
 
     public function parentAccount()
     {
-        return $this->belongsTo(ChartOfAccount::class, 'parent_account_id');
+        return $this->belongsTo(ChartOfAccount::class , 'parent_account_id');
     }
 
     public function reference()

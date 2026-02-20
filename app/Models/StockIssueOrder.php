@@ -20,6 +20,8 @@ class StockIssueOrder extends Model
         'reference_id',
         'reference_number',
         'issue_type',
+        'customer_id',
+        'vendor_id',
         'status',
         'notes',
         'created_by',
@@ -42,6 +44,16 @@ class StockIssueOrder extends Model
         return $this->hasMany(StockIssueOrderItem::class);
     }
 
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
     public function isPosted()
     {
         return $this->status === 'posted';
@@ -61,16 +73,16 @@ class StockIssueOrder extends Model
         // Update stock
         foreach ($this->items as $item) {
             $stockBalance = StockBalance::firstOrCreate(
-                [
-                    'product_id' => $item->product_id,
-                    'warehouse_id' => $this->warehouse_id,
-                ],
-                [
-                    'quantity' => 0,
-                    'reserved_quantity' => 0,
-                    'available_quantity' => 0,
-                    'average_cost' => 0,
-                ]
+            [
+                'product_id' => $item->product_id,
+                'warehouse_id' => $this->warehouse_id,
+            ],
+            [
+                'quantity' => 0,
+                'reserved_quantity' => 0,
+                'available_quantity' => 0,
+                'average_cost' => 0,
+            ]
             );
 
             $stockBalance->quantity -= $item->quantity;
@@ -93,6 +105,11 @@ class StockIssueOrder extends Model
                 'notes' => $this->notes ?? 'Stock Issue: ' . $this->document_number,
                 'created_by' => auth()->id(),
             ]);
+        }
+
+        // Accounting integration for wastage/adjustments
+        if (in_array($this->issue_type, ['wastage', 'adjustment'])) {
+            app(\App\Services\AccountingService::class)->postStockAdjustment($this);
         }
 
         return true;

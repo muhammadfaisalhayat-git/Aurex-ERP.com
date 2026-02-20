@@ -579,7 +579,7 @@
                                 <ul class="dropdown-menu">
                                     @foreach($userCompanies as $company)
                                         <li>
-                                            <form action="{{ route('switch-company') }}" method="POST">
+                                            <form action="{{ route('switch-company') }}" method="POST" data-turbo="false">
                                                 @csrf
                                                 <input type="hidden" name="company_id" value="{{ $company->id }}">
                                                 <button type="submit"
@@ -605,7 +605,7 @@
                             <ul class="dropdown-menu">
                                 @foreach($companyBranches as $branch)
                                     <li>
-                                        <form action="{{ route('switch-branch') }}" method="POST">
+                                        <form action="{{ route('switch-branch') }}" method="POST" data-turbo="false">
                                             @csrf
                                             <input type="hidden" name="branch_id" value="{{ $branch->id }}">
                                             <button type="submit"
@@ -623,16 +623,16 @@
                 <div class="header-right">
                     <!-- Language Switcher -->
                     <div class="language-switcher">
-                        <a href="{{ route('language.switch', 'en') }}"
+                        <a href="{{ route('language.switch', 'en') }}" data-turbo="false"
                             class="{{ app()->getLocale() === 'en' ? 'active' : '' }}">EN</a>
-                        <a href="{{ route('language.switch', 'ar') }}"
+                        <a href="{{ route('language.switch', 'ar') }}" data-turbo="false"
                             class="{{ app()->getLocale() === 'ar' ? 'active' : '' }}">عربي</a>
                     </div>
 
                     <!-- User Dropdown -->
                     <div class="dropdown user-dropdown">
                         <button class="dropdown-toggle" data-bs-toggle="dropdown">
-                            <div class="user-avatar">
+                            <div class="user-avatar" data-turbo-permanent id="user-avatar-initial">
                                 {{ substr(auth()->user()->name, 0, 1) }}
                             </div>
                             <div class="user-info d-none d-md-block">
@@ -652,7 +652,7 @@
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
-                                <form action="{{ route('logout') }}" method="POST">
+                                <form action="{{ route('logout') }}" method="POST" data-turbo="false">
                                     @csrf
                                     <button type="submit" class="dropdown-item">
                                         <i class="fas fa-sign-out-alt me-2"></i>{{ __('messages.logout') }}
@@ -667,37 +667,64 @@
 
         <!-- Content -->
         <div class="content-wrapper" {!! request()->routeIs('accounting.gl.transactions.modern_jv') ? 'style="padding: 0; background-color: #fff;"' : '' !!}>
-            @yield('content')
+            <turbo-frame id="main-frame" data-turbo-action="advance">
+                @yield('content')
+                @stack('scripts')
+            </turbo-frame>
         </div>
     </div>
 
     <!-- Notifications -->
-    @if(session('success'))
-        <script>
-            Swal.fire({
-                icon: 'success',
-                title: '{{ __("messages.success") }}',
-                text: '{{ session("success") }}',
-                timer: 3000,
-                showConfirmButton: false,
-                background: 'rgba(255, 255, 255, 0.9)',
-                backdrop: `rgba(0,0,123,0.1)`
-            });
-        </script>
-    @endif
+    <div id="notifications-container">
+        @if(session('success'))
+            <script>
+                Swal.fire({
+                    icon: 'success',
+                    title: '{{ __("messages.success") }}',
+                    text: '{{ session("success") }}',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdrop: `rgba(0,0,123,0.1)`
+                });
+            </script>
+        @endif
 
-    @if(session('error'))
-        <script>
-            Swal.fire({
-                icon: 'error',
-                title: '{{ __("messages.error") }}',
-                text: '{{ session("error") }}',
-                background: 'rgba(255, 255, 255, 0.9)'
-            });
-        </script>
-    @endif
+        @if(session('error'))
+            <script>
+                Swal.fire({
+                    icon: 'error',
+                    title: '{{ __("messages.error") }}',
+                    text: '{{ session("error") }}',
+                    background: 'rgba(255, 255, 255, 0.9)'
+                });
+            </script>
+        @endif
+    </div>
 
     @stack('scripts')
+
+    <script>
+        document.addEventListener('turbo:render', function() {
+            // Update sidebar active states
+            const currentUrl = window.location.href;
+            document.querySelectorAll('.sidebar .menu-link').forEach(link => {
+                if (link.href === currentUrl) {
+                    link.classList.add('active');
+                    // Open parent submenu if it exists
+                    const parentSubmenu = link.closest('.submenu');
+                    if (parentSubmenu) {
+                        parentSubmenu.closest('.menu-item').classList.add('open');
+                    }
+                } else if (link.href && currentUrl.startsWith(link.href) && link.href !== window.location.origin + '/') {
+                     // For resource routes like users.index when on users.create
+                     link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

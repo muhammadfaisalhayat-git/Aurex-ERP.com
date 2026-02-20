@@ -29,6 +29,7 @@ class CustomerRegistration extends Model
         'mobile',
         'email',
         'website',
+        'business_type',
         'billing_address',
         'shipping_address',
         'city',
@@ -56,19 +57,29 @@ class CustomerRegistration extends Model
         'credit_days' => 'integer',
     ];
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class , 'submitted_by');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class , 'reviewed_by');
+    }
+
     public function submittedBy()
     {
-        return $this->belongsTo(User::class, 'submitted_by');
+        return $this->creator();
     }
 
     public function reviewedBy()
     {
-        return $this->belongsTo(User::class, 'reviewed_by');
+        return $this->approver();
     }
 
     public function customer()
     {
-        return $this->belongsTo(Customer::class, 'converted_to_customer_id');
+        return $this->belongsTo(Customer::class , 'converted_to_customer_id');
     }
 
     public function customerGroup()
@@ -83,7 +94,7 @@ class CustomerRegistration extends Model
 
     public function salesman()
     {
-        return $this->belongsTo(User::class, 'salesman_id');
+        return $this->belongsTo(User::class , 'salesman_id');
     }
 
     public function documents()
@@ -164,6 +175,7 @@ class CustomerRegistration extends Model
             'code' => $customerCode,
             'name_en' => $this->customer_name_en,
             'name_ar' => $this->customer_name_ar,
+            'customer_type' => $this->customer_type,
             'group_id' => $this->customer_group_id,
             'branch_id' => $this->branch_id,
             'contact_person' => $this->contact_person,
@@ -178,6 +190,7 @@ class CustomerRegistration extends Model
             'commercial_registration' => $this->commercial_registration,
             'credit_limit' => $this->credit_limit,
             'credit_days' => $this->credit_days,
+            'payment_terms' => $this->payment_terms,
             'salesman_id' => $this->salesman_id,
             'status' => 'active',
         ]);
@@ -185,6 +198,14 @@ class CustomerRegistration extends Model
         $this->update(['converted_to_customer_id' => $customer->id]);
 
         return $customer;
+    }
+
+    public static function generateRegistrationCode()
+    {
+        $prefix = 'REG-';
+        $latest = self::orderBy('id', 'desc')->first();
+        $number = $latest ? (int)str_replace($prefix, '', $latest->registration_number) + 1 : 1;
+        return $prefix . str_pad($number, 5, '0', STR_PAD_LEFT);
     }
 
     public function getCustomerNameAttribute()

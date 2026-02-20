@@ -127,9 +127,9 @@ class UserSeeder extends Seeder
             $role = $userData['role'];
             unset($userData['role']);
 
-            $user = User::create($userData);
-            $user->assignRole($role);
-            
+            $user = User::updateOrCreate(['email' => $userData['email']], $userData);
+            $user->syncRoles([$role]);
+
             if (!empty($warehouses)) {
                 $user->warehouses()->sync($warehouses);
             }

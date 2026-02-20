@@ -14,33 +14,51 @@ class Customer extends Model
     protected $fillable = [
         'company_id',
         'code',
+        'registration_number',
+        'registration_date',
         'name_en',
         'name_ar',
+        'trade_name',
+        'customer_type',
+        'id_number',
         'group_id',
         'branch_id',
         'contact_person',
+        'contact_position',
         'phone',
         'mobile',
         'email',
+        'website',
         'address',
+        'shipping_address',
         'city',
         'region',
         'postal_code',
+        'country',
         'tax_number',
+        'vat_certificate_number',
         'commercial_registration',
         'credit_limit',
         'credit_days',
+        'payment_terms',
         'opening_balance',
         'current_balance',
         'status',
         'salesman_id',
         'notes',
+        'submitted_by',
+        'reviewed_by',
+        'reviewed_at',
+        'rejection_reason',
+        'business_type',
     ];
 
     protected $casts = [
         'credit_limit' => 'decimal:2',
         'opening_balance' => 'decimal:2',
         'current_balance' => 'decimal:2',
+        'registration_date' => 'date',
+        'reviewed_at' => 'datetime',
     ];
 
     public function group()
@@ -55,7 +73,22 @@ class Customer extends Model
 
     public function salesman()
     {
-        return $this->belongsTo(User::class, 'salesman_id');
+        return $this->belongsTo(User::class , 'salesman_id');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class , 'submitted_by');
+    }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class , 'reviewed_by');
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(CustomerRegistrationDocument::class);
     }
 
     public function customerRequests()
@@ -100,9 +133,17 @@ class Customer extends Model
         $nextNumber = 1;
 
         if ($lastCustomer && is_numeric($lastCustomer->code)) {
-            $nextNumber = (int) $lastCustomer->code + 1;
+            $nextNumber = (int)$lastCustomer->code + 1;
         }
 
         return str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+    }
+
+    public static function generateRegistrationCode()
+    {
+        $prefix = 'REG-';
+        $latest = self::whereNotNull('registration_number')->orderBy('id', 'desc')->first();
+        $number = $latest ? (int)str_replace($prefix, '', $latest->registration_number) + 1 : 1;
+        return $prefix . str_pad($number, 5, '0', STR_PAD_LEFT);
     }
 }

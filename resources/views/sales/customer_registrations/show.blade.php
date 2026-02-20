@@ -17,18 +17,6 @@
                         </a>
                     @endcan
                 @endif
-                @if($customerRegistration->status === 'approved' && !$customerRegistration->converted_customer_id)
-                    @can('customer_registration.approve')
-                        <form action="{{ route('sales.customer-registrations.convert', $customerRegistration) }}" method="POST"
-                            class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-success"
-                                onclick="return confirm('{{ __('customer_registration.confirm_convert') }}')">
-                                <i class="fas fa-exchange-alt"></i> {{ __('customer_registration.convert_to_customer') }}
-                            </button>
-                        </form>
-                    @endcan
-                @endif
             </div>
         </div>
 
@@ -36,32 +24,43 @@
             <div class="col-md-8">
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">{{ $customerRegistration->registration_code }}</h5>
+                        <h5 class="mb-0">{{ $customerRegistration->registration_number }}</h5>
                         @php
                             $statusClass = [
                                 'pending' => 'warning',
                                 'under_review' => 'info',
                                 'approved' => 'success',
+                                'active' => 'success',
                                 'rejected' => 'danger',
-                            ][$customerRegistration->status];
+                            ][$customerRegistration->status] ?? 'secondary';
                         @endphp
                         <span class="badge bg-{{ $statusClass }}">
-                            {{ __('customer_registration.status_' . $customerRegistration->status) }}
+                            {{ __('customer_registration.status_' . ($customerRegistration->status === 'active' ? 'approved' : $customerRegistration->status)) }}
                         </span>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h6>{{ __('customer_registration.company_info') }}</h6>
+                                <h6>{{ $customerRegistration->customer_type === 'individual' ? __('customer_registration.personal_info') : __('customer_registration.company_info') }}</h6>
                                 <table class="table table-borderless table-sm">
                                     <tr>
-                                        <td class="fw-bold">{{ __('customer_registration.company_name') }}</td>
-                                        <td>{{ $customerRegistration->company_name }}</td>
+                                        <td class="fw-bold">{{ __('customer_registration.customer_type') }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                {{ __('customer_registration.' . $customerRegistration->customer_type) }}
+                                            </span>
+                                        </td>
                                     </tr>
+                                    <tr>
+                                        <td class="fw-bold">{{ $customerRegistration->customer_type === 'individual' ? __('customer_registration.person_name') : __('customer_registration.company_name') }}</td>
+                                        <td>{{ $customerRegistration->name_en }}</td>
+                                    </tr>
+                                    @if($customerRegistration->customer_type !== 'individual')
                                     <tr>
                                         <td class="fw-bold">{{ __('customer_registration.contact_person') }}</td>
                                         <td>{{ $customerRegistration->contact_person }}</td>
                                     </tr>
+                                    @endif
                                     <tr>
                                         <td class="fw-bold">{{ __('customer_registration.email') }}</td>
                                         <td>{{ $customerRegistration->email }}</td>
@@ -111,7 +110,7 @@
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">{{ __('customer_registration.registration_number') }}</td>
-                                        <td>{{ $customerRegistration->registration_number ?? '-' }}</td>
+                                        <td>{{ $customerRegistration->commercial_registration ?? '-' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">{{ __('customer_registration.business_type') }}</td>
@@ -119,8 +118,7 @@
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">{{ __('customer_registration.website') }}</td>
-                                        <td>{{ $customerRegistration->website ? '<a href="' . $customerRegistration->website . '" target="_blank">' . $customerRegistration->website . '</a>' : '-' }}
-                                        </td>
+                                        <td>{!! $customerRegistration->website ? '<a href="' . $customerRegistration->website . '" target="_blank">' . $customerRegistration->website . '</a>' : '-' !!}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -179,7 +177,7 @@
                                                 <td>{{ $document->document_type }}</td>
                                                 <td>{{ number_format($document->file_size / 1024, 2) }} KB</td>
                                                 <td>
-                                                    <a href="{{ Storage::url($document->document_path) }}" target="_blank"
+                                                    <a href="{{ Storage::url($document->file_path) }}" target="_blank"
                                                         class="btn btn-sm btn-info">
                                                         <i class="fas fa-download"></i>
                                                     </a>
@@ -223,25 +221,14 @@
                                 <td class="fw-bold">{{ __('customer_registration.created_at') }}</td>
                                 <td>{{ $customerRegistration->created_at->format('Y-m-d H:i') }}</td>
                             </tr>
-                            @if($customerRegistration->approved_by)
+                            @if($customerRegistration->reviewed_by)
                                 <tr>
                                     <td class="fw-bold">{{ __('customer_registration.approved_by') }}</td>
-                                    <td>{{ $customerRegistration->approver->name }}</td>
+                                    <td>{{ $customerRegistration->reviewer->name }}</td>
                                 </tr>
                                 <tr>
                                     <td class="fw-bold">{{ __('customer_registration.approved_at') }}</td>
-                                    <td>{{ $customerRegistration->approved_at?->format('Y-m-d H:i') }}</td>
-                                </tr>
-                            @endif
-                            @if($customerRegistration->converted_customer_id)
-                                <tr>
-                                    <td class="fw-bold">{{ __('customer_registration.converted_customer') }}</td>
-                                    <td>
-                                        <a
-                                            href="{{ route('sales.customers.show', $customerRegistration->converted_customer_id) }}">
-                                            {{ __('customer_registration.view_customer') }}
-                                        </a>
-                                    </td>
+                                    <td>{{ $customerRegistration->reviewed_at?->format('Y-m-d H:i') }}</td>
                                 </tr>
                             @endif
                         </table>

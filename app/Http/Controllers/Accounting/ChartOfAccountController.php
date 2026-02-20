@@ -97,4 +97,51 @@ class ChartOfAccountController extends Controller
         return redirect()->route('accounting.gl.coa.index')
             ->with('success', __('messages.account_deleted'));
     }
+
+    public function getBeneficiaries($id)
+    {
+        $account = ChartOfAccount::find($id);
+
+        if (!$account) {
+            return response()->json(['error' => 'Account not found'], 404);
+        }
+
+        $type = $account->sub_ledger_type;
+        $beneficiaries = [];
+
+        switch ($type) {
+            case 'vendor':
+                $beneficiaries = \App\Models\Vendor::active()
+                    ->get()
+                    ->map(fn($v) => [
+                'id' => $v->id,
+                'name' => $v->name,
+                'type' => 'App\Models\Vendor'
+                ]);
+                break;
+            case 'customer':
+                $beneficiaries = \App\Models\Customer::active()
+                    ->get()
+                    ->map(fn($c) => [
+                'id' => $c->id,
+                'name' => $c->name_en . ' (' . $c->name_ar . ')',
+                'type' => 'App\Models\Customer'
+                ]);
+                break;
+            case 'employee':
+                $beneficiaries = \App\Models\Employee::where('status', 'active')
+                    ->get()
+                    ->map(fn($e) => [
+                'id' => $e->id,
+                'name' => $e->full_name,
+                'type' => 'App\Models\Employee'
+                ]);
+                break;
+        }
+
+        return response()->json([
+            'type' => $type,
+            'beneficiaries' => $beneficiaries
+        ]);
+    }
 }

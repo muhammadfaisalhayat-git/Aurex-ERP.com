@@ -181,7 +181,7 @@
 
     @push('scripts')
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('turbo:load', function () {
                 const addItemBtn = document.getElementById('addItemBtn');
                 const itemsBody = document.getElementById('itemsBody');
                 let itemIndex = 0;

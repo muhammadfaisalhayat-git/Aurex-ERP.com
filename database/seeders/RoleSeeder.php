@@ -70,6 +70,12 @@ class RoleSeeder extends Seeder
             'display_name_ar' => 'مدير الموارد البشرية',
             'is_system' => false,
         ]);
+
+        $logisticsManager = Role::firstOrCreate(['name' => 'Logistics Manager', 'guard_name' => 'web'], [
+            'display_name_en' => 'Logistics Manager',
+            'display_name_ar' => 'مدير اللوجستيات',
+            'is_system' => false,
+        ]);
         $superAdmin->syncPermissions(Permission::all());
 
         // Admin
@@ -209,5 +215,8 @@ class RoleSeeder extends Seeder
         // HR Manager
 
         $hrManager->syncPermissions(Permission::where('module', 'hr')->get());
+
+        // Logistics Manager
+        $logisticsManager->syncPermissions(Permission::whereIn('module', ['logistics', 'transport'])->get());
     }
 }

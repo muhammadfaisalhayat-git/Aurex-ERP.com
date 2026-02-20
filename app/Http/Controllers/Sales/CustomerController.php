@@ -19,10 +19,26 @@ class CustomerController extends Controller
         $this->middleware('can:edit customers')->only(['edit', 'update']);
         $this->middleware('can:delete customers')->only(['destroy']);
     }
-    public function index()
+    public function index(Request $request)
     {
-        $customers = Customer::with(['group', 'branch', 'salesman'])
-            ->orderBy('created_at', 'desc')
+        $query = Customer::with(['group', 'branch', 'salesman']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('name_ar', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        $customers = $query->orderBy('created_at', 'desc')
             ->paginate(10);
 
         return view('sales.customers.index', compact('customers'));
@@ -174,10 +190,10 @@ class CustomerController extends Controller
         $search = $request->get('q');
         $customers = Customer::active()
             ->where(function ($query) use ($search) {
-                $query->where('name_en', 'like', "%$search%")
-                    ->orWhere('name_ar', 'like', "%$search%")
-                    ->orWhere('code', 'like', "%$search%");
-            })
+            $query->where('name_en', 'like', "%$search%")
+                ->orWhere('name_ar', 'like', "%$search%")
+                ->orWhere('code', 'like', "%$search%");
+        })
             ->limit(10)
             ->get();
 

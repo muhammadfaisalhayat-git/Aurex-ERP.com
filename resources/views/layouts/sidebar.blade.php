@@ -182,18 +182,6 @@
                         </div>
                     @endcan
                 @endif
-
-                @if($checkVisibility('sidebar_customer_registrations'))
-                    @can('view customer_registration')
-                        <div class="menu-item">
-                            <a href="{{ route('sales.customer-registrations.index') }}"
-                                class="menu-link {{ request()->routeIs('sales.customer-registrations.*') ? 'active' : '' }}">
-                                <i class="fas fa-user-plus fa-fw"></i>
-                                <span>{{ __('messages.customer_registrations') }}</span>
-                            </a>
-                        </div>
-                    @endcan
-                @endif
             @endcanany
         @endif
 
@@ -347,6 +335,30 @@
             @endcanany
         @endif
 
+        <!-- Production Section -->
+        <div class="menu-section">{{ __('messages.production') }}</div>
+        <div class="menu-item {{ request()->routeIs('production.*') ? 'open' : '' }}">
+            <a href="#" class="menu-link" data-submenu>
+                <i class="fas fa-industry fa-fw"></i>
+                <span>{{ __('messages.production') }}</span>
+                <i class="fas fa-chevron-down menu-arrow"></i>
+            </a>
+            <div class="submenu">
+                <a href="{{ route('production.work-centers.index') }}"
+                    class="menu-link {{ request()->routeIs('production.work-centers.*') ? 'active' : '' }}">
+                    {{ __('messages.work_centers') }}
+                </a>
+                <a href="{{ route('production.machines.index') }}"
+                    class="menu-link {{ request()->routeIs('production.machines.*') ? 'active' : '' }}">
+                    {{ __('messages.machines') }}
+                </a>
+                <a href="{{ route('production.orders.index') }}"
+                    class="menu-link {{ request()->routeIs('production.orders.*') ? 'active' : '' }}">
+                    {{ __('messages.production_orders') }}
+                </a>
+            </div>
+        </div>
+
         @if($checkVisibility('module_hr'))
             @canany(['view employees', 'view departments', 'view designations'])
                 <!-- Human Resources Section -->
@@ -407,48 +419,38 @@
 
         @if($checkVisibility('module_transport'))
             @can('view transport')
-                <!-- Transport Section -->
-                <div class="menu-section">{{ __('messages.transport') }}</div>
+                <!-- Logistics & Transport Section -->
+                <div class="menu-section">{{ __('messages.logistics_transport') }}</div>
 
-                @if($checkVisibility('sidebar_trailers'))
-                    <div class="menu-item">
+                <div class="menu-item {{ request()->routeIs('logistics.*') || request()->routeIs('transport.*') ? 'open' : '' }}">
+                    <a href="#" class="menu-link" data-submenu>
+                        <i class="fas fa-truck-loading fa-fw"></i>
+                        <span>{{ __('messages.logistics') }}</span>
+                        <i class="fas fa-chevron-down menu-arrow"></i>
+                    </a>
+                    <div class="submenu">
+                        <a href="{{ route('logistics.vehicles.index') }}"
+                            class="menu-link {{ request()->routeIs('logistics.vehicles.*') ? 'active' : '' }}">
+                            {{ __('messages.delivery_vehicles') }}
+                        </a>
+                        <a href="{{ route('logistics.fuel-logs.index') }}"
+                            class="menu-link {{ request()->routeIs('logistics.fuel-logs.*') ? 'active' : '' }}">
+                            {{ __('messages.fuel_logs') }}
+                        </a>
                         <a href="{{ route('transport.trailers.index') }}"
                             class="menu-link {{ request()->routeIs('transport.trailers.*') ? 'active' : '' }}">
-                            <i class="fas fa-truck-moving fa-fw"></i>
-                            <span>{{ __('messages.trailers') }}</span>
+                            {{ __('messages.trailers') }}
                         </a>
-                    </div>
-                @endif
-
-                @if($checkVisibility('sidebar_transport_orders'))
-                    <div class="menu-item">
                         <a href="{{ route('transport.orders.index') }}"
                             class="menu-link {{ request()->routeIs('transport.orders.*') ? 'active' : '' }}">
-                            <i class="fas fa-shipping-fast fa-fw"></i>
-                            <span>{{ __('messages.transport_orders') }}</span>
+                            {{ __('messages.transport_orders') }}
                         </a>
-                    </div>
-                @endif
-
-                @if($checkVisibility('sidebar_transport_contracts'))
-                    <div class="menu-item">
                         <a href="{{ route('transport.contracts.index') }}"
                             class="menu-link {{ request()->routeIs('transport.contracts.*') ? 'active' : '' }}">
-                            <i class="fas fa-file-contract fa-fw"></i>
-                            <span>{{ __('messages.transport_contracts') }}</span>
+                            {{ __('messages.contracts') }}
                         </a>
                     </div>
-                @endif
-
-                @if($checkVisibility('sidebar_transport_claims'))
-                    <div class="menu-item">
-                        <a href="{{ route('transport.claims.index') }}"
-                            class="menu-link {{ request()->routeIs('transport.claims.*') ? 'active' : '' }}">
-                            <i class="fas fa-exclamation-triangle fa-fw"></i>
-                            <span>{{ __('messages.transport_claims') }}</span>
-                        </a>
-                    </div>
-                @endif
+                </div>
             @endcan
         @endif
 
@@ -562,6 +564,32 @@
             @endcan
         @endif
 
+        @if($checkVisibility('module_finance'))
+            <!-- Finance & Banking Section -->
+            <div class="menu-section">{{ __('messages.finance_banking') }}</div>
+            <div class="menu-item {{ request()->is('finance*') ? 'open' : '' }}">
+                <a href="#" class="menu-link" data-submenu>
+                    <i class="fas fa-university fa-fw"></i>
+                    <span>{{ __('messages.finance_banking') }}</span>
+                    <i class="fas fa-chevron-down menu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <a href="{{ route('finance.bank-accounts.index') }}"
+                        class="menu-link {{ request()->routeIs('finance.bank-accounts.*') ? 'active' : '' }}">
+                        {{ __('messages.bank_cash_accounts') }}
+                    </a>
+                    <a href="{{ route('finance.vouchers.payment.index') }}"
+                        class="menu-link {{ request()->routeIs('finance.vouchers.payment.*') ? 'active' : '' }}">
+                        {{ __('messages.payment_vouchers') }}
+                    </a>
+                    <a href="{{ route('finance.vouchers.receipt.index') }}"
+                        class="menu-link {{ request()->routeIs('finance.vouchers.receipt.*') ? 'active' : '' }}">
+                        {{ __('messages.receipt_vouchers') }}
+                    </a>
+                </div>
+            </div>
+        @endif
+
         @if($checkVisibility('module_accounting'))
             @can('view accounting')
                 <!-- Accounting System Section -->
@@ -580,6 +608,36 @@
                                 {{ __('messages.chart_of_accounts') }}
                             </a>
                         @endcan
+
+                        <!-- Setup Submenu -->
+                        <div class="menu-item {{ request()->routeIs('accounting.setup.*') ? 'open' : '' }}"
+                            style="margin-left: 10px;">
+                            <a href="#" class="menu-link" data-submenu>
+                                <i class="fas fa-tools fa-fw"></i>
+                                <span>{{ __('messages.setup') }}</span>
+                                <i class="fas fa-chevron-down menu-arrow"></i>
+                            </a>
+                            <div class="submenu">
+                                @can('view cost_centers')
+                                    <a href="{{ route('accounting.gl.setup.cost-centers.index') }}"
+                                        class="menu-link {{ request()->routeIs('accounting.gl.setup.cost-centers.*') ? 'active' : '' }}">
+                                        {{ __('messages.cost_centers') }}
+                                    </a>
+                                @endcan
+                                @can('view activities')
+                                    <a href="{{ route('accounting.gl.setup.activities.index') }}"
+                                        class="menu-link {{ request()->routeIs('accounting.gl.setup.activities.*') ? 'active' : '' }}">
+                                        {{ __('messages.activities') }}
+                                    </a>
+                                @endcan
+                                @can('view lcs')
+                                    <a href="{{ route('accounting.gl.setup.lcs.index') }}"
+                                        class="menu-link {{ request()->routeIs('accounting.gl.setup.lcs.*') ? 'active' : '' }}">
+                                        {{ __('messages.lcs') }}
+                                    </a>
+                                @endcan
+                            </div>
+                        </div>
 
                         <!-- Transactions Submenu -->
                         <div class="menu-item {{ request()->routeIs('accounting.gl.transactions.*') ? 'open' : '' }}"
@@ -617,6 +675,18 @@
                                 <a href="{{ route('accounting.gl.reports.daily-ledger') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.reports.daily-ledger') ? 'active' : '' }}">
                                     {{ __('messages.daily_ledger') }}
+                                </a>
+                                <a href="{{ route('accounting.gl.reports.trial-balance') }}"
+                                    class="menu-link {{ request()->routeIs('accounting.gl.reports.trial-balance') ? 'active' : '' }}">
+                                    {{ __('messages.trial_balance') }}
+                                </a>
+                                <a href="{{ route('accounting.gl.reports.profit-loss') }}"
+                                    class="menu-link {{ request()->routeIs('accounting.gl.reports.profit-loss') ? 'active' : '' }}">
+                                    {{ __('messages.profit_loss') }}
+                                </a>
+                                <a href="{{ route('accounting.gl.reports.balance-sheet') }}"
+                                    class="menu-link {{ request()->routeIs('accounting.gl.reports.balance-sheet') ? 'active' : '' }}">
+                                    {{ __('messages.balance_sheet') }}
                                 </a>
                                 <a href="{{ route('accounting.gl.explorer.index') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.explorer.*') ? 'active' : '' }}">

@@ -192,7 +192,7 @@
     </div>
     @push('scripts')
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('turbo:load', function () {
                 const customerSearch = document.getElementById('customer_search');
                 const customerId = document.getElementById('customer_id');
                 const customerResults = document.getElementById('customer-results');

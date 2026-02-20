@@ -64,7 +64,7 @@
                                     @foreach($jv->items as $item)
                                         <tr>
                                             <td>{{ $item->account->code }} -
-                                                {{ $isRtl ? ($item->account->name_ar ?? $item->account->name_en) : ($item->account->name_en ?? $item->account->name_ar) }}
+                                                {{ (app()->getLocale() === 'ar') ? ($item->account->name_ar ?? $item->account->name_en) : ($item->account->name_en ?? $item->account->name_ar) }}
                                             </td>
                                             <td class="text-end">{{ number_format($item->debit, 2) }}</td>
                                             <td class="text-end">{{ number_format($item->credit, 2) }}</td>

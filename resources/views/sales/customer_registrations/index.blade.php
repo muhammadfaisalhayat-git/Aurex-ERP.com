@@ -18,12 +18,13 @@
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
                         <thead>
+                        <thead>
                             <tr>
-                                <th>{{ __('customer_registration.registration_code') }}</th>
+                                <th>{{ __('customer_registration.registration_number') }}</th>
+                                <th>{{ __('customer_registration.customer_type') }}</th>
                                 <th>{{ __('customer_registration.company_name') }}</th>
                                 <th>{{ __('customer_registration.contact_person') }}</th>
                                 <th>{{ __('customer_registration.email') }}</th>
-                                <th>{{ __('customer_registration.phone') }}</th>
                                 <th>{{ __('customer_registration.status') }}</th>
                                 <th>{{ __('general.actions') }}</th>
                             </tr>
@@ -33,24 +34,29 @@
                                 <tr>
                                     <td>
                                         <a href="{{ route('sales.customer-registrations.show', $registration) }}">
-                                            {{ $registration->registration_code }}
+                                            {{ $registration->registration_number }}
                                         </a>
                                     </td>
-                                    <td>{{ $registration->company_name }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ __('customer_registration.' . $registration->customer_type) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $registration->name_en }}</td>
                                     <td>{{ $registration->contact_person }}</td>
                                     <td>{{ $registration->email }}</td>
-                                    <td>{{ $registration->phone }}</td>
                                     <td>
                                         @php
                                             $statusClass = [
                                                 'pending' => 'warning',
                                                 'under_review' => 'info',
                                                 'approved' => 'success',
+                                                'active' => 'success',
                                                 'rejected' => 'danger',
-                                            ][$registration->status];
+                                            ][$registration->status] ?? 'secondary';
                                         @endphp
                                         <span class="badge bg-{{ $statusClass }}">
-                                            {{ __('customer_registration.status_' . $registration->status) }}
+                                            {{ __('customer_registration.status_' . ($registration->status === 'active' ? 'approved' : $registration->status)) }}
                                         </span>
                                     </td>
                                     <td>
@@ -67,7 +73,7 @@
                                                     </a>
                                                 @endcan
                                             @endif
-                                            @if($registration->status === 'approved' && !$registration->converted_customer_id)
+                                            @if($registration->status === 'approved' && !$registration->converted_to_customer_id)
                                                 @can('customer_registration.approve')
                                                     <form action="{{ route('sales.customer-registrations.convert', $registration) }}"
                                                         method="POST" class="d-inline">

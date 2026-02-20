@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
-use App\Models\CustomerRegistration;
 use App\Models\CustomerRegistrationDocument;
 use App\Models\Customer;
+use App\Models\CustomerGroup;
+use App\Models\Branch;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -23,75 +25,97 @@ class CustomerRegistrationController extends Controller
 
     public function index()
     {
-        $registrations = CustomerRegistration::with(['creator', 'approver'])
+        $registrations = Customer::whereIn('status', ['pending', 'under_review', 'approved', 'rejected'])
+            ->with(['creator', 'reviewer'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
-        
+
         return view('sales.customer_registrations.index', compact('registrations'));
     }
 
     public function create()
     {
-        return view('sales.customer_registrations.create');
+        $customerGroups = CustomerGroup::where('is_active', true)->get();
+        $branches = Branch::active()->get();
+        $salesmen = User::where('is_active', true)->get();
+
+        return view('sales.customer_registrations.create', compact('customerGroups', 'branches', 'salesmen'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'company_name' => 'required|string|max:255',
-            'contact_person' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:customer_registrations',
+            'customer_type' => 'required|in:individual,company',
+            'name_en' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
+            'group_id' => 'nullable|exists:customer_groups,id',
+            'salesman_id' => 'nullable|exists:users,id',
+            'contact_person' => 'required_if:customer_type,company|nullable|string|max:255',
+            'email' => 'required|email|max:255|unique:customers,email',
             'phone' => 'required|string|max:50',
             'mobile' => 'nullable|string|max:50',
-            'address' => 'required|string',
+            'billing_address' => 'required_if:customer_type,company|nullable|string',
             'city' => 'required|string|max:100',
             'country' => 'required|string|max:100',
+            'region' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:20',
-            'tax_number' => 'nullable|string|max:50',
+            'tax_number' => 'required_if:customer_type,company|nullable|string|max:50',
             'registration_number' => 'nullable|string|max:50',
             'business_type' => 'nullable|string|max:100',
             'website' => 'nullable|url|max:255',
             'credit_limit' => 'nullable|numeric|min:0',
             'payment_terms' => 'nullable|string|max:255',
+            'opening_balance' => 'nullable|numeric',
             'notes' => 'nullable|string',
             'documents' => 'nullable|array',
             'documents.*' => 'file|max:10240',
         ]);
 
         DB::beginTransaction();
-        
+
         try {
-            $registration = CustomerRegistration::create([
-                'registration_code' => CustomerRegistration::generateRegistrationCode(),
-                'company_name' => $validated['company_name'],
-                'contact_person' => $validated['contact_person'],
+            $registration = Customer::create([
+                'registration_number' => Customer::generateRegistrationCode(),
+                'registration_date' => now(),
+                'name_en' => $validated['name_en'],
+                'name_ar' => $validated['name_ar'] ?? null,
+                'customer_type' => $validated['customer_type'],
+                'group_id' => $validated['group_id'] ?? null,
+                'salesman_id' => $validated['salesman_id'] ?? null,
+                'commercial_registration' => $validated['registration_number'] ?? null,
+                'contact_person' => $validated['customer_type'] === 'individual' ? $validated['name_en'] : $validated['contact_person'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
                 'mobile' => $validated['mobile'],
-                'address' => $validated['address'],
+                'address' => $validated['billing_address'] ?? null,
                 'city' => $validated['city'],
                 'country' => $validated['country'],
+                'region' => $validated['region'] ?? null,
                 'postal_code' => $validated['postal_code'],
-                'tax_number' => $validated['tax_number'],
-                'registration_number' => $validated['registration_number'],
-                'business_type' => $validated['business_type'],
-                'website' => $validated['website'],
-                'credit_limit' => $validated['credit_limit'],
-                'payment_terms' => $validated['payment_terms'],
-                'notes' => $validated['notes'],
+                'tax_number' => $validated['tax_number'] ?? null,
+                'business_type' => $validated['business_type'] ?? null,
+                'website' => $validated['website'] ?? null,
+                'credit_limit' => $validated['credit_limit'] ?? 0,
+                'payment_terms' => $validated['payment_terms'] ? (in_array($validated['payment_terms'], ['cash', 'credit_15', 'credit_30', 'credit_45', 'credit_60', 'credit_90']) ? $validated['payment_terms'] : 'credit_30') : 'credit_30',
+                'opening_balance' => $validated['opening_balance'] ?? 0,
+                'notes' => $validated['notes'] ?? null,
                 'status' => 'pending',
-                'created_by' => Auth::id(),
+                'submitted_by' => Auth::id(),
+                'company_id' => session('company_id'),
+                'branch_id' => session('branch_id'),
+                'code' => Customer::generateNextCode(),
             ]);
 
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $document) {
                     $path = $document->store('customer_documents', 'public');
-                    
+
                     CustomerRegistrationDocument::create([
-                        'customer_registration_id' => $registration->id,
+                        'customer_id' => $registration->id,
                         'document_name' => $document->getClientOriginalName(),
-                        'document_path' => $path,
-                        'document_type' => $document->getClientMimeType(),
+                        'file_path' => $path,
+                        'mime_type' => $document->getClientMimeType(),
+                        'document_type' => 'other',
                         'file_size' => $document->getSize(),
                         'uploaded_by' => Auth::id(),
                     ]);
@@ -100,89 +124,107 @@ class CustomerRegistrationController extends Controller
 
             DB::commit();
 
-            return redirect()->route('customer-registrations.show', $registration)
+            return redirect()->route('sales.customer-registrations.show', $registration)
                 ->with('success', __('customer_registration.created_successfully'));
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', $e->getMessage())->withInput();
         }
     }
 
-    public function show(CustomerRegistration $customerRegistration)
+    public function show(Customer $customerRegistration)
     {
-        $customerRegistration->load(['documents', 'creator', 'approver']);
+        $customerRegistration->load(['documents', 'creator', 'reviewer']);
         return view('sales.customer_registrations.show', compact('customerRegistration'));
     }
 
-    public function edit(CustomerRegistration $customerRegistration)
+    public function edit(Customer $customerRegistration)
     {
         if ($customerRegistration->status !== 'pending') {
-            return redirect()->route('customer-registrations.show', $customerRegistration)
+            return redirect()->route('sales.customer-registrations.show', $customerRegistration)
                 ->with('error', __('customer_registration.cannot_edit_processed'));
         }
 
-        return view('sales.customer_registrations.edit', compact('customerRegistration'));
+        $customerGroups = CustomerGroup::where('is_active', true)->get();
+        $branches = Branch::active()->get();
+        $salesmen = User::where('is_active', true)->get();
+
+        return view('sales.customer_registrations.edit', compact('customerRegistration', 'customerGroups', 'branches', 'salesmen'));
     }
 
-    public function update(Request $request, CustomerRegistration $customerRegistration)
+    public function update(Request $request, Customer $customerRegistration)
     {
         if ($customerRegistration->status !== 'pending') {
-            return redirect()->route('customer-registrations.show', $customerRegistration)
+            return redirect()->route('sales.customer-registrations.show', $customerRegistration)
                 ->with('error', __('customer_registration.cannot_edit_processed'));
         }
 
         $validated = $request->validate([
-            'company_name' => 'required|string|max:255',
-            'contact_person' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:customer_registrations,email,' . $customerRegistration->id,
+            'customer_type' => 'required|in:individual,company',
+            'name_en' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
+            'group_id' => 'nullable|exists:customer_groups,id',
+            'salesman_id' => 'nullable|exists:users,id',
+            'contact_person' => 'required_if:customer_type,company|nullable|string|max:255',
+            'email' => 'required|email|max:255|unique:customers,email,' . $customerRegistration->id,
             'phone' => 'required|string|max:50',
             'mobile' => 'nullable|string|max:50',
-            'address' => 'required|string',
+            'billing_address' => 'required_if:customer_type,company|nullable|string',
             'city' => 'required|string|max:100',
             'country' => 'required|string|max:100',
+            'region' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:20',
-            'tax_number' => 'nullable|string|max:50',
+            'tax_number' => 'required_if:customer_type,company|nullable|string|max:50',
             'registration_number' => 'nullable|string|max:50',
             'business_type' => 'nullable|string|max:100',
             'website' => 'nullable|url|max:255',
             'credit_limit' => 'nullable|numeric|min:0',
             'payment_terms' => 'nullable|string|max:255',
+            'opening_balance' => 'nullable|numeric',
             'notes' => 'nullable|string',
             'documents' => 'nullable|array',
             'documents.*' => 'file|max:10240',
         ]);
 
         DB::beginTransaction();
-        
+
         try {
             $customerRegistration->update([
-                'company_name' => $validated['company_name'],
-                'contact_person' => $validated['contact_person'],
+                'customer_type' => $validated['customer_type'],
+                'name_en' => $validated['name_en'],
+                'name_ar' => $validated['name_ar'] ?? null,
+                'group_id' => $validated['group_id'] ?? null,
+                'salesman_id' => $validated['salesman_id'] ?? null,
+                'contact_person' => $validated['customer_type'] === 'individual' ? $validated['name_en'] : $validated['contact_person'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
                 'mobile' => $validated['mobile'],
-                'address' => $validated['address'],
+                'address' => $validated['billing_address'] ?? null,
                 'city' => $validated['city'],
                 'country' => $validated['country'],
+                'region' => $validated['region'] ?? null,
                 'postal_code' => $validated['postal_code'],
-                'tax_number' => $validated['tax_number'],
-                'registration_number' => $validated['registration_number'],
-                'business_type' => $validated['business_type'],
-                'website' => $validated['website'],
-                'credit_limit' => $validated['credit_limit'],
-                'payment_terms' => $validated['payment_terms'],
-                'notes' => $validated['notes'],
+                'tax_number' => $validated['tax_number'] ?? null,
+                'commercial_registration' => $validated['registration_number'] ?? null,
+                'business_type' => $validated['business_type'] ?? null,
+                'website' => $validated['website'] ?? null,
+                'credit_limit' => $validated['credit_limit'] ?? 0,
+                'payment_terms' => $validated['payment_terms'] ? (in_array($validated['payment_terms'], ['cash', 'credit_15', 'credit_30', 'credit_45', 'credit_60', 'credit_90']) ? $validated['payment_terms'] : 'credit_30') : 'credit_30',
+                'opening_balance' => $validated['opening_balance'] ?? 0,
+                'notes' => $validated['notes'] ?? null,
             ]);
 
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $document) {
                     $path = $document->store('customer_documents', 'public');
-                    
+
                     CustomerRegistrationDocument::create([
-                        'customer_registration_id' => $customerRegistration->id,
+                        'customer_id' => $customerRegistration->id,
                         'document_name' => $document->getClientOriginalName(),
-                        'document_path' => $path,
-                        'document_type' => $document->getClientMimeType(),
+                        'file_path' => $path,
+                        'mime_type' => $document->getClientMimeType(),
+                        'document_type' => 'other',
                         'file_size' => $document->getSize(),
                         'uploaded_by' => Auth::id(),
                     ]);
@@ -191,45 +233,47 @@ class CustomerRegistrationController extends Controller
 
             DB::commit();
 
-            return redirect()->route('customer-registrations.show', $customerRegistration)
+            return redirect()->route('sales.customer-registrations.show', $customerRegistration)
                 ->with('success', __('customer_registration.updated_successfully'));
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', $e->getMessage())->withInput();
         }
     }
 
-    public function destroy(CustomerRegistration $customerRegistration)
+    public function destroy(Customer $customerRegistration)
     {
-        if ($customerRegistration->status === 'approved') {
-            return redirect()->route('customer-registrations.show', $customerRegistration)
+        if ($customerRegistration->status === 'approved' || $customerRegistration->status === 'active') {
+            return redirect()->route('sales.customer-registrations.show', $customerRegistration)
                 ->with('error', __('customer_registration.cannot_delete_approved'));
         }
 
         DB::beginTransaction();
-        
+
         try {
             foreach ($customerRegistration->documents as $document) {
-                Storage::disk('public')->delete($document->document_path);
+                Storage::disk('public')->delete($document->file_path);
                 $document->delete();
             }
-            
+
             $customerRegistration->delete();
-            
+
             DB::commit();
 
-            return redirect()->route('customer-registrations.index')
+            return redirect()->route('sales.customer-registrations.index')
                 ->with('success', __('customer_registration.deleted_successfully'));
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', $e->getMessage());
         }
     }
 
-    public function approve(Request $request, CustomerRegistration $customerRegistration)
+    public function approve(Request $request, Customer $customerRegistration)
     {
         if ($customerRegistration->status !== 'pending' && $customerRegistration->status !== 'under_review') {
-            return redirect()->route('customer-registrations.show', $customerRegistration)
+            return redirect()->route('sales.customer-registrations.show', $customerRegistration)
                 ->with('error', __('customer_registration.cannot_approve'));
         }
 
@@ -238,24 +282,30 @@ class CustomerRegistrationController extends Controller
         ]);
 
         DB::beginTransaction();
-        
+
         try {
-            $customerRegistration->approve(Auth::id(), $validated['approval_notes'] ?? null);
-            
+            $customerRegistration->update([
+                'status' => 'active',
+                'reviewed_by' => Auth::id(),
+                'reviewed_at' => now(),
+                'notes' => $validated['approval_notes'] ?? $customerRegistration->notes,
+            ]);
+
             DB::commit();
 
-            return redirect()->route('customer-registrations.show', $customerRegistration)
+            return redirect()->route('sales.customer-registrations.show', $customerRegistration)
                 ->with('success', __('customer_registration.approved_successfully'));
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', $e->getMessage());
         }
     }
 
-    public function reject(Request $request, CustomerRegistration $customerRegistration)
+    public function reject(Request $request, Customer $customerRegistration)
     {
         if ($customerRegistration->status !== 'pending' && $customerRegistration->status !== 'under_review') {
-            return redirect()->route('customer-registrations.show', $customerRegistration)
+            return redirect()->route('sales.customer-registrations.show', $customerRegistration)
                 ->with('error', __('customer_registration.cannot_reject'));
         }
 
@@ -264,60 +314,45 @@ class CustomerRegistrationController extends Controller
         ]);
 
         DB::beginTransaction();
-        
+
         try {
-            $customerRegistration->reject(Auth::id(), $validated['rejection_reason']);
-            
+            $customerRegistration->update([
+                'status' => 'rejected',
+                'reviewed_by' => Auth::id(),
+                'reviewed_at' => now(),
+                'rejection_reason' => $validated['rejection_reason'],
+            ]);
+
             DB::commit();
 
-            return redirect()->route('customer-registrations.show', $customerRegistration)
+            return redirect()->route('sales.customer-registrations.show', $customerRegistration)
                 ->with('success', __('customer_registration.rejected_successfully'));
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', $e->getMessage());
         }
     }
 
-    public function convertToCustomer(CustomerRegistration $customerRegistration)
+    public function convertToCustomer(Customer $customerRegistration)
     {
-        if ($customerRegistration->status !== 'approved') {
-            return redirect()->route('customer-registrations.show', $customerRegistration)
-                ->with('error', __('customer_registration.not_approved'));
-        }
-
-        if ($customerRegistration->converted_customer_id) {
-            return redirect()->route('customer-registrations.show', $customerRegistration)
-                ->with('error', __('customer_registration.already_converted'));
-        }
-
-        DB::beginTransaction();
-        
-        try {
-            $customer = $customerRegistration->convertToCustomer();
-            
-            DB::commit();
-
-            return redirect()->route('customers.show', $customer)
-                ->with('success', __('customer_registration.converted_successfully'));
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', $e->getMessage());
-        }
+        return redirect()->route('sales.customers.show', $customerRegistration)
+            ->with('info', __('customer_registration.already_converted'));
     }
 
     public function deleteDocument(CustomerRegistrationDocument $document)
     {
-        $registration = $document->customerRegistration;
-        
+        $registration = $document->customer;
+
         if ($registration->status !== 'pending') {
-            return redirect()->route('customer-registrations.show', $registration)
+            return redirect()->route('sales.customer-registrations.show', $registration)
                 ->with('error', __('customer_registration.cannot_delete_document'));
         }
 
-        Storage::disk('public')->delete($document->document_path);
+        Storage::disk('public')->delete($document->file_path);
         $document->delete();
 
-        return redirect()->route('customer-registrations.show', $registration)
+        return redirect()->route('sales.customer-registrations.show', $registration)
             ->with('success', __('customer_registration.document_deleted'));
     }
 }

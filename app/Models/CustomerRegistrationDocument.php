@@ -11,6 +11,7 @@ class CustomerRegistrationDocument extends Model
 
     protected $fillable = [
         'customer_registration_id',
+        'customer_id',
         'document_type',
         'document_name',
         'file_path',
@@ -28,9 +29,14 @@ class CustomerRegistrationDocument extends Model
         return $this->belongsTo(CustomerRegistration::class);
     }
 
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
     public function uploader()
     {
-        return $this->belongsTo(User::class, 'uploaded_by');
+        return $this->belongsTo(User::class , 'uploaded_by');
     }
 
     public function getDocumentTypeLabelAttribute()

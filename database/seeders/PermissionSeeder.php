@@ -93,6 +93,17 @@ class PermissionSeeder extends Seeder
             ['name' => 'close transport', 'display_name_en' => 'Close Transport Orders', 'display_name_ar' => 'إغلاق أوامر النقل', 'module' => 'transport'],
             ['name' => 'manage claims', 'display_name_en' => 'Manage Claims', 'display_name_ar' => 'إدارة المطالبات', 'module' => 'transport'],
 
+            // Production
+            ['name' => 'view production', 'display_name_en' => 'View Production', 'display_name_ar' => 'عرض الإنتاج', 'module' => 'production'],
+            ['name' => 'manage production', 'display_name_en' => 'Manage Production', 'display_name_ar' => 'إدارة الإنتاج', 'module' => 'production'],
+            ['name' => 'create production_orders', 'display_name_en' => 'Create Production Orders', 'display_name_ar' => 'إنشاء أوامر الإنتاج', 'module' => 'production'],
+            ['name' => 'post production_orders', 'display_name_en' => 'Post Production Orders', 'display_name_ar' => 'ترحيل أوامر الإنتاج', 'module' => 'production'],
+
+            // Logistics (Enhanced)
+            ['name' => 'view logistics', 'display_name_en' => 'View Logistics', 'display_name_ar' => 'عرض اللوجستيات', 'module' => 'logistics'],
+            ['name' => 'manage fleet', 'display_name_en' => 'Manage Fleet', 'display_name_ar' => 'إدارة الأسطول', 'module' => 'logistics'],
+            ['name' => 'record fuel_logs', 'display_name_en' => 'Record Fuel Logs', 'display_name_ar' => 'تسجيل سجلات الوقود', 'module' => 'logistics'],
+
             // Maintenance
             ['name' => 'view maintenance', 'display_name_en' => 'View Maintenance', 'display_name_ar' => 'عرض الصيانة', 'module' => 'maintenance'],
             ['name' => 'manage maintenance', 'display_name_en' => 'Manage Maintenance', 'display_name_ar' => 'إدارة الصيانة', 'module' => 'maintenance'],
@@ -125,16 +136,32 @@ class PermissionSeeder extends Seeder
             ['name' => 'delete chart_of_accounts', 'display_name_en' => 'Delete Chart of Accounts', 'display_name_ar' => 'حذف شجرة الحسابات', 'module' => 'accounting'],
             ['name' => 'view ledger', 'display_name_en' => 'View Ledger', 'display_name_ar' => 'عرض دفتر الأستاذ', 'module' => 'accounting'],
             ['name' => 'edit posted journal vouchers', 'display_name_en' => 'Edit Posted Journal Vouchers', 'display_name_ar' => 'تعديل قيود اليومية المرحلة', 'module' => 'accounting'],
+
+            // Accounting Setup
+            ['name' => 'view cost_centers', 'display_name_en' => 'View Cost Centers', 'display_name_ar' => 'عرض مراكز التكلفة', 'module' => 'accounting'],
+            ['name' => 'create cost_centers', 'display_name_en' => 'Create Cost Centers', 'display_name_ar' => 'إنشاء مراكز التكلفة', 'module' => 'accounting'],
+            ['name' => 'edit cost_centers', 'display_name_en' => 'Edit Cost Centers', 'display_name_ar' => 'تعديل مراكز التكلفة', 'module' => 'accounting'],
+            ['name' => 'delete cost_centers', 'display_name_en' => 'Delete Cost Centers', 'display_name_ar' => 'حذف مراكز التكلفة', 'module' => 'accounting'],
+
+            ['name' => 'view activities', 'display_name_en' => 'View Activities', 'display_name_ar' => 'عرض الأنشطة', 'module' => 'accounting'],
+            ['name' => 'create activities', 'display_name_en' => 'Create Activities', 'display_name_ar' => 'إنشاء الأنشطة', 'module' => 'accounting'],
+            ['name' => 'edit activities', 'display_name_en' => 'Edit Activities', 'display_name_ar' => 'تعديل الأنشطة', 'module' => 'accounting'],
+            ['name' => 'delete activities', 'display_name_en' => 'Delete Activities', 'display_name_ar' => 'حذف الأنشطة', 'module' => 'accounting'],
+
+            ['name' => 'view lcs', 'display_name_en' => 'View LCs', 'display_name_ar' => 'عرض الاعتمادات المستندية', 'module' => 'accounting'],
+            ['name' => 'create lcs', 'display_name_en' => 'Create LCs', 'display_name_ar' => 'إنشاء الاعتمادات المستندية', 'module' => 'accounting'],
+            ['name' => 'edit lcs', 'display_name_en' => 'Edit LCs', 'display_name_ar' => 'تعديل الاعتمادات المستندية', 'module' => 'accounting'],
+            ['name' => 'delete lcs', 'display_name_en' => 'Delete LCs', 'display_name_ar' => 'حذف الاعتمادات المستندية', 'module' => 'accounting'],
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(
-                ['name' => $permission['name'], 'guard_name' => 'web'],
-                [
-                    'display_name_en' => $permission['display_name_en'],
-                    'display_name_ar' => $permission['display_name_ar'],
-                    'module' => $permission['module'],
-                ]
+            ['name' => $permission['name'], 'guard_name' => 'web'],
+            [
+                'display_name_en' => $permission['display_name_en'],
+                'display_name_ar' => $permission['display_name_ar'],
+                'module' => $permission['module'],
+            ]
             );
         }
     }

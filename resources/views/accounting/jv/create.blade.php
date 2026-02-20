@@ -430,6 +430,12 @@
             </form>
         </div>
     </div>
+    <div id="select2-dropdown-parent" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 10000;"></div>
+
+    @push('styles')
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    @endpush
 
     <style>
         /* Professional ERP Aesthetics */
@@ -502,6 +508,10 @@
             border: none;
         }
 
+        .grid-container {
+            padding-bottom: 250px !important;
+        }
+
         .dense-table th {
             background-color: #edf2f7;
             color: #4a5568 !important;
@@ -571,6 +581,30 @@
             display: block !important;
         }
 
+        .select2-dropdown {
+            background-color: #ffffff !important;
+            border: 1px solid #ced4da !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+            z-index: 9999 !important;
+            width: auto !important;
+            min-width: 400px !important;
+            max-width: 600px !important;
+        }
+
+        .select2-search__field {
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        .select2-results__options {
+            background-color: #ffffff !important;
+        }
+
+        .select2-results__option--highlighted {
+            background-color: var(--primary-blue) !important;
+            color: white !important;
+        }
+
         .select2-selection--single {
             height: 28px !important;
             padding: 0 4px !important;
@@ -614,8 +648,9 @@
     </style>
 
     @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
+            function initJournalVoucherPage() {
                 let rowCount = 2;
                 const accountsData = @json($accounts);
 
@@ -665,7 +700,7 @@
                     $(el).select2({
                         theme: 'bootstrap-5',
                         width: '100%',
-                        dropdownAutoWidth: true,
+                        dropdownParent: $('#select2-dropdown-parent'),
                         placeholder: placeholder,
                         allowClear: true,
                         minimumInputLength: 0,
@@ -693,7 +728,7 @@
                     $(el).select2({
                         theme: 'bootstrap-5',
                         width: '100%',
-                        dropdownAutoWidth: true,
+                        dropdownParent: $('#select2-dropdown-parent'),
                         placeholder: 'Search Code...',
                         allowClear: true,
                         minimumInputLength: 0,
@@ -730,8 +765,12 @@
                         const linkIcon = row.find('.fa-link').parent();
 
                         entityWrapper.addClass('d-none');
-                        cust.prop('disabled', true).addClass('d-none');
-                        vend.prop('disabled', true).addClass('d-none');
+                        
+                        // Robust cleanup: destroy select2 and hide containers
+                        if (cust.data('select2')) { cust.select2('destroy'); }
+                        if (vend.data('select2')) { vend.select2('destroy'); }
+                        cust.prop('disabled', true).addClass('d-none').siblings('.select2-container').addClass('d-none');
+                        vend.prop('disabled', true).addClass('d-none').siblings('.select2-container').addClass('d-none');
                         linkIcon.removeClass('d-none');
 
                         if (data.sub_ledger_type === 'customer') {
@@ -753,7 +792,8 @@
                     $(el).select2({
                         theme: 'bootstrap-5',
                         width: '100%',
-                        dropdownAutoWidth: true,
+                        dropdownParent: $('#select2-dropdown-parent'),
+                        placeholder: 'Search Entity...',
                         minimumInputLength: 0,
                         ajax: {
                             url: url,
@@ -943,7 +983,20 @@
                         alert('Minimum 2 rows required.');
                     }
                 });
+            }
+
+            // Initialization and Turbo Support
+            document.addEventListener('turbo:load', initJournalVoucherPage);
+            document.addEventListener('turbo:before-cache', function() {
+                $('.select2-hidden-accessible').select2('destroy');
             });
+
+            // Fallback for non-turbo environments or first load if listener is missed
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                if (typeof Turbo === 'undefined') {
+                    initJournalVoucherPage();
+                }
+            }
         </script>
     @endpush
 @endsection

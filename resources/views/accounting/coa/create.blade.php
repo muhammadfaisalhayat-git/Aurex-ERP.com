@@ -151,7 +151,7 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('turbo:load', function() {
         const saveBtn = document.getElementById('saveAccountType');
         const editBtn = document.getElementById('editAccountTypeBtn');
         const form = document.getElementById('addAccountTypeForm');
