@@ -204,7 +204,7 @@ class AccountingService
     {
         return DB::transaction(function () use ($invoice) {
             // Find or create standard accounts
-            $apAccount = $this->getAccountByCode('201'); // Accounts Payable (Liability)
+            $apAccount = $this->getMappedAccount('stock', 'ap'); // Accounts Payable (Liability)
             $inventoryAccount = $this->getAccountByCode('104'); // Inventory (Asset)
             $taxAccount = $this->getAccountByCode('202'); // Taxes Payable (Liability)
 
@@ -328,6 +328,9 @@ class AccountingService
     /**
      * Post Payment Voucher to ledger.
      */
+    /**
+     * Post Payment Voucher to ledger.
+     */
     public function postPaymentVoucher(\App\Models\PaymentVoucher $voucher)
     {
         return DB::transaction(function () use ($voucher) {
@@ -339,7 +342,7 @@ class AccountingService
             $targetAccountId = $voucher->chart_of_account_id;
 
             // Debit Target Account (Expense or Vendor AR)
-            $this->createLedgerEntry([
+            $ledgerData = [
                 'chart_of_account_id' => $targetAccountId,
                 'transaction_date' => $voucher->voucher_date,
                 'reference_type' => 'payment_voucher',
@@ -348,10 +351,23 @@ class AccountingService
                 'debit' => $voucher->amount,
                 'credit' => 0,
                 'description' => $voucher->description ?? 'Payment Voucher: ' . $voucher->voucher_number,
-                'vendor_id' => $voucher->vendor_id,
                 'beneficiary_id' => $voucher->beneficiary_id,
                 'beneficiary_type' => $voucher->beneficiary_type,
-            ]);
+            ];
+
+            if ($voucher->beneficiary_type === 'App\Models\Employee') {
+                $ledgerData['employee_id'] = $voucher->beneficiary_id;
+            } elseif ($voucher->beneficiary_type === 'App\Models\Vendor') {
+                $ledgerData['vendor_id'] = $voucher->beneficiary_id;
+            } elseif ($voucher->beneficiary_type === 'App\Models\Customer') {
+                $ledgerData['customer_id'] = $voucher->beneficiary_id;
+            }
+
+            if (!isset($ledgerData['vendor_id']) && $voucher->vendor_id) {
+                $ledgerData['vendor_id'] = $voucher->vendor_id;
+            }
+
+            $this->createLedgerEntry($ledgerData);
 
             // Credit Bank/Cash Account
             $this->createLedgerEntry([
@@ -404,7 +420,7 @@ class AccountingService
             ]);
 
             // Credit Target Account (Income or Customer AR)
-            $this->createLedgerEntry([
+            $ledgerData = [
                 'chart_of_account_id' => $targetAccountId,
                 'transaction_date' => $voucher->voucher_date,
                 'reference_type' => 'receipt_voucher',
@@ -413,10 +429,23 @@ class AccountingService
                 'debit' => 0,
                 'credit' => $voucher->amount,
                 'description' => $voucher->description ?? 'Receipt Voucher: ' . $voucher->voucher_number,
-                'customer_id' => $voucher->customer_id,
                 'beneficiary_id' => $voucher->beneficiary_id,
                 'beneficiary_type' => $voucher->beneficiary_type,
-            ]);
+            ];
+
+            if ($voucher->beneficiary_type === 'App\Models\Employee') {
+                $ledgerData['employee_id'] = $voucher->beneficiary_id;
+            } elseif ($voucher->beneficiary_type === 'App\Models\Vendor') {
+                $ledgerData['vendor_id'] = $voucher->beneficiary_id;
+            } elseif ($voucher->beneficiary_type === 'App\Models\Customer') {
+                $ledgerData['customer_id'] = $voucher->beneficiary_id;
+            }
+
+            if (!isset($ledgerData['customer_id']) && $voucher->customer_id) {
+                $ledgerData['customer_id'] = $voucher->customer_id;
+            }
+
+            $this->createLedgerEntry($ledgerData);
 
             // Update balances
             $bankAccount->increment('current_balance', (float) $voucher->amount);
@@ -474,8 +503,8 @@ class AccountingService
     public function postStockAdjustment($issueOrder)
     {
         return DB::transaction(function () use ($issueOrder) {
-            $inventoryAcc = $this->getAccountByCode('104'); // Inventory Asset
-            $adjustmentAcc = $this->getAccountByCode('508'); // Inventory Adjustment Expense
+            $inventoryAcc = $this->getMappedAccount('stock', 'inventory'); // Inventory Asset
+            $adjustmentAcc = $this->getMappedAccount('stock', 'adjustment'); // Inventory Adjustment Expense
 
             $totalCost = 0;
             foreach ($issueOrder->items as $item) {
@@ -555,7 +584,35 @@ class AccountingService
         };
     }
 
-    private function getSubLedgerTypeByCode($code)
+    
+    /**
+     * Get account by mapping or default code.
+     */
+    public function getMappedAccount($module, $key)
+    {
+        $mapping = \App\Models\AccountMapping::where('module', $module)
+            ->where('key', $key)
+            ->where('is_active', true)
+            ->first();
+
+        if ($mapping) {
+            return $mapping->chartOfAccount;
+        }
+
+        // Default mappings if not explicitly defined
+        $defaults = [
+            'stock' => [
+                'inventory' => '104',
+                'ap' => '201',
+                'adjustment' => '508',
+            ],
+        ];
+
+        $code = $defaults[$module][$key] ?? null;
+        return $code ? $this->getAccountByCode($code) : null;
+    }
+
+private function getSubLedgerTypeByCode($code)
     {
         return match ($code) {
             '103' => 'customer',
@@ -574,8 +631,8 @@ class AccountingService
     public function postStockReceiving($receiving)
     {
         return DB::transaction(function () use ($receiving) {
-            $inventoryAcc = $this->getAccountByCode('104');
-            $apAccount = $this->getAccountByCode('201');
+            $inventoryAcc = $this->getMappedAccount('stock', 'inventory');
+            $apAccount = $this->getMappedAccount('stock', 'ap');
 
             $totalValue = 0;
             foreach ($receiving->items as $item) {
@@ -622,8 +679,8 @@ class AccountingService
     public function postStockSupply($supply)
     {
         return DB::transaction(function () use ($supply) {
-            $inventoryAcc = $this->getAccountByCode('104');
-            $apAccount = $this->getAccountByCode('201');
+            $inventoryAcc = $this->getMappedAccount('stock', 'inventory');
+            $apAccount = $this->getMappedAccount('stock', 'ap');
 
             // Credit AP
             $this->createLedgerEntry([
@@ -660,8 +717,8 @@ class AccountingService
     public function postStockIssue($issueOrder)
     {
         return DB::transaction(function () use ($issueOrder) {
-            $inventoryAcc = $this->getAccountByCode('104');
-            $adjustmentAcc = $this->getAccountByCode('508');
+            $inventoryAcc = $this->getMappedAccount('stock', 'inventory');
+            $adjustmentAcc = $this->getMappedAccount('stock', 'adjustment');
 
             $totalCost = 0;
             foreach ($issueOrder->items as $item) {
