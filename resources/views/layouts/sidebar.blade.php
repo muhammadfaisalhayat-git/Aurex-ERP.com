@@ -102,28 +102,25 @@
                 <!-- Sales Section -->
                 <div class="menu-section">{{ __('messages.sales') }}</div>
 
-                @if($checkVisibility('sidebar_customers'))
-                    @can('view customers')
-                        <div class="menu-item">
-                            <a href="{{ route('sales.customers.index') }}"
-                                class="menu-link {{ request()->routeIs('sales.customers.*') ? 'active' : '' }}">
-                                <i class="fas fa-users fa-fw"></i>
-                                <span>{{ __('messages.customers') }}</span>
-                            </a>
-                        </div>
-                    @endcan
-                @endif
-
                 @if($checkVisibility('sidebar_sales_documents'))
-                    @canany(['view quotations', 'view customer_registration', 'view customer_requests', 'view sales_orders', 'view sales_contracts'])
+                    @canany(['view customers', 'view quotations', 'view customer_registration', 'view customer_requests', 'view sales_orders', 'view sales_contracts', 'view invoices', 'view returns', 'view commissions'])
                         <div
-                            class="menu-item {{ request()->routeIs('sales.customer-registrations.*') || request()->routeIs('sales.customer-requests.*') || request()->routeIs('sales.quotations.*') || request()->routeIs('sales.contracts.*') || request()->routeIs('sales.sales-orders.*') ? 'open' : '' }}">
+                            class="menu-item {{ request()->routeIs('sales.customers.*') || request()->routeIs('sales.invoices.*') || request()->routeIs('sales.returns.*') || request()->routeIs('sales.commissions.*') || request()->routeIs('sales.customer-registrations.*') || request()->routeIs('sales.customer-requests.*') || request()->routeIs('sales.quotations.*') || request()->routeIs('sales.contracts.*') || request()->routeIs('sales.sales-orders.*') ? 'open' : '' }}">
                             <a href="#" class="menu-link" data-submenu>
                                 <i class="fas fa-file-invoice fa-fw"></i>
                                 <span>{{ __('messages.sales_documents') }}</span>
                                 <i class="fas fa-chevron-down menu-arrow"></i>
                             </a>
                             <div class="submenu">
+                                @if($checkVisibility('sidebar_customers'))
+                                    @can('view customers')
+                                        <a href="{{ route('sales.customers.index') }}"
+                                            class="menu-link {{ request()->routeIs('sales.customers.*') ? 'active' : '' }}">
+                                            {{ __('messages.customers') }}
+                                        </a>
+                                    @endcan
+                                @endif
+
                                 <a href="{{ route('sales.customer-requests.index') }}"
                                     class="menu-link {{ request()->routeIs('sales.customer-requests.*') ? 'active' : '' }}">
                                     {{ __('messages.customer_requests') }}
@@ -142,45 +139,36 @@
                                     class="menu-link {{ request()->routeIs('sales.contracts.*') ? 'active' : '' }}">
                                     {{ __('messages.sales_contracts') }}
                                 </a>
+
+                                @if($checkVisibility('sidebar_sales_invoices'))
+                                    @can('view invoices')
+                                        <a href="{{ route('sales.invoices.index') }}"
+                                            class="menu-link {{ request()->routeIs('sales.invoices.*') ? 'active' : '' }}">
+                                            {{ __('messages.sales_invoices') }}
+                                        </a>
+                                    @endcan
+                                @endif
+
+                                @if($checkVisibility('sidebar_sales_returns'))
+                                    @can('view returns')
+                                        <a href="{{ route('sales.returns.index') }}"
+                                            class="menu-link {{ request()->routeIs('sales.returns.*') ? 'active' : '' }}">
+                                            {{ __('messages.sales_returns') }}
+                                        </a>
+                                    @endcan
+                                @endif
+
+                                @if($checkVisibility('sidebar_commissions'))
+                                    @can('view commissions')
+                                        <a href="{{ route('sales.commissions.rules') }}"
+                                            class="menu-link {{ request()->routeIs('sales.commissions.*') ? 'active' : '' }}">
+                                            {{ __('messages.commissions') }}
+                                        </a>
+                                    @endcan
+                                @endif
                             </div>
                         </div>
                     @endcanany
-                @endif
-
-                @if($checkVisibility('sidebar_sales_invoices'))
-                    @can('view invoices')
-                        <div class="menu-item">
-                            <a href="{{ route('sales.invoices.index') }}"
-                                class="menu-link {{ request()->routeIs('sales.invoices.*') ? 'active' : '' }}">
-                                <i class="fas fa-file-invoice-dollar fa-fw"></i>
-                                <span>{{ __('messages.sales_invoices') }}</span>
-                            </a>
-                        </div>
-                    @endcan
-                @endif
-
-                @if($checkVisibility('sidebar_sales_returns'))
-                    @can('view returns')
-                        <div class="menu-item">
-                            <a href="{{ route('sales.returns.index') }}"
-                                class="menu-link {{ request()->routeIs('sales.returns.*') ? 'active' : '' }}">
-                                <i class="fas fa-undo fa-fw"></i>
-                                <span>{{ __('messages.sales_returns') }}</span>
-                            </a>
-                        </div>
-                    @endcan
-                @endif
-
-                @if($checkVisibility('sidebar_commissions'))
-                    @can('view commissions')
-                        <div class="menu-item">
-                            <a href="{{ route('sales.commissions.rules') }}"
-                                class="menu-link {{ request()->routeIs('sales.commissions.*') ? 'active' : '' }}">
-                                <i class="fas fa-percentage fa-fw"></i>
-                                <span>{{ __('messages.commissions') }}</span>
-                            </a>
-                        </div>
-                    @endcan
                 @endif
             @endcanany
         @endif
