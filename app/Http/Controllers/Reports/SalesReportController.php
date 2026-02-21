@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
+use App\Models\SalesInvoice;
+use App\Models\SalesInvoiceItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SalesReport\SalesByItemExport;
+use App\Exports\SalesReport\SalesByCustomerExport;
 
 class SalesReportController extends Controller
 {
@@ -27,22 +31,23 @@ class SalesReportController extends Controller
         $validated = $request->validate([
             'customer_code' => 'nullable|string|max:50',
             'customer_name' => 'nullable|string|max:255',
+            'customer_id' => 'nullable|exists:customers,id',
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date',
             'status' => 'nullable|in:draft,posted,cancelled,all',
         ]);
 
-        $query = Invoice::with(['customer', 'branch', 'creator']);
+        $query = SalesInvoice::with(['customer', 'branch', 'creator']);
 
-        if (!empty($validated['customer_code'])) {
+        if (!empty($validated['customer_id'])) {
+            $query->where('customer_id', $validated['customer_id']);
+        } elseif (!empty($validated['customer_code'])) {
             $query->whereHas('customer', function ($q) use ($validated) {
-                $q->where('code', 'ILIKE', "%{$validated['customer_code']}%");
+                $q->where('code', 'LIKE', "%{$validated['customer_code']}%");
             });
-        }
-
-        if (!empty($validated['customer_name'])) {
+        } elseif (!empty($validated['customer_name'])) {
             $query->whereHas('customer', function ($q) use ($validated) {
-                $q->where('name', 'ILIKE', "%{$validated['customer_name']}%");
+                $q->where('name', 'LIKE', "%{$validated['customer_name']}%");
             });
         }
 
@@ -61,14 +66,17 @@ class SalesReportController extends Controller
         $invoices = $query->orderBy('invoice_date', 'desc')->paginate(50);
 
         // Customer summary
-        $customerSummary = Invoice::select(
+        $customerSummary = SalesInvoice::select(
             'customer_id',
             DB::raw('COUNT(*) as invoice_count'),
-            DB::raw('SUM(net_amount) as total_net'),
+            DB::raw('SUM(total_amount) as total_net'),
             DB::raw('SUM(tax_amount) as total_tax'),
-            DB::raw('SUM(gross_amount) as total_gross'),
+            DB::raw('SUM(subtotal) as total_gross'),
             DB::raw('SUM(discount_amount) as total_discount')
         )
+            ->when(!empty($validated['customer_id']), function ($q) use ($validated) {
+                $q->where('customer_id', $validated['customer_id']);
+            })
             ->when(!empty($validated['date_from']), function ($q) use ($validated) {
                 $q->whereDate('invoice_date', '>=', $validated['date_from']);
             })
@@ -83,7 +91,10 @@ class SalesReportController extends Controller
             ->get();
 
         // Overall totals
-        $totals = Invoice::query()
+        $totals = SalesInvoice::query()
+            ->when(!empty($validated['customer_id']), function ($q) use ($validated) {
+                $q->where('customer_id', $validated['customer_id']);
+            })
             ->when(!empty($validated['date_from']), function ($q) use ($validated) {
                 $q->whereDate('invoice_date', '>=', $validated['date_from']);
             })
@@ -95,9 +106,9 @@ class SalesReportController extends Controller
             })
             ->select(
                 DB::raw('COUNT(*) as total_invoices'),
-                DB::raw('SUM(net_amount) as total_net'),
+                DB::raw('SUM(total_amount) as total_net'),
                 DB::raw('SUM(tax_amount) as total_tax'),
-                DB::raw('SUM(gross_amount) as total_gross'),
+                DB::raw('SUM(subtotal) as total_gross'),
                 DB::raw('SUM(discount_amount) as total_discount')
             )
             ->first();
@@ -110,42 +121,53 @@ class SalesReportController extends Controller
         $validated = $request->validate([
             'item_code' => 'nullable|string|max:50',
             'item_name' => 'nullable|string|max:255',
+            'product_id' => 'nullable|exists:products,id',
+            'invoice_id' => 'nullable|exists:sales_invoices,id',
+            'invoice_number' => 'nullable|string|max:50',
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date',
             'category_id' => 'nullable|exists:product_categories,id',
         ]);
 
-        $query = InvoiceItem::with(['item', 'item.category', 'invoice'])
-            ->whereHas('invoice', function ($q) {
+        $query = SalesInvoiceItem::with(['product', 'product.category', 'salesInvoice'])
+            ->whereHas('salesInvoice', function ($q) {
                 $q->where('status', 'posted');
             });
 
+        if (!empty($validated['product_id'])) {
+            $query->where('product_id', $validated['product_id']);
+        }
+
+        if (!empty($validated['invoice_id'])) {
+            $query->where('sales_invoice_id', $validated['invoice_id']);
+        }
+
         if (!empty($validated['item_code'])) {
-            $query->whereHas('item', function ($q) use ($validated) {
-                $q->where('code', 'ILIKE', "%{$validated['item_code']}%");
+            $query->whereHas('product', function ($q) use ($validated) {
+                $q->where('code', 'LIKE', "%{$validated['item_code']}%");
             });
         }
 
         if (!empty($validated['item_name'])) {
-            $query->whereHas('item', function ($q) use ($validated) {
-                $q->where('name', 'ILIKE', "%{$validated['item_name']}%");
+            $query->whereHas('product', function ($q) use ($validated) {
+                $q->where('name', 'LIKE', "%{$validated['item_name']}%");
             });
         }
 
         if (!empty($validated['date_from'])) {
-            $query->whereHas('invoice', function ($q) use ($validated) {
+            $query->whereHas('salesInvoice', function ($q) use ($validated) {
                 $q->whereDate('invoice_date', '>=', $validated['date_from']);
             });
         }
 
         if (!empty($validated['date_to'])) {
-            $query->whereHas('invoice', function ($q) use ($validated) {
+            $query->whereHas('salesInvoice', function ($q) use ($validated) {
                 $q->whereDate('invoice_date', '<=', $validated['date_to']);
             });
         }
 
         if (!empty($validated['category_id'])) {
-            $query->whereHas('item', function ($q) use ($validated) {
+            $query->whereHas('product', function ($q) use ($validated) {
                 $q->where('category_id', $validated['category_id']);
             });
         }
@@ -153,15 +175,18 @@ class SalesReportController extends Controller
         $items = $query->orderBy('created_at', 'desc')->paginate(50);
 
         // Item summary
-        $itemSummary = InvoiceItem::select(
-            'item_id',
+        $itemSummary = SalesInvoiceItem::select(
+            'product_id',
             DB::raw('SUM(quantity) as total_quantity'),
             DB::raw('SUM(net_amount) as total_net'),
             DB::raw('SUM(tax_amount) as total_tax'),
             DB::raw('SUM(gross_amount) as total_gross')
         )
-            ->whereHas('invoice', function ($q) use ($validated) {
+            ->whereHas('salesInvoice', function ($q) use ($validated) {
                 $q->where('status', 'posted');
+                if (!empty($validated['invoice_id'])) {
+                    $q->where('id', $validated['invoice_id']);
+                }
                 if (!empty($validated['date_from'])) {
                     $q->whereDate('invoice_date', '>=', $validated['date_from']);
                 }
@@ -170,22 +195,25 @@ class SalesReportController extends Controller
                 }
             })
             ->when(!empty($validated['item_code']), function ($q) use ($validated) {
-                $q->whereHas('item', function ($sq) use ($validated) {
-                    $sq->where('code', 'ILIKE', "%{$validated['item_code']}%");
+                $q->whereHas('product', function ($sq) use ($validated) {
+                    $sq->where('code', 'LIKE', "%{$validated['item_code']}%");
                 });
             })
             ->when(!empty($validated['item_name']), function ($q) use ($validated) {
-                $q->whereHas('item', function ($sq) use ($validated) {
-                    $sq->where('name', 'ILIKE', "%{$validated['item_name']}%");
+                $q->whereHas('product', function ($sq) use ($validated) {
+                    $sq->where('name', 'LIKE', "%{$validated['item_name']}%");
                 });
             })
-            ->groupBy('item_id')
-            ->with('item')
+            ->groupBy('product_id')
+            ->with('product')
             ->get();
 
         // Overall totals
-        $totals = InvoiceItem::whereHas('invoice', function ($q) use ($validated) {
+        $totals = SalesInvoiceItem::whereHas('salesInvoice', function ($q) use ($validated) {
             $q->where('status', 'posted');
+            if (!empty($validated['invoice_id'])) {
+                $q->where('id', $validated['invoice_id']);
+            }
             if (!empty($validated['date_from'])) {
                 $q->whereDate('invoice_date', '>=', $validated['date_from']);
             }
@@ -194,13 +222,13 @@ class SalesReportController extends Controller
             }
         })
             ->when(!empty($validated['item_code']), function ($q) use ($validated) {
-                $q->whereHas('item', function ($sq) use ($validated) {
-                    $sq->where('code', 'ILIKE', "%{$validated['item_code']}%");
+                $q->whereHas('product', function ($sq) use ($validated) {
+                    $sq->where('code', 'LIKE', "%{$validated['item_code']}%");
                 });
             })
             ->when(!empty($validated['item_name']), function ($q) use ($validated) {
-                $q->whereHas('item', function ($sq) use ($validated) {
-                    $sq->where('name', 'ILIKE', "%{$validated['item_name']}%");
+                $q->whereHas('product', function ($sq) use ($validated) {
+                    $sq->where('name', 'LIKE', "%{$validated['item_name']}%");
                 });
             })
             ->select(
@@ -227,7 +255,7 @@ class SalesReportController extends Controller
 
         $groupBy = $validated['group_by'] ?? 'day';
 
-        $query = Invoice::where('status', 'posted');
+        $query = SalesInvoice::where('status', 'posted');
 
         if (!empty($validated['date_from'])) {
             $query->whereDate('invoice_date', '>=', $validated['date_from']);
@@ -244,28 +272,28 @@ class SalesReportController extends Controller
         // Daily summary
         $dailySummary = (clone $query)
             ->select(
-                DB::raw('DATE(invoice_date) as date'),
+                DB::raw('date(invoice_date) as date'),
                 DB::raw('COUNT(*) as invoice_count'),
-                DB::raw('SUM(net_amount) as total_net'),
+                DB::raw('SUM(total_amount) as total_net'),
                 DB::raw('SUM(tax_amount) as total_tax'),
-                DB::raw('SUM(gross_amount) as total_gross'),
+                DB::raw('SUM(subtotal) as total_gross'),
                 DB::raw('SUM(discount_amount) as total_discount')
             )
-            ->groupBy(DB::raw('DATE(invoice_date)'))
+            ->groupBy(DB::raw('date(invoice_date)'))
             ->orderBy('date')
             ->get();
 
         // Monthly summary
         $monthlySummary = (clone $query)
             ->select(
-                DB::raw('DATE_TRUNC(\'month\', invoice_date) as month'),
+                DB::raw('strftime(\'%Y-%m\', invoice_date) as month'),
                 DB::raw('COUNT(*) as invoice_count'),
-                DB::raw('SUM(net_amount) as total_net'),
+                DB::raw('SUM(total_amount) as total_net'),
                 DB::raw('SUM(tax_amount) as total_tax'),
-                DB::raw('SUM(gross_amount) as total_gross'),
+                DB::raw('SUM(subtotal) as total_gross'),
                 DB::raw('SUM(discount_amount) as total_discount')
             )
-            ->groupBy(DB::raw('DATE_TRUNC(\'month\', invoice_date)'))
+            ->groupBy(DB::raw('strftime(\'%Y-%m\', invoice_date)'))
             ->orderBy('month')
             ->get();
 
@@ -273,9 +301,9 @@ class SalesReportController extends Controller
         $totals = (clone $query)
             ->select(
                 DB::raw('COUNT(*) as total_invoices'),
-                DB::raw('SUM(net_amount) as total_net'),
+                DB::raw('SUM(total_amount) as total_net'),
                 DB::raw('SUM(tax_amount) as total_tax'),
-                DB::raw('SUM(gross_amount) as total_gross'),
+                DB::raw('SUM(subtotal) as total_gross'),
                 DB::raw('SUM(discount_amount) as total_discount')
             )
             ->first();
@@ -290,22 +318,23 @@ class SalesReportController extends Controller
         $validated = $request->validate([
             'customer_code' => 'nullable|string|max:50',
             'customer_name' => 'nullable|string|max:255',
+            'customer_id' => 'nullable|exists:customers,id',
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date',
-            'format' => 'required|in:csv,excel',
+            'format' => 'required|in:csv,excel,pdf',
         ]);
 
-        $query = Invoice::with('customer');
+        $query = SalesInvoice::with('customer');
 
-        if (!empty($validated['customer_code'])) {
+        if (!empty($validated['customer_id'])) {
+            $query->where('customer_id', $validated['customer_id']);
+        } elseif (!empty($validated['customer_code'])) {
             $query->whereHas('customer', function ($q) use ($validated) {
-                $q->where('code', 'ILIKE', "%{$validated['customer_code']}%");
+                $q->where('code', 'LIKE', "%{$validated['customer_code']}%");
             });
-        }
-
-        if (!empty($validated['customer_name'])) {
+        } elseif (!empty($validated['customer_name'])) {
             $query->whereHas('customer', function ($q) use ($validated) {
-                $q->where('name', 'ILIKE', "%{$validated['customer_name']}%");
+                $q->where('name', 'LIKE', "%{$validated['customer_name']}%");
             });
         }
 
@@ -321,6 +350,15 @@ class SalesReportController extends Controller
 
         $filename = 'sales_by_customer_' . now()->format('Y-m-d_H-i-s');
 
+        if ($validated['format'] === 'pdf') {
+            $pdf = Pdf::loadView('reports.sales.by_customer_pdf', compact('invoices', 'validated'));
+            return $pdf->download($filename . '.pdf');
+        }
+
+        if ($validated['format'] === 'excel') {
+            return Excel::download(new SalesByCustomerExport($invoices), $filename . '.xlsx');
+        }
+
         return $this->exportInvoicesToCsv($invoices, $filename);
     }
 
@@ -329,36 +367,47 @@ class SalesReportController extends Controller
         $validated = $request->validate([
             'item_code' => 'nullable|string|max:50',
             'item_name' => 'nullable|string|max:255',
+            'product_id' => 'nullable|exists:products,id',
+            'invoice_id' => 'nullable|exists:sales_invoices,id',
+            'invoice_number' => 'nullable|string|max:50',
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date',
-            'format' => 'required|in:csv,excel',
+            'format' => 'required|in:csv,excel,pdf',
         ]);
 
-        $query = InvoiceItem::with(['item', 'invoice'])
-            ->whereHas('invoice', function ($q) {
+        $query = SalesInvoiceItem::with(['product', 'salesInvoice'])
+            ->whereHas('salesInvoice', function ($q) {
                 $q->where('status', 'posted');
             });
 
+        if (!empty($validated['product_id'])) {
+            $query->where('product_id', $validated['product_id']);
+        }
+
+        if (!empty($validated['invoice_id'])) {
+            $query->where('sales_invoice_id', $validated['invoice_id']);
+        }
+
         if (!empty($validated['item_code'])) {
-            $query->whereHas('item', function ($q) use ($validated) {
-                $q->where('code', 'ILIKE', "%{$validated['item_code']}%");
+            $query->whereHas('product', function ($q) use ($validated) {
+                $q->where('code', 'LIKE', "%{$validated['item_code']}%");
             });
         }
 
         if (!empty($validated['item_name'])) {
-            $query->whereHas('item', function ($q) use ($validated) {
-                $q->where('name', 'ILIKE', "%{$validated['item_name']}%");
+            $query->whereHas('product', function ($q) use ($validated) {
+                $q->where('name', 'LIKE', "%{$validated['item_name']}%");
             });
         }
 
         if (!empty($validated['date_from'])) {
-            $query->whereHas('invoice', function ($q) use ($validated) {
+            $query->whereHas('salesInvoice', function ($q) use ($validated) {
                 $q->whereDate('invoice_date', '>=', $validated['date_from']);
             });
         }
 
         if (!empty($validated['date_to'])) {
-            $query->whereHas('invoice', function ($q) use ($validated) {
+            $query->whereHas('salesInvoice', function ($q) use ($validated) {
                 $q->whereDate('invoice_date', '<=', $validated['date_to']);
             });
         }
@@ -366,6 +415,46 @@ class SalesReportController extends Controller
         $items = $query->orderBy('created_at', 'desc')->get();
 
         $filename = 'sales_by_item_' . now()->format('Y-m-d_H-i-s');
+
+        if ($validated['format'] === 'pdf') {
+            // Also need totals for the PDF report
+            $totals = SalesInvoiceItem::whereHas('salesInvoice', function ($q) use ($validated) {
+                $q->where('status', 'posted');
+                if (!empty($validated['invoice_id'])) {
+                    $q->where('id', $validated['invoice_id']);
+                }
+                if (!empty($validated['date_from'])) {
+                    $q->whereDate('invoice_date', '>=', $validated['date_from']);
+                }
+                if (!empty($validated['date_to'])) {
+                    $q->whereDate('invoice_date', '<=', $validated['date_to']);
+                }
+            })
+                ->when(!empty($validated['item_code']), function ($q) use ($validated) {
+                    $q->whereHas('product', function ($sq) use ($validated) {
+                        $sq->where('code', 'LIKE', "%{$validated['item_code']}%");
+                    });
+                })
+                ->when(!empty($validated['item_name']), function ($q) use ($validated) {
+                    $q->whereHas('product', function ($sq) use ($validated) {
+                        $sq->where('name', 'LIKE', "%{$validated['item_name']}%");
+                    });
+                })
+                ->select(
+                    DB::raw('SUM(quantity) as total_quantity'),
+                    DB::raw('SUM(net_amount) as total_net'),
+                    DB::raw('SUM(tax_amount) as total_tax'),
+                    DB::raw('SUM(gross_amount) as total_gross')
+                )
+                ->first();
+
+            $pdf = Pdf::loadView('reports.sales.by_item_pdf', compact('items', 'totals', 'validated'));
+            return $pdf->download($filename . '.pdf');
+        }
+
+        if ($validated['format'] === 'excel') {
+            return Excel::download(new SalesByItemExport($items), $filename . '.xlsx');
+        }
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -378,10 +467,10 @@ class SalesReportController extends Controller
 
             foreach ($items as $item) {
                 fputcsv($file, [
-                    $item->invoice->document_number,
-                    $item->invoice->invoice_date,
-                    $item->item->code,
-                    $item->item->name,
+                    $item->salesInvoice->document_number ?? 'N/A',
+                    optional($item->salesInvoice)->invoice_date ? $item->salesInvoice->invoice_date->format('Y-m-d') : 'N/A',
+                    optional($item->product)->code ?? 'N/A',
+                    optional($item->product)->name ?? 'N/A',
                     $item->quantity,
                     $item->unit_price,
                     $item->net_amount,
@@ -410,12 +499,12 @@ class SalesReportController extends Controller
             foreach ($invoices as $invoice) {
                 fputcsv($file, [
                     $invoice->document_number,
-                    $invoice->invoice_date,
-                    $invoice->customer->code,
-                    $invoice->customer->name,
-                    $invoice->net_amount,
+                    $invoice->invoice_date->format('Y-m-d'),
+                    optional($invoice->customer)->code ?? 'N/A',
+                    optional($invoice->customer)->name ?? 'N/A',
+                    $invoice->subtotal,
                     $invoice->tax_amount,
-                    $invoice->gross_amount,
+                    $invoice->total_amount,
                     $invoice->status,
                 ]);
             }

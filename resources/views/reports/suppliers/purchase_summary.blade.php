@@ -22,7 +22,7 @@
                             <div class="mb-3">
                                 <label for="vendor_id" class="form-label">Vendor</label>
                                 <select class="form-select" id="vendor_id" name="vendor_id">
-                                    <option value="">All Vendors</option>
+                                    <option value="">{{ __('reports.click_here') }}</option>
                                     @foreach(\App\Models\Vendor::where('is_active', true)->orderBy('name')->get() as $vendor)
                                         <option value="{{ $vendor->id }}" {{ ($validated['vendor_id'] ?? '') == $vendor->id ? 'selected' : '' }}>
                                             {{ $vendor->name }}

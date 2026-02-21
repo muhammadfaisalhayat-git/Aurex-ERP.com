@@ -687,6 +687,12 @@ class SalesInvoiceController extends Controller
         $instanceId = \App\Models\SystemSetting::getValue('whatsapp_instance_id');
         $token = \App\Models\SystemSetting::getValue('whatsapp_token');
 
+        \Log::info('WhatsApp config check in SalesInvoiceController', [
+            'instance_id_configured' => !empty($instanceId),
+            'token_configured' => !empty($token),
+            'document_number' => $invoice->document_number
+        ]);
+
         if ($instanceId && $token) {
             // Generate PDF
             $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator']);
@@ -715,5 +721,15 @@ class SalesInvoiceController extends Controller
         // Fallback to link if not configured
         $link = $this->whatsappService->generateLink($phone, $message);
         return redirect()->away($link);
+    }
+
+    public function ajaxSearch(Request $request)
+    {
+        $search = $request->get('q');
+        $invoices = SalesInvoice::where('document_number', 'like', "%$search%")
+            ->limit(10)
+            ->get(['id', 'document_number']);
+
+        return response()->json($invoices);
     }
 }

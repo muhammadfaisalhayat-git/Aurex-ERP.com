@@ -320,7 +320,7 @@
                                         </td>
                                         <td>
                                             <div
-                                                class="entity-wrapper {{ ($item->customer_id || $item->vendor_id) ? '' : 'd-none' }}">
+                                                class="entity-wrapper {{ ($item->customer_id || $item->vendor_id || $item->employee_id) ? '' : 'd-none' }}">
                                                 <select name="items[{{ $index }}][customer_id]"
                                                     class="form-select form-select-sm customer-select select2-ajax px-1" {{ $item->customer_id ? '' : 'disabled' }}>
                                                     @if($item->customer_id)
@@ -337,9 +337,18 @@
                                                         </option>
                                                     @endif
                                                 </select>
+                                                <select name="items[{{ $index }}][employee_id]"
+                                                    class="form-select form-select-sm employee-ledger-select select2-ajax px-1"
+                                                    {{ $item->employee_id ? '' : 'disabled' }}>
+                                                    @if($item->employee_id)
+                                                        <option value="{{ $item->employee_id }}" selected>
+                                                            {{ $item->employee->name ?? 'Unknown' }}
+                                                        </option>
+                                                    @endif
+                                                </select>
                                             </div>
                                             <div
-                                                class="text-center py-1 opacity-25 {{ ($item->customer_id || $item->vendor_id) ? 'd-none' : '' }}">
+                                                class="text-center py-1 opacity-25 {{ ($item->customer_id || $item->vendor_id || $item->employee_id) ? 'd-none' : '' }}">
                                                 <i class="fas fa-link x-small"></i>
                                             </div>
                                         </td>
@@ -758,15 +767,19 @@
                         const entityWrapper = row.find('.entity-wrapper');
                         const cust = row.find('.customer-select');
                         const vend = row.find('.vendor-select');
+                        const emp = row.find('.employee-ledger-select');
                         const linkIcon = row.find('.fa-link').parent();
 
                         entityWrapper.addClass('d-none');
-                        
+
                         // Robust cleanup: destroy select2 and hide containers
                         if (cust.data('select2')) { cust.select2('destroy'); }
                         if (vend.data('select2')) { vend.select2('destroy'); }
+                        if (emp.data('select2')) { emp.select2('destroy'); }
+
                         cust.prop('disabled', true).addClass('d-none').siblings('.select2-container').addClass('d-none');
                         vend.prop('disabled', true).addClass('d-none').siblings('.select2-container').addClass('d-none');
+                        emp.prop('disabled', true).addClass('d-none').siblings('.select2-container').addClass('d-none');
                         linkIcon.removeClass('d-none');
 
                         if (data.sub_ledger_type === 'customer') {
@@ -779,12 +792,20 @@
                             vend.prop('disabled', false).removeClass('d-none');
                             linkIcon.addClass('d-none');
                             initEntitySelect(vend, 'vendor');
+                        } else if (data.sub_ledger_type === 'employee') {
+                            entityWrapper.removeClass('d-none');
+                            emp.prop('disabled', false).removeClass('d-none');
+                            linkIcon.addClass('d-none');
+                            initEntitySelect(emp, 'employee');
                         }
                     });
                 }
 
                 function initEntitySelect(el, type) {
-                    const url = type === 'customer' ? "{{ route('ajax.customers.search') }}" : "{{ route('ajax.vendors.search') }}";
+                    let url = '';
+                    if (type === 'customer') url = "{{ route('ajax.customers.search') }}";
+                    else if (type === 'vendor') url = "{{ route('ajax.vendors.search') }}";
+                    else if (type === 'employee') url = "{{ route('ajax.employees.search') }}";
                     $(el).select2({
                         theme: 'bootstrap-5',
                         width: '100%',
@@ -841,7 +862,7 @@
                     newRow.querySelector('td:first-child').innerText = rowCount + 1;
 
                     // Update names
-                    $newRow.find('[name]').each(function() {
+                    $newRow.find('[name]').each(function () {
                         this.name = this.name.replace(/items\[\d+\]/, `items[${rowCount}]`);
                         if (!$(this).hasClass('percentage') && !$(this).is('[name*="currency"]')) {
                             this.value = '';
@@ -892,8 +913,8 @@
                         let html = '';
                         data.forEach(s => {
                             html += `<div class="list-group-item list-group-item-action explorer-item border-0 border-bottom py-1 px-3" onclick="loadExplorerAccountData(${s.id})">
-                                                                                        <span class="x-small"><code>${s.code}</code> ${ {{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (s.name_ar || s.name_en) : (s.name_en || s.name_ar)}</span>
-                                                                                    </div>`;
+                                                                                                <span class="x-small"><code>${s.code}</code> ${ {{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (s.name_ar || s.name_en) : (s.name_en || s.name_ar)}</span>
+                                                                                            </div>`;
                         });
                         document.getElementById('sub-accounts-list').innerHTML = html || 'No subs';
                     });
@@ -907,18 +928,18 @@
 
                         document.getElementById('selected-account-title').innerText = acc.code + ' - ' + ({{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (acc.name_ar || acc.name_en) : (acc.name_en || acc.name_ar));
                         document.getElementById('explorer-data-container').innerHTML = `
-                                                                                        <div class="p-2 bg-light rounded shadow-none">
-                                                                                            <div class="mb-2 border-bottom pb-1 d-flex justify-content-between x-small">
-                                                                                                <span class="text-muted">Type: <span class="fw-bold text-dark">${typeName}</span></span>
-                                                                                                <span class="text-muted">Link: <span class="fw-bold text-dark text-capitalize">${acc.sub_ledger_type || 'none'}</span></span>
-                                                                                            </div>
-                                                                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                                                <small class="fw-bold text-primary uppercase">Balance: ${res.summary.balance}</small>
-                                                                                                <button type="button" class="btn btn-xs btn-primary py-0" onclick="addAccountAt(${acc.id})"><i class="fas fa-plus"></i> Add</button>
-                                                                                            </div>
-                                                                                            <div class="x-small text-muted italic">Ready to post to journal.</div>
-                                                                                        </div>
-                                                                                    `;
+                                                                                                <div class="p-2 bg-light rounded shadow-none">
+                                                                                                    <div class="mb-2 border-bottom pb-1 d-flex justify-content-between x-small">
+                                                                                                        <span class="text-muted">Type: <span class="fw-bold text-dark">${typeName}</span></span>
+                                                                                                        <span class="text-muted">Link: <span class="fw-bold text-dark text-capitalize">${acc.sub_ledger_type || 'none'}</span></span>
+                                                                                                    </div>
+                                                                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                                                        <small class="fw-bold text-primary uppercase">Balance: ${res.summary.balance}</small>
+                                                                                                        <button type="button" class="btn btn-xs btn-primary py-0" onclick="addAccountAt(${acc.id})"><i class="fas fa-plus"></i> Add</button>
+                                                                                                    </div>
+                                                                                                    <div class="x-small text-muted italic">Ready to post to journal.</div>
+                                                                                                </div>
+                                                                                            `;
                     });
                 };
 
@@ -936,7 +957,7 @@
 
             // Initialization and Turbo Support
             document.addEventListener('turbo:load', initJournalVoucherEditPage);
-            document.addEventListener('turbo:before-cache', function() {
+            document.addEventListener('turbo:before-cache', function () {
                 $('.select2-hidden-accessible').select2('destroy');
             });
 

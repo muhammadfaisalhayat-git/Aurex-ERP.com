@@ -31,7 +31,21 @@ class SystemSetting extends Model
 
     public static function getValue($key, $default = null)
     {
-        $setting = self::where('key', $key)->first();
+        // Use withoutGlobalScope to allow fetching global settings where company_id is NULL
+        // First try to find a company-specific setting (if tenant scope allows it)
+        // then fallback to a global setting (where company_id is null)
+        $setting = self::withoutGlobalScope('tenant')
+            ->where('key', $key)
+            ->where(function ($query) {
+                if (auth()->check() && \Session::has('active_company_id')) {
+                    $query->where('company_id', \Session::get('active_company_id'))
+                        ->orWhereNull('company_id');
+                } else {
+                    $query->whereNull('company_id');
+                }
+            })
+            ->orderBy('company_id', 'desc') // Company-specific first, then null
+            ->first();
 
         if (!$setting) {
             return $default;
@@ -48,7 +62,7 @@ class SystemSetting extends Model
 
     public static function setValue($key, $value, $type = 'string')
     {
-        $setting = self::where('key', $key)->first();
+        $setting = self::withoutGlobalScope('tenant')->where('key', $key)->first();
 
         if ($setting && !$setting->is_editable) {
             return false;

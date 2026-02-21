@@ -309,6 +309,8 @@
                                                 class="form-select form-select-sm customer-select select2-ajax px-1"></select>
                                             <select name="items[0][vendor_id]"
                                                 class="form-select form-select-sm vendor-select select2-ajax px-1"></select>
+                                            <select name="items[0][employee_id]"
+                                                class="form-select form-select-sm employee-ledger-select select2-ajax px-1"></select>
                                         </div>
                                         <div class="text-center py-1 opacity-25"><i class="fas fa-link x-small"></i></div>
                                     </td>
@@ -363,6 +365,8 @@
                                                 class="form-select form-select-sm customer-select select2-ajax px-1"></select>
                                             <select name="items[1][vendor_id]"
                                                 class="form-select form-select-sm vendor-select select2-ajax px-1"></select>
+                                            <select name="items[1][employee_id]"
+                                                class="form-select form-select-sm employee-ledger-select select2-ajax px-1"></select>
                                         </div>
                                         <div class="text-center py-1 opacity-25"><i class="fas fa-link x-small"></i></div>
                                     </td>
@@ -434,7 +438,8 @@
 
     @push('styles')
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+        <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     @endpush
 
     <style>
@@ -762,15 +767,19 @@
                         const entityWrapper = row.find('.entity-wrapper');
                         const cust = row.find('.customer-select');
                         const vend = row.find('.vendor-select');
+                        const emp = row.find('.employee-ledger-select');
                         const linkIcon = row.find('.fa-link').parent();
 
                         entityWrapper.addClass('d-none');
-                        
+
                         // Robust cleanup: destroy select2 and hide containers
                         if (cust.data('select2')) { cust.select2('destroy'); }
                         if (vend.data('select2')) { vend.select2('destroy'); }
+                        if (emp.data('select2')) { emp.select2('destroy'); }
+
                         cust.prop('disabled', true).addClass('d-none').siblings('.select2-container').addClass('d-none');
                         vend.prop('disabled', true).addClass('d-none').siblings('.select2-container').addClass('d-none');
+                        emp.prop('disabled', true).addClass('d-none').siblings('.select2-container').addClass('d-none');
                         linkIcon.removeClass('d-none');
 
                         if (data.sub_ledger_type === 'customer') {
@@ -783,12 +792,20 @@
                             vend.prop('disabled', false).removeClass('d-none');
                             linkIcon.addClass('d-none');
                             initEntitySelect(vend, 'vendor');
+                        } else if (data.sub_ledger_type === 'employee') {
+                            entityWrapper.removeClass('d-none');
+                            emp.prop('disabled', false).removeClass('d-none');
+                            linkIcon.addClass('d-none');
+                            initEntitySelect(emp, 'employee');
                         }
                     });
                 }
 
                 function initEntitySelect(el, type) {
-                    const url = type === 'customer' ? "{{ route('ajax.customers.search') }}" : "{{ route('ajax.vendors.search') }}";
+                    let url = '';
+                    if (type === 'customer') url = "{{ route('ajax.customers.search') }}";
+                    else if (type === 'vendor') url = "{{ route('ajax.vendors.search') }}";
+                    else if (type === 'employee') url = "{{ route('ajax.employees.search') }}";
                     $(el).select2({
                         theme: 'bootstrap-5',
                         width: '100%',
@@ -814,6 +831,7 @@
                 $('.account-select').each(function () { initAccountSelect(this); });
                 $('.customer-select').each(function () { initEntitySelect(this, 'customer'); });
                 $('.vendor-select').each(function () { initEntitySelect(this, 'vendor'); });
+                $('.employee-ledger-select').each(function () { initEntitySelect(this, 'employee'); });
 
                 // Initialize professional selects for initial rows
                 $('.item-row').each(function () {
@@ -821,6 +839,20 @@
                 });
 
                 updateFinancials();
+
+                // Handle selected account from Redirect (COA Index)
+                @if(isset($selectedAccount))
+                    const firstRowSelect = $('.item-row[data-idx="0"] .account-select');
+                    const sa = @json($selectedAccount);
+                    const saName = {{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (sa.name_ar || sa.name_en) : (sa.name_en || sa.name_ar);
+                    const saOption = new Option(`${sa.code} - ${saName}`, sa.id, true, true);
+                    saOption.original = sa;
+                    firstRowSelect.append(saOption).trigger('change');
+                    firstRowSelect.trigger({
+                        type: 'select2:select',
+                        params: { data: { original: sa } }
+                    });
+                @endif
 
                 document.getElementById('btn-save').addEventListener('click', function () {
                     document.getElementById('jv-form').submit();
@@ -844,7 +876,7 @@
                     @else
                         alert('Please save the voucher before printing.');
                     @endif
-                                                                                                        });
+                                                                                                                });
 
                 // Navigation (Mock/Basic for now - usually involves fetching IDs)
                 document.getElementById('btn-first')?.addEventListener('click', function () {
@@ -858,7 +890,7 @@
                     @else
                         alert('Save the voucher first.');
                     @endif
-                                                                                                        });
+                                                                                                                });
 
                 // Calc Totals and Amount Text
 
@@ -896,6 +928,7 @@
                     initAccountSelect($newRow.find('.account-select')[0]);
                     initEntitySelect($newRow.find('.customer-select')[0], 'customer');
                     initEntitySelect($newRow.find('.vendor-select')[0], 'vendor');
+                    initEntitySelect($newRow.find('.employee-ledger-select')[0], 'employee');
                     initProfessionalSelects($newRow);
 
                     rowCount++;
@@ -909,8 +942,8 @@
                         let html = '';
                         data.forEach(s => {
                             html += `<div class="list-group-item list-group-item-action explorer-item border-0 border-bottom d-flex justify-content-between align-items-center py-1 px-3" onclick="loadExplorerAccountData(${s.id})">
-                                                                                                                    <span class="x-small"><code>${s.code}</code> ${ {{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (s.name_ar || s.name_en) : (s.name_en || s.name_ar)}</span>
-                                                                                                                </div>`;
+                                                                                                                            <span class="x-small"><code>${s.code}</code> ${ {{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (s.name_ar || s.name_en) : (s.name_en || s.name_ar)}</span>
+                                                                                                                        </div>`;
                         });
                         document.getElementById('sub-accounts-list').innerHTML = html || '<div class="p-3 text-center x-small">No subs</div>';
                     });
@@ -924,18 +957,18 @@
 
                         document.getElementById('selected-account-title').innerText = acc.code + ' - ' + ({{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (acc.name_ar || acc.name_en) : (acc.name_en || acc.name_ar));
                         document.getElementById('explorer-data-container').innerHTML = `
-                                                                                        <div class="p-2 bg-light rounded shadow-none">
-                                                                                            <div class="mb-2 border-bottom pb-1 d-flex justify-content-between x-small">
-                                                                                                <span class="text-muted">Type: <span class="fw-bold text-dark">${typeName}</span></span>
-                                                                                                <span class="text-muted">Link: <span class="fw-bold text-dark text-capitalize">${acc.sub_ledger_type || 'none'}</span></span>
-                                                                                            </div>
-                                                                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                                                <small class="fw-bold text-primary uppercase">Balance: ${res.summary.balance}</small>
-                                                                                                <button type="button" class="btn btn-xs btn-primary py-0" onclick="addAccountAt(${acc.id})"><i class="fas fa-plus"></i> Add</button>
-                                                                                            </div>
-                                                                                            <div class="x-small text-muted italic">Ready to post to journal.</div>
-                                                                                        </div>
-                                                                                    `;
+                                                                                                <div class="p-2 bg-light rounded shadow-none">
+                                                                                                    <div class="mb-2 border-bottom pb-1 d-flex justify-content-between x-small">
+                                                                                                        <span class="text-muted">Type: <span class="fw-bold text-dark">${typeName}</span></span>
+                                                                                                        <span class="text-muted">Link: <span class="fw-bold text-dark text-capitalize">${acc.sub_ledger_type || 'none'}</span></span>
+                                                                                                    </div>
+                                                                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                                                        <small class="fw-bold text-primary uppercase">Balance: ${res.summary.balance}</small>
+                                                                                                        <button type="button" class="btn btn-xs btn-primary py-0" onclick="addAccountAt(${acc.id})"><i class="fas fa-plus"></i> Add</button>
+                                                                                                    </div>
+                                                                                                    <div class="x-small text-muted italic">Ready to post to journal.</div>
+                                                                                                </div>
+                                                                                            `;
                     });
                 };
 
@@ -987,7 +1020,7 @@
 
             // Initialization and Turbo Support
             document.addEventListener('turbo:load', initJournalVoucherPage);
-            document.addEventListener('turbo:before-cache', function() {
+            document.addEventListener('turbo:before-cache', function () {
                 $('.select2-hidden-accessible').select2('destroy');
             });
 

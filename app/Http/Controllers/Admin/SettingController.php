@@ -7,13 +7,18 @@ use App\Models\SystemSetting;
 use App\Models\TaxSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SettingController extends Controller
 {
     public function index()
     {
         $taxSettings = TaxSetting::getCurrent();
-        $systemSettings = SystemSetting::orderBy('group')->orderBy('key')->get()->groupBy('group');
+        $systemSettings = SystemSetting::withoutGlobalScope('tenant')
+            ->orderBy('group')
+            ->orderBy('key')
+            ->get()
+            ->groupBy('group');
 
         return view('admin.settings.index', compact('taxSettings', 'systemSettings'));
     }
@@ -47,10 +52,17 @@ class SettingController extends Controller
 
             // Handle System Settings
             if ($request->has('settings')) {
+                Log::info('System settings update request received', ['count' => count($request->input('settings'))]);
                 foreach ($request->input('settings') as $id => $value) {
-                    $setting = SystemSetting::findOrFail($id);
+                    $setting = SystemSetting::withoutGlobalScope('tenant')->findOrFail($id);
                     if ($setting->is_editable) {
+                        $oldValue = $setting->value;
                         $setting->update(['value' => $value]);
+                        Log::info("Setting updated: {$setting->key}", [
+                            'id' => $id,
+                            'old' => $oldValue,
+                            'new' => $value
+                        ]);
                     }
                 }
             }

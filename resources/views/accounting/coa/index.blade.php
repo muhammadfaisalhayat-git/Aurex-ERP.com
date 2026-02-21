@@ -49,16 +49,19 @@
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
-                                                <a href="{{ route('accounting.gl.transactions.modern_jv') }}?account_id={{ $account->id }}"
-                                                    class="btn btn-outline-info" title="{{ __('messages.journal_voucher') }}" data-turbo-frame="main-frame">
+                                                <a href="{{ route('accounting.gl.transactions.jv.create') }}?account_id={{ $account->id }}"
+                                                    class="btn btn-outline-info" title="{{ __('messages.journal_voucher') }}"
+                                                    data-turbo-frame="main-frame">
                                                     <i class="fas fa-book"></i>
                                                 </a>
                                                 <a href="{{ route('accounting.gl.coa.edit', $account->id) }}"
                                                     class="btn btn-outline-primary" data-turbo-frame="main-frame">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <form action="{{ route('accounting.gl.coa.destroy', $account->id) }}" method="POST"
-                                                    class="d-inline" onsubmit="return confirm('{{ __('messages.are_you_sure') }}')" data-turbo="false">
+                                                <form action="{{ route('accounting.gl.coa.destroy', $account->id) }}"
+                                                    method="POST" class="d-inline"
+                                                    onsubmit="return confirm('{{ __('messages.are_you_sure') }}')"
+                                                    data-turbo="false">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-outline-danger">

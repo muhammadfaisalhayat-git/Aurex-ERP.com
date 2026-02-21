@@ -22,7 +22,8 @@
                             <div class="mb-3">
                                 <label for="supplier_name" class="form-label">Supplier Name</label>
                                 <input type="text" class="form-control" id="supplier_name" name="supplier_name"
-                                    value="{{ $validated['supplier_name'] ?? '' }}">
+                                    value="{{ $validated['supplier_name'] ?? '' }}"
+                                    placeholder="{{ __('reports.click_here') }}">
                             </div>
                         </div>
                         <div class="col-md-2">
@@ -43,7 +44,8 @@
                             <div class="mb-3">
                                 <label for="status" class="form-label">Status</label>
                                 <select class="form-select" id="status" name="status">
-                                    <option value="all" {{ ($validated['status'] ?? 'all') === 'all' ? 'selected' : '' }}>All
+                                    <option value="all" {{ ($validated['status'] ?? 'all') === 'all' ? 'selected' : '' }}>
+                                        {{ __('reports.click_here') }}
                                     </option>
                                     <option value="draft" {{ ($validated['status'] ?? '') === 'draft' ? 'selected' : '' }}>
                                         Draft</option>

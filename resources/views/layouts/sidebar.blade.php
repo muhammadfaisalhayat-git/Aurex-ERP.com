@@ -410,7 +410,8 @@
                 <!-- Logistics & Transport Section -->
                 <div class="menu-section">{{ __('messages.logistics_transport') }}</div>
 
-                <div class="menu-item {{ request()->routeIs('logistics.*') || request()->routeIs('transport.*') ? 'open' : '' }}">
+                <div
+                    class="menu-item {{ request()->routeIs('logistics.*') || request()->routeIs('transport.*') ? 'open' : '' }}">
                     <a href="#" class="menu-link" data-submenu>
                         <i class="fas fa-truck-loading fa-fw"></i>
                         <span>{{ __('messages.logistics') }}</span>
@@ -659,6 +660,10 @@
                                 <a href="{{ route('accounting.gl.reports.account-statement') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.reports.account-statement') ? 'active' : '' }}">
                                     {{ __('messages.account_statement_report') }}
+                                </a>
+                                <a href="{{ route('accounting.gl.reports.universal-statement') }}"
+                                    class="menu-link {{ request()->routeIs('accounting.gl.reports.universal-statement') ? 'active' : '' }}">
+                                    {{ __('messages.universal_statement_report') }}
                                 </a>
                                 <a href="{{ route('accounting.gl.reports.daily-ledger') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.reports.daily-ledger') ? 'active' : '' }}">

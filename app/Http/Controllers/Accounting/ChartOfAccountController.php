@@ -114,28 +114,28 @@ class ChartOfAccountController extends Controller
                 $beneficiaries = \App\Models\Vendor::active()
                     ->get()
                     ->map(fn($v) => [
-                'id' => $v->id,
-                'name' => $v->name,
-                'type' => 'App\Models\Vendor'
-                ]);
+                        'id' => $v->id,
+                        'name' => $v->name,
+                        'type' => 'App\Models\Vendor'
+                    ]);
                 break;
             case 'customer':
                 $beneficiaries = \App\Models\Customer::active()
                     ->get()
                     ->map(fn($c) => [
-                'id' => $c->id,
-                'name' => $c->name_en . ' (' . $c->name_ar . ')',
-                'type' => 'App\Models\Customer'
-                ]);
+                        'id' => $c->id,
+                        'name' => $c->name_en . ' (' . $c->name_ar . ')',
+                        'type' => 'App\Models\Customer'
+                    ]);
                 break;
             case 'employee':
                 $beneficiaries = \App\Models\Employee::where('status', 'active')
                     ->get()
                     ->map(fn($e) => [
-                'id' => $e->id,
-                'name' => $e->full_name,
-                'type' => 'App\Models\Employee'
-                ]);
+                        'id' => $e->id,
+                        'name' => $e->name,
+                        'type' => 'App\Models\Employee'
+                    ]);
                 break;
         }
 

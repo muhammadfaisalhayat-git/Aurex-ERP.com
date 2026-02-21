@@ -23,7 +23,7 @@
                                 <label for="search" class="form-label">Search</label>
                                 <input type="text" class="form-control" id="search" name="search"
                                     value="{{ $validated['search'] ?? '' }}"
-                                    placeholder="Code, Name or Email">
+                                    placeholder="{{ __('reports.click_here') }}">
                             </div>
                         </div>
                         <div class="col-md-2">
@@ -31,7 +31,7 @@
                                 <label for="status" class="form-label">Status</label>
                                 <select class="form-select" id="status" name="status">
                                     <option value="all" {{ ($validated['status'] ?? 'all') === 'all' ? 'selected' : '' }}>
-                                        All
+                                        {{ __('reports.click_here') }}
                                     </option>
                                     <option value="active" {{ ($validated['status'] ?? '') === 'active' ? 'selected' : '' }}>
                                         Active

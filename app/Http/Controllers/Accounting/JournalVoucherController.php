@@ -80,6 +80,7 @@ class JournalVoucherController extends Controller
             'items.*.promoter_code' => 'nullable|string',
             'items.*.customer_id' => 'nullable|exists:customers,id',
             'items.*.vendor_id' => 'nullable|exists:vendors,id',
+            'items.*.employee_id' => 'nullable|exists:employees,id',
         ]);
 
         // Validate Control Accounts
@@ -127,6 +128,7 @@ class JournalVoucherController extends Controller
                 // Ensure we handle sub-ledger logic
                 $item['customer_id'] = !empty($item['customer_id']) ? $item['customer_id'] : null;
                 $item['vendor_id'] = !empty($item['vendor_id']) ? $item['vendor_id'] : null;
+                $item['employee_id'] = !empty($item['employee_id']) ? $item['employee_id'] : null;
 
                 $voucher->items()->create($item);
             }
@@ -196,6 +198,7 @@ class JournalVoucherController extends Controller
             'items.*.promoter_code' => 'nullable|string',
             'items.*.customer_id' => 'nullable|exists:customers,id',
             'items.*.vendor_id' => 'nullable|exists:vendors,id',
+            'items.*.employee_id' => 'nullable|exists:employees,id',
         ]);
 
         // Validate Control Accounts
@@ -243,6 +246,7 @@ class JournalVoucherController extends Controller
             foreach ($request->items as $item) {
                 $item['customer_id'] = !empty($item['customer_id']) ? $item['customer_id'] : null;
                 $item['vendor_id'] = !empty($item['vendor_id']) ? $item['vendor_id'] : null;
+                $item['employee_id'] = !empty($item['employee_id']) ? $item['employee_id'] : null;
                 $jv->items()->create($item);
             }
 

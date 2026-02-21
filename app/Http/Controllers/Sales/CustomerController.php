@@ -190,17 +190,19 @@ class CustomerController extends Controller
         $search = $request->get('q');
         $customers = Customer::active()
             ->where(function ($query) use ($search) {
-            $query->where('name_en', 'like', "%$search%")
-                ->orWhere('name_ar', 'like', "%$search%")
-                ->orWhere('code', 'like', "%$search%");
-        })
+                $query->where('name_en', 'like', "%$search%")
+                    ->orWhere('name_ar', 'like', "%$search%")
+                    ->orWhere('code', 'like', "%$search%");
+            })
             ->limit(10)
             ->get();
 
         return response()->json($customers->map(function ($customer) {
             return [
                 'id' => $customer->id,
-                'name' => $customer->name . ' (' . $customer->code . ')',
+                'name' => $customer->name,
+                'code' => $customer->code,
+                'text' => $customer->name . ' (' . $customer->code . ')',
             ];
         }));
     }

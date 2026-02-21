@@ -35,7 +35,13 @@ class LedgerEntry extends Model
         'vendor_id',
         'beneficiary_id',
         'beneficiary_type',
+        'employee_id',
     ];
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
 
     public function beneficiary()
     {
@@ -48,7 +54,7 @@ class LedgerEntry extends Model
 
     public function chartOfAccount()
     {
-        return $this->belongsTo(ChartOfAccount::class , 'chart_of_account_id');
+        return $this->belongsTo(ChartOfAccount::class, 'chart_of_account_id');
     }
 
     public function account()
@@ -58,7 +64,7 @@ class LedgerEntry extends Model
 
     public function parentAccount()
     {
-        return $this->belongsTo(ChartOfAccount::class , 'parent_account_id');
+        return $this->belongsTo(ChartOfAccount::class, 'parent_account_id');
     }
 
     public function reference()

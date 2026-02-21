@@ -38,20 +38,30 @@ class WhatsAppService
         $phone = preg_replace('/[^0-9]/', '', $phone);
 
         try {
-            // Encode file as base64 or send as attachment. UltraMsg prefers a public URL or multipart.
-            // Since we're sending a local file, we'll use base64 in the 'document' field for UltraMsg.
-            $fileContent = base64_encode(file_get_contents($filePath));
-            $documentData = "data:application/pdf;base64," . $fileContent;
+            // Refresh credentials in case they were updated in the same request
+            $instanceId = $this->instanceId ?: SystemSetting::getValue('whatsapp_instance_id');
+            $token = $this->token ?: SystemSetting::getValue('whatsapp_token');
 
-            $response = Http::post("{$this->baseUrl}/{$this->instanceId}/messages/document", [
-                'token' => $this->token,
+            if (empty($instanceId) || empty($token)) {
+                Log::warning('WhatsApp credentials are not configured. Falling back to wa.me link.');
+                return ['success' => false, 'message' => 'WhatsApp credentials are not configured.'];
+            }
+
+            Log::info("Attempting to send WhatsApp document to {$phone}", ['filename' => $fileName]);
+
+            // Encode file as base64. UltraMsg prefers raw base64 string for the 'document' field.
+            $fileContent = base64_encode(file_get_contents($filePath));
+
+            $response = Http::post("{$this->baseUrl}/{$instanceId}/messages/document", [
+                'token' => $token,
                 'to' => $phone,
                 'filename' => $fileName,
-                'document' => $documentData,
+                'document' => $fileContent,
                 'caption' => $caption,
             ]);
 
             if ($response->successful()) {
+                Log::info('WhatsApp document sent successfully.', $response->json());
                 return ['success' => true, 'data' => $response->json()];
             }
 

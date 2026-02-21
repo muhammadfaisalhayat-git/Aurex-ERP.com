@@ -16,13 +16,13 @@ class AccountingService
     public function generateAccountCode($type, $parentId = null)
     {
         $prefix = match ($type) {
-                'asset' => '1',
-                'liability' => '2',
-                'equity' => '3',
-                'revenue' => '4',
-                'expense' => '5',
-                default => '0',
-            };
+            'asset' => '1',
+            'liability' => '2',
+            'equity' => '3',
+            'revenue' => '4',
+            'expense' => '5',
+            default => '0',
+        };
 
         if ($parentId) {
             $parent = ChartOfAccount::find($parentId);
@@ -39,7 +39,7 @@ class AccountingService
         }
 
         $lastSeq = substr($lastAccount->code, strlen($prefix));
-        $newSeq = str_pad((int)$lastSeq + 1, 2, '0', STR_PAD_LEFT);
+        $newSeq = str_pad((int) $lastSeq + 1, 2, '0', STR_PAD_LEFT);
 
         return $prefix . $newSeq;
     }
@@ -72,6 +72,7 @@ class AccountingService
                     'rep' => $item->rep,
                     'collector_no' => $item->collector_no,
                     'promoter_code' => $item->promoter_code,
+                    'employee_id' => $item->employee_id,
                 ]);
             }
 
@@ -119,6 +120,7 @@ class AccountingService
                     'rep' => $item->rep,
                     'collector_no' => $item->collector_no,
                     'promoter_code' => $item->promoter_code,
+                    'employee_id' => $item->employee_id,
                 ]);
             }
 
@@ -364,7 +366,7 @@ class AccountingService
             ]);
 
             // Update balances
-            $bankAccount->decrement('current_balance', $voucher->amount);
+            $bankAccount->decrement('current_balance', (float) $voucher->amount);
 
             $voucher->update([
                 'status' => 'posted',
@@ -417,7 +419,7 @@ class AccountingService
             ]);
 
             // Update balances
-            $bankAccount->increment('current_balance', $voucher->amount);
+            $bankAccount->increment('current_balance', (float) $voucher->amount);
 
             $voucher->update([
                 'status' => 'posted',
@@ -519,46 +521,184 @@ class AccountingService
     {
         return ChartOfAccount::where('code', $code)->first() ??
             ChartOfAccount::create([
-            'code' => $code,
-            'name_en' => $this->getDefaultAccountName($code),
-            'type' => $this->getAccountTypeByCode($code),
-            'sub_ledger_type' => $this->getSubLedgerTypeByCode($code),
-            'is_active' => true,
-        ]);
+                'code' => $code,
+                'name_en' => $this->getDefaultAccountName($code),
+                'type' => $this->getAccountTypeByCode($code),
+                'sub_ledger_type' => $this->getSubLedgerTypeByCode($code),
+                'is_active' => true,
+            ]);
     }
 
     private function getDefaultAccountName($code)
     {
         return match (substr($code, 0, 1)) {
-                '1' => 'Accounts Receivable',
-                '2' => 'Taxes Payable',
-                '3' => 'Owner Capital',
-                '4' => 'Sales Revenue',
-                '5' => 'Cost of Goods Sold',
-                '507' => 'Maintenance Expense',
-                '508' => 'Inventory Adjustment',
-                default => 'General Account',
-            };
+            '1' => 'Accounts Receivable',
+            '2' => 'Taxes Payable',
+            '3' => 'Owner Capital',
+            '4' => 'Sales Revenue',
+            '5' => 'Cost of Goods Sold',
+            '507' => 'Maintenance Expense',
+            '508' => 'Inventory Adjustment',
+            default => 'General Account',
+        };
     }
 
     private function getAccountTypeByCode($code)
     {
         return match (substr($code, 0, 1)) {
-                '1' => 'asset',
-                '2' => 'liability',
-                '3' => 'equity',
-                '4' => 'revenue',
-                '5' => 'expense',
-                default => 'asset',
-            };
+            '1' => 'asset',
+            '2' => 'liability',
+            '3' => 'equity',
+            '4' => 'revenue',
+            '5' => 'expense',
+            default => 'asset',
+        };
     }
 
     private function getSubLedgerTypeByCode($code)
     {
         return match ($code) {
-                '103' => 'customer', // Accounts Receivable
-                '201' => 'vendor', // Accounts Payable
-                default => 'none',
-            };
+            '103' => 'customer',
+            '105' => 'employee', // Accounts Receivable
+            '201' => 'vendor',
+            '501' => 'employee', // Accounts Payable
+            '105' => 'employee', // Employee Advances/Loans
+            '501' => 'employee', // Salaries
+            default => 'none',
+        };
     }
+
+    /**
+     * Post Stock Receiving to ledger.
+     */
+    public function postStockReceiving($receiving)
+    {
+        return DB::transaction(function () use ($receiving) {
+            $inventoryAcc = $this->getAccountByCode('104');
+            $apAccount = $this->getAccountByCode('201');
+
+            $totalValue = 0;
+            foreach ($receiving->items as $item) {
+                // If unit_cost is not directly on receiving_item, we might need to fetch from product or stock_supply
+                $unitCost = $item->product->average_cost ?? 0;
+                $totalValue += $unitCost * $item->received_quantity;
+            }
+
+            if ($totalValue <= 0)
+                return true;
+
+            // Debit Inventory
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $inventoryAcc->id,
+                'transaction_date' => $receiving->receiving_date,
+                'reference_type' => 'stock_receiving',
+                'reference_id' => $receiving->id,
+                'reference_number' => $receiving->document_number,
+                'debit' => $totalValue,
+                'credit' => 0,
+                'description' => 'Stock Receiving: ' . $receiving->document_number,
+            ]);
+
+            // Credit AP
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $apAccount->id,
+                'transaction_date' => $receiving->receiving_date,
+                'reference_type' => 'stock_receiving',
+                'reference_id' => $receiving->id,
+                'reference_number' => $receiving->document_number,
+                'debit' => 0,
+                'credit' => $totalValue,
+                'description' => 'Payable for Receiving: ' . $receiving->document_number,
+                'vendor_id' => $receiving->vendor_id,
+            ]);
+
+            return true;
+        });
+    }
+
+    /**
+     * Post Stock Supply to ledger.
+     */
+    public function postStockSupply($supply)
+    {
+        return DB::transaction(function () use ($supply) {
+            $inventoryAcc = $this->getAccountByCode('104');
+            $apAccount = $this->getAccountByCode('201');
+
+            // Credit AP
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $apAccount->id,
+                'transaction_date' => $supply->supply_date,
+                'reference_type' => 'stock_supply',
+                'reference_id' => $supply->id,
+                'reference_number' => $supply->document_number,
+                'debit' => 0,
+                'credit' => $supply->total_amount,
+                'description' => 'Stock Supply: ' . $supply->document_number,
+                'vendor_id' => $supply->vendor_id,
+            ]);
+
+            // Debit Inventory
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $inventoryAcc->id,
+                'transaction_date' => $supply->supply_date,
+                'reference_type' => 'stock_supply',
+                'reference_id' => $supply->id,
+                'reference_number' => $supply->document_number,
+                'debit' => $supply->total_amount,
+                'credit' => 0,
+                'description' => 'Inventory from Supply: ' . $supply->document_number,
+            ]);
+
+            return true;
+        });
+    }
+
+    /**
+     * Post Stock Issue to ledger.
+     */
+    public function postStockIssue($issueOrder)
+    {
+        return DB::transaction(function () use ($issueOrder) {
+            $inventoryAcc = $this->getAccountByCode('104');
+            $adjustmentAcc = $this->getAccountByCode('508');
+
+            $totalCost = 0;
+            foreach ($issueOrder->items as $item) {
+                $unitCost = $item->product->average_cost ?? 0;
+                $totalCost += $unitCost * $item->issued_quantity;
+            }
+
+            if ($totalCost <= 0)
+                return true;
+
+            // Credit Inventory
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $inventoryAcc->id,
+                'transaction_date' => $issueOrder->issue_date,
+                'reference_type' => 'stock_issue',
+                'reference_id' => $issueOrder->id,
+                'reference_number' => $issueOrder->document_number,
+                'debit' => 0,
+                'credit' => $totalCost,
+                'description' => 'Stock Issue: ' . $issueOrder->document_number,
+            ]);
+
+            // Debit Adjustment Expense (or Cost Center account)
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $adjustmentAcc->id,
+                'transaction_date' => $issueOrder->issue_date,
+                'reference_type' => 'stock_issue',
+                'reference_id' => $issueOrder->id,
+                'reference_number' => $issueOrder->document_number,
+                'debit' => $totalCost,
+                'credit' => 0,
+                'description' => 'Inventory Issue Expense: ' . $issueOrder->document_number,
+                'cost_center_no' => $issueOrder->cost_center_no,
+            ]);
+
+            return true;
+        });
+    }
+
 }
