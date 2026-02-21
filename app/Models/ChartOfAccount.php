@@ -99,6 +99,6 @@ class ChartOfAccount extends Model
     }
     public function isControlAccount()
     {
-        return in_array($this->sub_ledger_type, ['customer', 'vendor']);
+        return in_array($this->sub_ledger_type, ['customer', 'vendor', 'employee']);
     }
 }
