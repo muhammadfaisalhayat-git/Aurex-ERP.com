@@ -41,13 +41,7 @@ class WarehouseController extends Controller
         $companyId = Branch::find($validated['branch_id'])?->company_id;
         $warehouse = Warehouse::create(array_merge($validated, ['company_id' => $companyId]));
 
-        AuditLog::create([
-            'action' => 'create',
-            'entity_type' => 'warehouse',
-            'entity_id' => $warehouse->id,
-            'user_id' => auth()->id(),
-            'new_values' => $warehouse->toArray(),
-        ]);
+        AuditLog::log('create', 'warehouse', $warehouse->id, null, $warehouse->toArray());
 
         return redirect()->route('admin.warehouses.index')
             ->with('success', __('messages.warehouse_created'));
@@ -83,14 +77,7 @@ class WarehouseController extends Controller
         }
         $warehouse->update($validated);
 
-        AuditLog::create([
-            'action' => 'update',
-            'entity_type' => 'warehouse',
-            'entity_id' => $warehouse->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-            'new_values' => $warehouse->toArray(),
-        ]);
+        AuditLog::log('update', 'warehouse', $warehouse->id, $oldValues, $warehouse->toArray());
 
         return redirect()->route('admin.warehouses.index')
             ->with('success', __('messages.warehouse_updated'));
@@ -105,13 +92,7 @@ class WarehouseController extends Controller
         $oldValues = $warehouse->toArray();
         $warehouse->delete();
 
-        AuditLog::create([
-            'action' => 'delete',
-            'entity_type' => 'warehouse',
-            'entity_id' => $warehouse->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-        ]);
+        AuditLog::log('delete', 'warehouse', $warehouse->id, $oldValues);
 
         return redirect()->route('admin.warehouses.index')
             ->with('success', __('messages.warehouse_deleted'));

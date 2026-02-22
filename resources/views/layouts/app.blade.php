@@ -40,8 +40,29 @@
     <script>
         // Global functions
         window.toggleSidebar = function () {
-            document.querySelector('.sidebar').classList.toggle('show');
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            if (window.innerWidth >= 992) {
+                // Desktop toggle (collapse)
+                sidebar.classList.toggle('collapsed');
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebarCollapsed', isCollapsed);
+            } else {
+                // Mobile toggle (show/hide)
+                sidebar.classList.toggle('show');
+            }
         };
+
+        // Initialize sidebar state
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.innerWidth >= 992) {
+                const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                if (isCollapsed) {
+                    document.querySelector('.sidebar').classList.add('collapsed');
+                }
+            }
+        });
 
         // Use a single persistent listener for all sidebar interactions
         document.addEventListener('click', function (e) {
@@ -53,10 +74,10 @@
                 return;
             }
 
-            // Mobile sidebar toggle
+            // Mobile/Desktop sidebar toggle
             const sidebarToggle = e.target.closest('.sidebar-toggle');
             if (sidebarToggle) {
-                document.querySelector('.sidebar').classList.toggle('show');
+                window.toggleSidebar();
                 return;
             }
         });
@@ -83,11 +104,37 @@
                 el.remove();
             });
         });
+
+        // Global Turbo Error Handling
+        document.addEventListener('turbo:fetch-request-error', function (event) {
+            console.error('Turbo fetch error:', event.detail.response);
+
+            // If it's a server error or network error, we might want to notify the user
+            if (!event.detail.response || event.detail.response.statusCode >= 500) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '{{ __("messages.error") ?? "Error" }}',
+                    text: '{{ __("messages.server_error_occurred") ?? "A server error occurred. Please try again." }}',
+                    background: 'rgba(255, 255, 255, 0.9)'
+                });
+            }
+        });
+
+        document.addEventListener('turbo:load', function () {
+            // Re-initialize any components that might need it
+        });
     </script>
 
-    <!-- Custom CSS: Commented out as file doesn't exist -->
     {{--
     <link rel="stylesheet" href="{{ asset('css/app.css') }}"> --}}
+
+    <style>
+        /* Turbo Progress Bar */
+        .turbo-progress-bar {
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+    </style>
 
     <style>
         :root {
@@ -126,6 +173,7 @@
             z-index: 1000;
             transition: all 0.3s ease;
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
 
@@ -134,12 +182,40 @@
             width: var(--sidebar-collapsed-width);
         }
 
+        .sidebar.collapsed .sidebar-brand span,
+        .sidebar.collapsed .menu-section,
+        .sidebar.collapsed .menu-link span,
+        .sidebar.collapsed .menu-arrow {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-brand {
+            justify-content: center;
+            padding: 0;
+        }
+
+        .sidebar.collapsed .sidebar-brand i {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .sidebar.collapsed .menu-link {
+            justify-content: center;
+            padding: 15px 0;
+        }
+
+        .sidebar.collapsed .menu-link i {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
         .sidebar-header {
             height: var(--header-height);
             display: flex;
             align-items: center;
             padding: 0 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
         }
 
         .sidebar-brand {
@@ -228,12 +304,11 @@
             margin-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: var(--sidebar-width);
             transition: all 0.3s ease;
             min-height: 100vh;
-            width: calc(100% - var(--sidebar-width));
+            width: auto;
         }
 
         .sidebar.collapsed+.main-content {
             margin-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: var(--sidebar-collapsed-width);
-            width: calc(100% - var(--sidebar-collapsed-width));
         }
 
         /* Header */
@@ -586,7 +661,7 @@
             transition: color 0.3s ease;
         }
 
-        .global-search-input:focus + .global-search-icon {
+        .global-search-input:focus+.global-search-icon {
             color: var(--primary-color);
         }
 
@@ -620,8 +695,15 @@
         }
 
         @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .search-result-item {
@@ -634,7 +716,8 @@
             transition: background 0.2s ease;
         }
 
-        .search-result-item:hover, .search-result-item.active {
+        .search-result-item:hover,
+        .search-result-item.active {
             background: #f9fafb;
             text-decoration: none;
             color: inherit;
@@ -700,20 +783,16 @@
 
 <body>
     <!-- Sidebar -->
-    @if(!request()->routeIs('dashboard'))
-        @include('layouts.sidebar')
-    @endif
+    @include('layouts.sidebar')
 
     <!-- Main Content -->
-    <div class="main-content" {!! request()->routeIs('dashboard') ? 'style="margin-left: 0; margin-right: 0; width: 100%;"' : '' !!}>
+    <div class="main-content">
         <!-- Header -->
         <header class="header">
             <div class="header-left">
-                @if(!request()->routeIs('dashboard'))
-                    <button class="sidebar-toggle d-lg-none">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                @endif
+                <button class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
 
                 <!-- Company/Branch Switcher -->
                 <div class="d-none d-lg-flex align-items-center gap-3 ms-4">
@@ -777,8 +856,9 @@
             <div class="header-center d-none d-md-block">
                 <div class="global-search-container">
                     <div class="global-search-input-wrapper">
-                        <input type="text" id="global-search-input" class="global-search-input" 
-                               placeholder="{{ __('messages.search_placeholder') ?? 'Search anything...' }}" autocomplete="off">
+                        <input type="text" id="global-search-input" class="global-search-input"
+                            placeholder="{{ __('messages.search_placeholder') ?? 'Search anything...' }}"
+                            autocomplete="off">
                         <i class="fas fa-search global-search-icon"></i>
                     </div>
                     <div id="search-results" class="search-results-container"></div>
@@ -888,7 +968,7 @@
             });
         });
         // Global Search Logic
-        document.addEventListener('turbo:load', function() {
+        document.addEventListener('turbo:load', function () {
             const searchInput = document.getElementById('global-search-input');
             const resultsContainer = document.getElementById('search-results');
             let debounceTimer;
@@ -896,7 +976,7 @@
 
             if (!searchInput) return;
 
-            searchInput.addEventListener('input', function() {
+            searchInput.addEventListener('input', function () {
                 clearTimeout(debounceTimer);
                 const q = this.value;
 
@@ -918,20 +998,20 @@
                             'Accept': 'application/json'
                         }
                     })
-                    .then(res => {
-                        if (!res.ok) throw new Error('Network response was not ok');
-                        return res.json();
-                    })
-                    .then(data => {
-                        renderResults(data);
-                    })
-                    .catch(err => {
-                        console.error('Search error:', err);
-                        resultsContainer.innerHTML = `<div class="search-error">
+                        .then(res => {
+                            if (!res.ok) throw new Error('Network response was not ok');
+                            return res.json();
+                        })
+                        .then(data => {
+                            renderResults(data);
+                        })
+                        .catch(err => {
+                            console.error('Search error:', err);
+                            resultsContainer.innerHTML = `<div class="search-error">
                             <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
                             <p class="mb-0">Error performing search. Please try again.</p>
                         </div>`;
-                    });
+                        });
                 }, 400);
             });
 
@@ -963,7 +1043,7 @@
                 currentFocus = -1;
             }
 
-            searchInput.addEventListener('keydown', function(e) {
+            searchInput.addEventListener('keydown', function (e) {
                 const items = resultsContainer.getElementsByClassName('search-result-item');
                 if (e.key === 'ArrowDown') {
                     e.preventDefault();
@@ -1000,7 +1080,7 @@
             }
 
             // Close when clicking outside
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
                     resultsContainer.style.display = 'none';
                 }

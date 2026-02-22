@@ -27,11 +27,11 @@ class SupplyOrderController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('document_number', 'like', "%{$search}%")
-                  ->orWhere('order_number', 'like', "%{$search}%")
-                  ->orWhereHas('vendor', function ($vq) use ($search) {
-                      $vq->where('name_en', 'like', "%{$search}%")
-                         ->orWhere('name_ar', 'like', "%{$search}%");
-                  });
+                    ->orWhere('order_number', 'like', "%{$search}%")
+                    ->orWhereHas('vendor', function ($vq) use ($search) {
+                        $vq->where('name_en', 'like', "%{$search}%")
+                            ->orWhere('name_ar', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -60,7 +60,12 @@ class SupplyOrderController extends Controller
         $documentNumber = DocumentNumber::generate('supply_order');
 
         return view('purchases.supply-orders.create', compact(
-            'vendors', 'branches', 'warehouses', 'products', 'taxSetting', 'documentNumber'
+            'vendors',
+            'branches',
+            'warehouses',
+            'products',
+            'taxSetting',
+            'documentNumber'
         ));
     }
 
@@ -104,7 +109,7 @@ class SupplyOrderController extends Controller
         foreach ($validated['items'] as $item) {
             $product = Product::find($item['product_id']);
             $taxRate = $product->tax_rate ?? $taxSetting?->default_tax_rate ?? 0;
-            
+
             $lineTotals = SupplyOrderItem::calculateLineTotals(
                 $item['quantity'],
                 $item['unit_price'],
@@ -128,13 +133,7 @@ class SupplyOrderController extends Controller
 
         $supplyOrder->calculateTotals();
 
-        AuditLog::create([
-            'action' => 'create',
-            'entity_type' => 'supply_order',
-            'entity_id' => $supplyOrder->id,
-            'user_id' => auth()->id(),
-            'new_values' => $supplyOrder->toArray(),
-        ]);
+        AuditLog::log('create', 'supply_order', $supplyOrder->id, null, $supplyOrder->toArray());
 
         return redirect()->route('purchases.supply-orders.show', $supplyOrder)
             ->with('success', __('messages.supply_order_created'));
@@ -161,7 +160,12 @@ class SupplyOrderController extends Controller
         $supplyOrder->load('items.product');
 
         return view('purchases.supply-orders.edit', compact(
-            'supplyOrder', 'vendors', 'branches', 'warehouses', 'products', 'taxSetting'
+            'supplyOrder',
+            'vendors',
+            'branches',
+            'warehouses',
+            'products',
+            'taxSetting'
         ));
     }
 
@@ -206,7 +210,7 @@ class SupplyOrderController extends Controller
         foreach ($validated['items'] as $item) {
             $product = Product::find($item['product_id']);
             $taxRate = $product->tax_rate ?? $taxSetting?->default_tax_rate ?? 0;
-            
+
             $lineTotals = SupplyOrderItem::calculateLineTotals(
                 $item['quantity'],
                 $item['unit_price'],
@@ -230,14 +234,7 @@ class SupplyOrderController extends Controller
 
         $supplyOrder->calculateTotals();
 
-        AuditLog::create([
-            'action' => 'update',
-            'entity_type' => 'supply_order',
-            'entity_id' => $supplyOrder->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-            'new_values' => $supplyOrder->toArray(),
-        ]);
+        AuditLog::log('update', 'supply_order', $supplyOrder->id, $oldValues, $supplyOrder->toArray());
 
         return redirect()->route('purchases.supply-orders.show', $supplyOrder)
             ->with('success', __('messages.supply_order_updated'));
@@ -254,13 +251,7 @@ class SupplyOrderController extends Controller
         $supplyOrder->items()->delete();
         $supplyOrder->delete();
 
-        AuditLog::create([
-            'action' => 'delete',
-            'entity_type' => 'supply_order',
-            'entity_id' => $supplyOrder->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-        ]);
+        AuditLog::log('delete', 'supply_order', $supplyOrder->id, $oldValues);
 
         return redirect()->route('purchases.supply-orders.index')
             ->with('success', __('messages.supply_order_deleted'));
@@ -274,12 +265,7 @@ class SupplyOrderController extends Controller
 
         $supplyOrder->markAsSent(auth()->id());
 
-        AuditLog::create([
-            'action' => 'send',
-            'entity_type' => 'supply_order',
-            'entity_id' => $supplyOrder->id,
-            'user_id' => auth()->id(),
-        ]);
+        AuditLog::log('send', 'supply_order', $supplyOrder->id);
 
         return back()->with('success', __('messages.supply_order_sent'));
     }
@@ -345,13 +331,7 @@ class SupplyOrderController extends Controller
         $supplyOrder->convertToInvoice(auth()->id());
         $supplyOrder->update(['purchase_invoice_id' => $invoice->id]);
 
-        AuditLog::create([
-            'action' => 'convert_to_invoice',
-            'entity_type' => 'supply_order',
-            'entity_id' => $supplyOrder->id,
-            'user_id' => auth()->id(),
-            'new_values' => ['purchase_invoice_id' => $invoice->id],
-        ]);
+        AuditLog::log('convert_to_invoice', 'supply_order', $supplyOrder->id, null, ['purchase_invoice_id' => $invoice->id]);
 
         return redirect()->route('purchases.invoices.show', $invoice)
             ->with('success', __('messages.supply_order_converted_to_invoice'));

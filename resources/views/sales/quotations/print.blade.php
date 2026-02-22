@@ -143,8 +143,14 @@
     </div>
 
     <div class="header">
-        <div class="company-logo">
-            {{ config('app.name', 'Aurex ERP') }}
+        <div class="company-branding">
+            @if($quotation->company?->logo)
+                <img src="{{ asset('storage/' . $quotation->company->logo) }}" alt="Logo"
+                    style="max-height: 80px; margin-bottom: 10px;"><br>
+            @endif
+            <div class="company-logo">
+                {{ $quotation->company_name_ar ?? $quotation->company?->name ?? config('app.name', 'Aurex ERP') }}
+            </div>
         </div>
         <div class="document-title">
             <h1>{{ __('messages.quotation') }}</h1>
@@ -156,16 +162,16 @@
     <div class="info-grid">
         <div class="info-section">
             <h3>{{ __('messages.customer_information') }}</h3>
-            <strong>{{ $quotation->customer->name ?? '-' }}</strong><br>
-            {{ $quotation->customer->address ?? '-' }}<br>
-            {{ $quotation->customer->phone ?? '-' }}
+            <strong>{{ $quotation->customer_name_ar ?? $quotation->customer?->name_ar ?? $quotation->customer?->name }}</strong><br>
+            @if($quotation->customer?->address) {{ $quotation->customer->address }}<br> @endif
+            @if($quotation->customer?->phone) {{ $quotation->customer->phone }} @endif
         </div>
         <div class="info-section">
             <h3>{{ __('messages.quotation_details') }}</h3>
             <strong>{{ __('messages.status') }}:</strong> {{ ucfirst($quotation->status) }}<br>
             <strong>{{ __('messages.expiry_date') }}:</strong>
-            {{ $quotation->expiry_date ? $quotation->expiry_date->format('Y-m-d') : '-' }}<br>
-            <strong>{{ __('messages.created_by') }}:</strong> {{ $quotation->creator->name ?? '-' }}
+            {{ $quotation->expiry_date ? $quotation->expiry_date->format('Y-m-d') : '' }}<br>
+            <strong>{{ __('messages.created_by') }}:</strong> {{ $quotation->creator->name ?? '' }}
         </div>
     </div>
 
@@ -182,7 +188,7 @@
             @foreach($quotation->items as $item)
                 <tr>
                     <td>
-                        <strong>{{ $item->product->name }}</strong>
+                        <strong>{{ $item->product_name_ar ?? $item->product->name_en }}</strong>
                     </td>
                     <td class="text-end">{{ number_format($item->quantity, 2) }}</td>
                     <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
@@ -218,7 +224,7 @@
     @if($quotation->terms_conditions)
         <div style="margin-top: 40px;">
             <h3 style="font-size: 16px; color: #64748b; margin-bottom: 10px;">{{ __('messages.terms_conditions') }}</h3>
-            <p style="white-space: pre-wrap;">{{ $quotation->terms_conditions }}</p>
+            <p style="white-space: pre-wrap;">{{ $quotation->terms_conditions_ar ?? $quotation->terms_conditions }}</p>
         </div>
     @endif
 

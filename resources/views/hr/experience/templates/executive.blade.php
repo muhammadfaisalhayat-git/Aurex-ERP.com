@@ -159,7 +159,12 @@
         <div class="top-accent"></div>
         <div class="watermark">CERTIFIED</div>
         <div class="main-container">
-            <div class="top-company">{{ strtoupper($employee->company?->name ?? config('app.name')) }}</div>
+            <div class="top-company">
+                {{ strtoupper($employee->company?->name_en ?? config('app.name')) }}
+                @if($employee->company_name_ar_reshaped)
+                    <div style="font-size: 18px; margin-top: 5px;">{{ $employee->company_name_ar_reshaped }}</div>
+                @endif
+            </div>
             <div class="header">
                 <div class="header-left">
                     @if($employee->company?->logo)

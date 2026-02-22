@@ -119,8 +119,14 @@
 <body>
     <table class="header-table">
         <tr>
-            <td class="company-name">
-                {{ config('app.name', 'Aurex ERP') }}
+            <td class="company-branding">
+                @if($invoice->company?->logo)
+                    <img src="{{ public_path('storage/' . $invoice->company->logo) }}" alt="Logo"
+                        style="max-height: 80px; margin-bottom: 10px;"><br>
+                @endif
+                <div class="company-name">
+                    {{ $invoice->company_name_ar ?? $invoice->company?->name ?? config('app.name', 'Aurex ERP') }}
+                </div>
             </td>
             <td class="invoice-title">
                 {{ __('sales.invoice') }}
@@ -136,10 +142,12 @@
         <tr>
             <td>
                 <div class="section-title">{{ __('sales.customer_info') }}</div>
-                <strong>{{ $invoice->customer->company_name ?? __('sales.cash_customer') }}</strong><br>
-                {{ $invoice->customer->address ?? '-' }}<br>
-                {{ $invoice->customer->city ?? '-' }}, {{ $invoice->customer->country ?? '-' }}<br>
-                {{ __('sales.phone') }}: {{ $invoice->customer->phone ?? '-' }}
+                <strong>{{ $invoice->customer_name_ar ?? $invoice->customer?->name_ar ?? $invoice->customer?->company_name ?? __('sales.cash_customer') }}</strong><br>
+                @if($invoice->customer?->address) {{ $invoice->customer->address }}<br> @endif
+                @if($invoice->customer?->city || $invoice->customer?->country)
+                    {{ $invoice->customer->city }}{{ $invoice->customer->city && $invoice->customer->country ? ', ' : '' }}{{ $invoice->customer->country }}<br>
+                @endif
+                @if($invoice->customer?->phone) {{ __('sales.phone') }}: {{ $invoice->customer->phone }} @endif
             </td>
             <td>
                 <div class="section-title">{{ __('sales.invoice_details') }}</div>
@@ -156,7 +164,7 @@
                     </tr>
                     <tr>
                         <td>{{ __('sales.reference_number') }}:</td>
-                        <td class="text-right"><strong>{{ $invoice->reference_number ?? '-' }}</strong></td>
+                        <td class="text-right"><strong>{{ $invoice->reference_number }}</strong></td>
                     </tr>
                     <tr>
                         <td>{{ __('sales.branch') }}:</td>
@@ -181,9 +189,9 @@
             @foreach($invoice->items as $item)
                 <tr>
                     <td>
-                        <strong>{{ $item->product->name }}</strong>
+                        <strong>{{ $item->product_name_ar ?? $item->product->name_ar ?? $item->product->name_en }}</strong>
                         @if($item->description && $item->description !== $item->product->name)
-                            <div style="font-size: 10px; color: #666;">{{ $item->description }}</div>
+                            <div style="font-size: 10px; color: #666;">{{ $item->description_ar ?? $item->description }}</div>
                         @endif
                     </td>
                     <td class="text-right">{{ number_format($item->quantity, 3) }}</td>
@@ -219,7 +227,7 @@
     @if($invoice->notes)
         <div style="margin-top: 30px;">
             <div class="section-title">{{ __('sales.notes') }}</div>
-            <p style="font-size: 11px; color: #666;">{{ $invoice->notes }}</p>
+            <p style="font-size: 11px; color: #666;">{{ $invoice->notes_ar ?? $invoice->notes }}</p>
         </div>
     @endif
 

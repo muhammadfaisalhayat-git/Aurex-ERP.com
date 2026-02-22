@@ -13,6 +13,7 @@ use App\Models\Product;
 use App\Models\AuditLog;
 use App\Models\TaxSetting;
 use App\Services\WhatsAppService;
+use App\Services\ArabicShaper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,10 +21,12 @@ use Illuminate\Support\Facades\DB;
 class QuotationController extends Controller
 {
     protected $whatsappService;
+    protected $arabicShaper;
 
-    public function __construct(WhatsAppService $whatsappService)
+    public function __construct(WhatsAppService $whatsappService, ArabicShaper $arabicShaper)
     {
         $this->whatsappService = $whatsappService;
+        $this->arabicShaper = $arabicShaper;
 
         $this->middleware('can:view quotations')->only(['index', 'show', 'downloadPdf', 'sendWhatsApp']);
         $this->middleware('can:create quotations')->only(['create', 'store', 'send', 'convert', 'revise']);
@@ -113,13 +116,7 @@ class QuotationController extends Controller
                 ]);
             }
 
-            AuditLog::create([
-                'action' => 'create',
-                'entity_type' => 'quotation',
-                'entity_id' => $quotation->id,
-                'user_id' => auth()->id(),
-                'new_values' => $quotation->load('items')->toArray(),
-            ]);
+            AuditLog::log('create', 'quotation', $quotation->id, null, $quotation->load('items')->toArray());
 
             DB::commit();
 
@@ -216,14 +213,7 @@ class QuotationController extends Controller
                 ]);
             }
 
-            AuditLog::create([
-                'action' => 'update',
-                'entity_type' => 'quotation',
-                'entity_id' => $quotation->id,
-                'user_id' => auth()->id(),
-                'old_values' => $oldValues,
-                'new_values' => $quotation->load('items')->toArray(),
-            ]);
+            AuditLog::log('update', 'quotation', $quotation->id, $oldValues, $quotation->load('items')->toArray());
 
             DB::commit();
 
@@ -248,13 +238,7 @@ class QuotationController extends Controller
         $quotation->items()->delete();
         $quotation->delete();
 
-        AuditLog::create([
-            'action' => 'delete',
-            'entity_type' => 'quotation',
-            'entity_id' => $quotation->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-        ]);
+        AuditLog::log('delete', 'quotation', $quotation->id, $oldValues);
 
         return redirect()->route('sales.quotations.index')
             ->with('success', __('messages.quotation_deleted'));
@@ -262,7 +246,19 @@ class QuotationController extends Controller
 
     public function downloadPdf(Quotation $quotation)
     {
-        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product']);
+        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'company']);
+
+        // Reshape Arabic text for PDF
+        if ($quotation->company) {
+            $quotation->company_name_ar = $this->arabicShaper->shape($quotation->company->name_ar ?? $quotation->company->name_en);
+        }
+        $quotation->customer_name_ar = $this->arabicShaper->shape($quotation->customer?->name_ar ?? '');
+        $quotation->notes_ar = $this->arabicShaper->shape($quotation->notes ?? '');
+
+        foreach ($quotation->items as $item) {
+            $item->product_name_ar = $this->arabicShaper->shape($item->product->name_ar ?? $item->product->name_en);
+        }
+
         $pdf = Pdf::loadView('sales.quotations.pdf', compact('quotation'));
         return $pdf->download('quotation-' . $quotation->document_number . '.pdf');
     }
@@ -289,7 +285,19 @@ class QuotationController extends Controller
 
     public function print(Quotation $quotation)
     {
-        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator']);
+        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator', 'company']);
+
+        // Reshape Arabic text for PDF
+        if ($quotation->company) {
+            $quotation->company_name_ar = $this->arabicShaper->shape($quotation->company->name_ar ?? $quotation->company->name_en);
+        }
+        $quotation->customer_name_ar = $this->arabicShaper->shape($quotation->customer?->name_ar ?? '');
+        $quotation->notes_ar = $this->arabicShaper->shape($quotation->notes ?? '');
+
+        foreach ($quotation->items as $item) {
+            $item->product_name_ar = $this->arabicShaper->shape($item->product->name_ar ?? $item->product->name_en);
+        }
+
         return view('sales.quotations.print', compact('quotation'));
     }
 }

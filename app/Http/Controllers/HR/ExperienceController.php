@@ -4,12 +4,16 @@ namespace App\Http\Controllers\HR;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
+use App\Services\ArabicShaper;
 use Illuminate\Http\Request;
 
 class ExperienceController extends Controller
 {
-    public function __construct()
+    protected $arabicShaper;
+
+    public function __construct(ArabicShaper $arabicShaper)
     {
+        $this->arabicShaper = $arabicShaper;
         $this->middleware('permission:view employees');
     }
 
@@ -37,6 +41,12 @@ class ExperienceController extends Controller
         if (!in_array($template, $validTemplates)) {
             $template = 'classic';
         }
+
+        // Reshape Arabic text for PDF
+        $employee->name_ar_reshaped = $this->arabicShaper->shape($employee->name_ar ?? '');
+        $employee->designation_ar_reshaped = $this->arabicShaper->shape($employee->designation->name_ar ?? '');
+        $employee->department_ar_reshaped = $this->arabicShaper->shape($employee->department->name_ar ?? '');
+        $employee->company_name_ar_reshaped = $this->arabicShaper->shape($employee->company->name_ar ?? '');
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView("hr.experience.templates.{$template}", compact('employee'));
         return $pdf->stream("experience-certificate-{$template}-" . $employee->employee_code . '.pdf');

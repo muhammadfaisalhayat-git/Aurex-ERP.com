@@ -339,12 +339,179 @@ class GlobalSearchController extends Controller
                 ];
             }
 
+            // 21. App Pages (Searchable Functions)
+            $appPages = $this->getAppPages();
+            foreach ($appPages as $page) {
+                $matches = false;
+                if (str_contains(strtolower($page['title']), strtolower($q))) {
+                    $matches = true;
+                }
+                if (!$matches && isset($page['keywords'])) {
+                    foreach ($page['keywords'] as $keyword) {
+                        if (str_contains(strtolower($keyword), strtolower($q))) {
+                            $matches = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ($matches) {
+                    $results[] = [
+                        'type' => __('messages.customize') ?? 'Page',
+                        'title' => $page['title'],
+                        'subtitle' => $page['subtitle'] ?? '',
+                        'url' => $page['url'],
+                        'icon' => $page['icon']
+                    ];
+                }
+            }
+
             return response()->json($results);
 
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::error('Global Search Error: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    private function getAppPages()
+    {
+        $locale = app()->getLocale();
+
+        return [
+            // Sales
+            [
+                'title' => __('messages.customers'),
+                'url' => route('sales.customers.index'),
+                'icon' => 'fas fa-user-tie',
+                'keywords' => ['customers', 'العملاء', 'sales', 'مبيعات']
+            ],
+            [
+                'title' => __('messages.quotations'),
+                'url' => route('sales.quotations.index'),
+                'icon' => 'fas fa-file-signature',
+                'keywords' => ['quotations', 'عروض الأسعار', 'sales', 'مبيعات']
+            ],
+            [
+                'title' => __('messages.sales_orders'),
+                'url' => route('sales.sales-orders.index'),
+                'icon' => 'fas fa-shopping-cart',
+                'keywords' => ['sales orders', 'أوامر البيع', 'sales', 'مبيعات']
+            ],
+            [
+                'title' => __('messages.sales_invoices'),
+                'url' => route('sales.invoices.index'),
+                'icon' => 'fas fa-file-invoice-dollar',
+                'keywords' => ['sales invoices', 'فواتير المبيعات', 'sales', 'مبيعات', 'invoices', 'فواتير']
+            ],
+            [
+                'title' => __('messages.sales_returns'),
+                'url' => route('sales.returns.index'),
+                'icon' => 'fas fa-undo',
+                'keywords' => ['sales returns', 'مرتجعات المبيعات', 'sales', 'مبيعات']
+            ],
+
+            // Purchases
+            [
+                'title' => __('messages.vendors'),
+                'url' => route('purchases.vendors.index'),
+                'icon' => 'fas fa-truck',
+                'keywords' => ['vendors', 'الموردين', 'purchases', 'مشتريات']
+            ],
+            [
+                'title' => __('messages.supply_orders'),
+                'url' => route('purchases.supply-orders.index'),
+                'icon' => 'fas fa-clipboard-list',
+                'keywords' => ['supply orders', 'أوامر التوريد', 'purchases', 'مشتريات']
+            ],
+            [
+                'title' => __('messages.purchase_invoices'),
+                'url' => route('purchases.invoices.index'),
+                'icon' => 'fas fa-shopping-basket',
+                'keywords' => ['purchase invoices', 'فواتير المشتريات', 'purchases', 'مشتريات', 'invoices', 'فواتير']
+            ],
+            [
+                'title' => __('messages.local_purchases'),
+                'url' => route('purchases.local-purchases.index'),
+                'icon' => 'fas fa-store',
+                'keywords' => ['local purchases', 'مشتريات محلية', 'purchases', 'مشتريات']
+            ],
+
+            // Inventory
+            [
+                'title' => __('messages.products'),
+                'url' => route('inventory.products.index'),
+                'icon' => 'fas fa-box',
+                'keywords' => ['products', 'المنتجات', 'inventory', 'مخزون']
+            ],
+            [
+                'title' => __('messages.categories'),
+                'url' => route('inventory.categories.index'),
+                'icon' => 'fas fa-tags',
+                'keywords' => ['categories', 'الفئات', 'inventory', 'مخزون']
+            ],
+            [
+                'title' => __('messages.stock_transfers'),
+                'url' => route('inventory.stock-transfers.index'),
+                'icon' => 'fas fa-exchange-alt',
+                'keywords' => ['stock transfers', 'تحويلات مخزنية', 'inventory', 'مخزون']
+            ],
+            [
+                'title' => __('messages.stock_ledger'),
+                'url' => route('inventory.stock-ledger.index'),
+                'icon' => 'fas fa-list-alt',
+                'keywords' => ['stock ledger', 'دفتر المخزون', 'inventory', 'مخزون']
+            ],
+
+            // HR
+            [
+                'title' => __('messages.employees'),
+                'url' => route('hr.employees.index'),
+                'icon' => 'fas fa-users',
+                'keywords' => ['employees', 'الموظفين', 'hr', 'موظفين']
+            ],
+            [
+                'title' => __('messages.departments'),
+                'url' => route('hr.departments.index'),
+                'icon' => 'fas fa-sitemap',
+                'keywords' => ['departments', 'الأقسام', 'hr', 'موظفين']
+            ],
+
+            // Accounting
+            [
+                'title' => __('messages.chart_of_accounts'),
+                'url' => route('accounting.gl.coa.index'),
+                'icon' => 'fas fa-book',
+                'keywords' => ['chart of accounts', 'شجرة الحسابات', 'accounting', 'محاسبة']
+            ],
+            [
+                'title' => __('messages.journal_vouchers'),
+                'url' => route('accounting.gl.transactions.jv.index'),
+                'icon' => 'fas fa-exchange-alt',
+                'keywords' => ['journal vouchers', 'قيود اليومية', 'accounting', 'محاسبة', 'jv']
+            ],
+
+            // Logistics
+            [
+                'title' => __('messages.delivery_vehicles'),
+                'url' => route('logistics.vehicles.index'),
+                'icon' => 'fas fa-truck-moving',
+                'keywords' => ['vehicles', 'مركبات', 'logistics', 'نقل']
+            ],
+            [
+                'title' => __('messages.fuel_logs'),
+                'url' => route('logistics.fuel-logs.index'),
+                'icon' => 'fas fa-gas-pump',
+                'keywords' => ['fuel logs', 'سجلات الوقود', 'logistics', 'نقل']
+            ],
+
+            // Maintenance
+            [
+                'title' => __('messages.maintenance_vouchers'),
+                'url' => route('maintenance.vouchers.index'),
+                'icon' => 'fas fa-tools',
+                'keywords' => ['maintenance', 'صيانة', 'vouchers']
+            ],
+        ];
     }
 }

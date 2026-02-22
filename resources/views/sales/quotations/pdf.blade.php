@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="UTF-8">
@@ -62,23 +62,49 @@
         .mb-4 {
             margin-bottom: 1.5rem;
         }
+
+        [dir="rtl"] .details-table td:nth-child(2) {
+            text-align: left !important;
+        }
+
+        [dir="rtl"] .text-end {
+            text-align: left !important;
+        }
+
+        [dir="rtl"] .items-table th,
+        [dir="rtl"] .items-table td {
+            text-align: right;
+        }
     </style>
 </head>
 
 <body>
-    <div class="header">
-        <h2>{{ __('messages.quotation') }}</h2>
-        <p>{{ $quotation->document_number }}</p>
+    <div class="header" style="position: relative; min-height: 100px;">
+        <div style="float: left;">
+            @if($quotation->company?->logo)
+                <img src="{{ public_path('storage/' . $quotation->company->logo) }}" alt="Logo"
+                    style="max-height: 80px;"><br>
+            @endif
+            <div style="font-size: 20px; font-weight: bold; color: #333;">
+                {{ $quotation->company_name_ar ?? $quotation->company?->name ?? config('app.name', 'Aurex ERP') }}
+            </div>
+        </div>
+        <div style="float: right; text-align: right;">
+            <h2 style="margin: 0; color: #2563eb;">{{ __('messages.quotation') }}</h2>
+            <p style="margin: 5px 0;">#{{ $quotation->document_number }}</p>
+        </div>
+        <div style="clear: both;"></div>
     </div>
 
     <table class="details-table">
         <tr>
             <td style="width: 50%;">
                 <h3 class="fw-bold">{{ __('messages.customer_details') }}</h3>
-                <p>{{ $quotation->customer->name }}<br>
-                    {{ $quotation->customer->address }}<br>
-                    {{ $quotation->customer->phone }}<br>
-                    {{ $quotation->customer->email }}</p>
+                <p>{{ $quotation->customer_name_ar ?? $quotation->customer?->name_ar ?? $quotation->customer?->name_en }}<br>
+                    @if($quotation->customer?->address) {{ $quotation->customer->address }}<br> @endif
+                    @if($quotation->customer?->phone) {{ $quotation->customer->phone }}<br> @endif
+                    @if($quotation->customer?->email) {{ $quotation->customer->email }} @endif
+                </p>
             </td>
             <td style="width: 50%; text-align: right;">
                 <h3 class="fw-bold">{{ __('messages.quotation_details') }}</h3>
@@ -105,7 +131,7 @@
         <tbody>
             @foreach($quotation->items as $item)
                 <tr>
-                    <td>{{ $item->product ? $item->product->name_en : '-' }}</td>
+                    <td>{{ $item->product_name_ar ?? ($item->product ? $item->product->name_en : '') }}</td>
                     <td class="text-end">{{ number_format($item->quantity, 2) }}</td>
                     <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
                     <td class="text-end">{{ number_format($item->tax_rate, 2) }}</td>
@@ -133,14 +159,14 @@
     @if($quotation->terms_conditions)
         <div class="mb-4">
             <h4 class="fw-bold">{{ __('messages.terms_conditions') }}</h4>
-            <p>{{ $quotation->terms_conditions }}</p>
+            <p>{{ $quotation->terms_conditions_ar ?? $quotation->terms_conditions }}</p>
         </div>
     @endif
 
     @if($quotation->notes)
         <div class="mb-4">
             <h4 class="fw-bold">{{ __('messages.notes') }}</h4>
-            <p>{{ $quotation->notes }}</p>
+            <p>{{ $quotation->notes_ar ?? $quotation->notes }}</p>
         </div>
     @endif
 

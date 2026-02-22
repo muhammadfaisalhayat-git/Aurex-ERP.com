@@ -28,11 +28,11 @@ class SalesOrderController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('document_number', 'like', "%{$search}%")
-                  ->orWhere('order_number', 'like', "%{$search}%")
-                  ->orWhereHas('customer', function ($cq) use ($search) {
-                      $cq->where('name_en', 'like', "%{$search}%")
-                         ->orWhere('name_ar', 'like', "%{$search}%");
-                  });
+                    ->orWhere('order_number', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($cq) use ($search) {
+                        $cq->where('name_en', 'like', "%{$search}%")
+                            ->orWhere('name_ar', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -68,8 +68,14 @@ class SalesOrderController extends Controller
         }
 
         return view('sales.sales-orders.create', compact(
-            'customers', 'branches', 'warehouses', 'products', 
-            'taxSetting', 'documentNumber', 'quotations', 'selectedQuotation'
+            'customers',
+            'branches',
+            'warehouses',
+            'products',
+            'taxSetting',
+            'documentNumber',
+            'quotations',
+            'selectedQuotation'
         ));
     }
 
@@ -119,7 +125,7 @@ class SalesOrderController extends Controller
         foreach ($validated['items'] as $item) {
             $product = Product::find($item['product_id']);
             $taxRate = $product->tax_rate ?? $taxSetting?->default_tax_rate ?? 0;
-            
+
             // Tax-inclusive calculation (same as invoice)
             $grossAmount = ($item['unit_price'] * $item['quantity']) * (1 - ($item['discount_percentage'] ?? 0) / 100);
             $discountAmount = ($item['unit_price'] * $item['quantity']) * (($item['discount_percentage'] ?? 0) / 100);
@@ -155,13 +161,7 @@ class SalesOrderController extends Controller
             ]);
         }
 
-        AuditLog::create([
-            'action' => 'create',
-            'entity_type' => 'sales_order',
-            'entity_id' => $salesOrder->id,
-            'user_id' => auth()->id(),
-            'new_values' => $salesOrder->toArray(),
-        ]);
+        AuditLog::log('create', 'sales_order', $salesOrder->id, null, $salesOrder->toArray());
 
         return redirect()->route('sales.sales-orders.show', $salesOrder)
             ->with('success', __('messages.sales_order_created'));
@@ -188,7 +188,12 @@ class SalesOrderController extends Controller
         $salesOrder->load('items.product');
 
         return view('sales.sales-orders.edit', compact(
-            'salesOrder', 'customers', 'branches', 'warehouses', 'products', 'taxSetting'
+            'salesOrder',
+            'customers',
+            'branches',
+            'warehouses',
+            'products',
+            'taxSetting'
         ));
     }
 
@@ -237,7 +242,7 @@ class SalesOrderController extends Controller
         foreach ($validated['items'] as $item) {
             $product = Product::find($item['product_id']);
             $taxRate = $product->tax_rate ?? $taxSetting?->default_tax_rate ?? 0;
-            
+
             $grossAmount = ($item['unit_price'] * $item['quantity']) * (1 - ($item['discount_percentage'] ?? 0) / 100);
             $discountAmount = ($item['unit_price'] * $item['quantity']) * (($item['discount_percentage'] ?? 0) / 100);
             $netAmount = $grossAmount / (1 + $taxRate / 100);
@@ -261,14 +266,7 @@ class SalesOrderController extends Controller
 
         $salesOrder->calculateTotals();
 
-        AuditLog::create([
-            'action' => 'update',
-            'entity_type' => 'sales_order',
-            'entity_id' => $salesOrder->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-            'new_values' => $salesOrder->toArray(),
-        ]);
+        AuditLog::log('update', 'sales_order', $salesOrder->id, $oldValues, $salesOrder->toArray());
 
         return redirect()->route('sales.sales-orders.show', $salesOrder)
             ->with('success', __('messages.sales_order_updated'));
@@ -285,13 +283,7 @@ class SalesOrderController extends Controller
         $salesOrder->items()->delete();
         $salesOrder->delete();
 
-        AuditLog::create([
-            'action' => 'delete',
-            'entity_type' => 'sales_order',
-            'entity_id' => $salesOrder->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-        ]);
+        AuditLog::log('delete', 'sales_order', $salesOrder->id, $oldValues);
 
         return redirect()->route('sales.sales-orders.index')
             ->with('success', __('messages.sales_order_deleted'));
@@ -303,12 +295,7 @@ class SalesOrderController extends Controller
             return back()->with('error', __('messages.sales_order_confirm_failed'));
         }
 
-        AuditLog::create([
-            'action' => 'confirm',
-            'entity_type' => 'sales_order',
-            'entity_id' => $salesOrder->id,
-            'user_id' => auth()->id(),
-        ]);
+        AuditLog::log('confirm', 'sales_order', $salesOrder->id);
 
         return back()->with('success', __('messages.sales_order_confirmed'));
     }
@@ -330,13 +317,7 @@ class SalesOrderController extends Controller
 
         $salesOrder = SalesOrder::createFromQuotation($quotation, auth()->id());
 
-        AuditLog::create([
-            'action' => 'create_from_quotation',
-            'entity_type' => 'sales_order',
-            'entity_id' => $salesOrder->id,
-            'user_id' => auth()->id(),
-            'new_values' => ['quotation_id' => $quotation->id],
-        ]);
+        AuditLog::log('create_from_quotation', 'sales_order', $salesOrder->id, null, ['quotation_id' => $quotation->id]);
 
         return redirect()->route('sales.sales-orders.show', $salesOrder)
             ->with('success', __('messages.sales_order_created_from_quotation'));
@@ -364,17 +345,17 @@ class SalesOrderController extends Controller
         foreach ($request->items as $item) {
             $orderItem = SalesOrderItem::find($item['order_item_id']);
             $pendingQty = $orderItem->getPendingInvoiceQuantity();
-            
+
             if ($item['quantity'] > $pendingQty) {
                 return back()->with('error', __('messages.invoice_quantity_exceeds_pending', [
                     'product' => $orderItem->product->name,
                     'pending' => $pendingQty
                 ]));
             }
-            
-            $lineNet = ($item['quantity'] * $orderItem->unit_price) * 
-                       (1 - $orderItem->discount_percentage / 100) / 
-                       (1 + $orderItem->tax_rate / 100);
+
+            $lineNet = ($item['quantity'] * $orderItem->unit_price) *
+                (1 - $orderItem->discount_percentage / 100) /
+                (1 + $orderItem->tax_rate / 100);
             $totalInvoiceAmount += $lineNet;
         }
 
@@ -402,7 +383,7 @@ class SalesOrderController extends Controller
         // Copy selected items from sales order
         foreach ($request->items as $item) {
             $orderItem = SalesOrderItem::find($item['order_item_id']);
-            
+
             $grossAmount = ($orderItem->unit_price * $item['quantity']) * (1 - $orderItem->discount_percentage / 100);
             $discountAmount = ($orderItem->unit_price * $item['quantity']) * ($orderItem->discount_percentage / 100);
             $netAmount = $grossAmount / (1 + $orderItem->tax_rate / 100);
@@ -432,7 +413,7 @@ class SalesOrderController extends Controller
 
         // Update sales order invoiced amount and status
         $salesOrder->updateInvoicedAmount($invoice->total_amount);
-        
+
         if ($request->boolean('mark_as_converted')) {
             $salesOrder->update([
                 'converted_by' => auth()->id(),
@@ -440,13 +421,7 @@ class SalesOrderController extends Controller
             ]);
         }
 
-        AuditLog::create([
-            'action' => 'convert_to_invoice',
-            'entity_type' => 'sales_order',
-            'entity_id' => $salesOrder->id,
-            'user_id' => auth()->id(),
-            'new_values' => ['sales_invoice_id' => $invoice->id],
-        ]);
+        AuditLog::log('convert_to_invoice', 'sales_order', $salesOrder->id, null, ['sales_invoice_id' => $invoice->id]);
 
         return redirect()->route('sales.invoices.show', $invoice)
             ->with('success', __('messages.sales_order_converted_to_invoice'));

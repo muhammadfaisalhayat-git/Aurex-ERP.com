@@ -77,13 +77,7 @@ class UserController extends Controller
         }
 
         // Log audit
-        AuditLog::create([
-            'action' => 'create',
-            'entity_type' => 'user',
-            'entity_id' => $user->id,
-            'user_id' => auth()->id(),
-            'new_values' => $user->toArray(),
-        ]);
+        AuditLog::log('create', 'user', $user->id, null, $user->toArray());
 
         return redirect()->route('admin.users.index')
             ->with('success', __('messages.user_created_success'));
@@ -160,14 +154,7 @@ class UserController extends Controller
         }
 
         // Log audit
-        AuditLog::create([
-            'action' => 'update',
-            'entity_type' => 'user',
-            'entity_id' => $user->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-            'new_values' => $user->toArray(),
-        ]);
+        AuditLog::log('update', 'user', $user->id, $oldValues, $user->toArray());
 
         return redirect()->route('admin.users.index')
             ->with('success', __('messages.user_updated'));
@@ -188,13 +175,7 @@ class UserController extends Controller
         $user->delete();
 
         // Log audit
-        AuditLog::create([
-            'action' => 'delete',
-            'entity_type' => 'user',
-            'entity_id' => $user->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-        ]);
+        AuditLog::log('delete', 'user', $user->id, $oldValues);
 
         return redirect()->route('admin.users.index')
             ->with('success', __('messages.user_deleted'));
@@ -209,12 +190,7 @@ class UserController extends Controller
         $user->update(['is_active' => !$user->is_active]);
 
         // Log audit
-        AuditLog::create([
-            'action' => $user->is_active ? 'activate' : 'deactivate',
-            'entity_type' => 'user',
-            'entity_id' => $user->id,
-            'user_id' => auth()->id(),
-        ]);
+        AuditLog::log($user->is_active ? 'activate' : 'deactivate', 'user', $user->id);
 
         return back()->with('success', $user->is_active
             ? __('messages.user_activated')
@@ -230,12 +206,7 @@ class UserController extends Controller
         ]);
 
         // Log audit
-        AuditLog::create([
-            'action' => 'reset_password',
-            'entity_type' => 'user',
-            'entity_id' => $user->id,
-            'user_id' => auth()->id(),
-        ]);
+        AuditLog::log('reset_password', 'user', $user->id);
 
         return back()->with('success', __('messages.password_reset', ['password' => $newPassword]));
     }
@@ -261,13 +232,7 @@ class UserController extends Controller
         $user->syncPermissions($permissionNames);
 
         // Log audit
-        AuditLog::create([
-            'action' => 'update_permissions',
-            'entity_type' => 'user',
-            'entity_id' => $user->id,
-            'user_id' => auth()->id(),
-            'new_values' => ['permissions' => $permissionNames->toArray()],
-        ]);
+        AuditLog::log('update_permissions', 'user', $user->id, null, ['permissions' => $permissionNames->toArray()]);
 
         return redirect()->route('admin.users.index')
             ->with('success', __('messages.permissions_updated'));

@@ -6,7 +6,9 @@
     <title>Salary Slip - {{ $employee->employee_code }}</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family:
+                {{ app()->getLocale() == 'ar' ? "'DejaVu Sans'" : 'Arial' }}
+                , sans-serif;
             font-size: 13px;
             color: #333;
             margin: 0;
@@ -139,7 +141,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="company-name">{{ $employee->company?->name ?? config('app.name') }}</div>
+            @if($employee->company?->logo)
+                <img src="{{ public_path('storage/' . $employee->company->logo) }}" alt="Logo"
+                    style="max-height: 60px; margin-bottom: 10px;"><br>
+            @endif
+            <div class="company-name">
+                {{ $employee->company_name_ar_reshaped ?? ($employee->company?->name ?? config('app.name')) }}
+            </div>
             <div class="company-info">
                 {{ $employee->branch?->name }}<br>
                 {{ $employee->branch?->address }}
@@ -150,20 +158,25 @@
         <div class="info-section">
             <div class="info-row">
                 <div class="info-cell label">{{ __('messages.name') }}</div>
-                <div class="info-cell value">{{ $employee->name }}</div>
+                <div class="info-cell value">{{ $employee->name_ar_reshaped ?? $employee->name }}</div>
                 <div class="info-cell label">{{ __('messages.employee_code') }}</div>
                 <div class="info-cell value">{{ $employee->employee_code }}</div>
             </div>
             <div class="info-row">
                 <div class="info-cell label">{{ __('messages.department') }}</div>
-                <div class="info-cell value">{{ $employee->department?->name }}</div>
+                <div class="info-cell value">
+                    {{ $employee->department_ar_reshaped ?? ($employee->department?->name ?? '') }}
+                </div>
                 <div class="info-cell label">{{ __('messages.designation') }}</div>
-                <div class="info-cell value">{{ $employee->designation?->name }}</div>
+                <div class="info-cell value">
+                    {{ $employee->designation_ar_reshaped ?? ($employee->designation?->name ?? '') }}
+                </div>
             </div>
             <div class="info-row">
                 <div class="info-cell label">{{ __('messages.joining_date') }}</div>
                 <div class="info-cell value">
-                    {{ $employee->joining_date ? $employee->joining_date->format('Y-m-d') : '-' }}</div>
+                    {{ $employee->joining_date ? $employee->joining_date->format('Y-m-d') : '' }}
+                </div>
                 <div class="info-cell label">{{ __('messages.phone') }}</div>
                 <div class="info-cell value">{{ $employee->phone }}</div>
             </div>

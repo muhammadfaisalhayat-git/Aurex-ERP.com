@@ -27,6 +27,22 @@ class BankAccount extends Model
         'is_active'
     ];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+        'opening_balance' => 'decimal:2',
+        'current_balance' => 'decimal:2',
+    ];
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function getNameAttribute()
+    {
+        return app()->getLocale() === 'ar' ? $this->name_ar : $this->name_en;
+    }
+
     public function chartOfAccount()
     {
         return $this->belongsTo(ChartOfAccount::class);

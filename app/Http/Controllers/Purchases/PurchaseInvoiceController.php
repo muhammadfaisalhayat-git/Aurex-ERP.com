@@ -12,6 +12,7 @@ use App\Models\Branch;
 use App\Models\Warehouse;
 use App\Models\AuditLog;
 use App\Models\VendorDocument;
+use App\Services\ArabicShaper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -19,8 +20,11 @@ use Illuminate\Support\Facades\Storage;
 
 class PurchaseInvoiceController extends Controller
 {
-    public function __construct()
+    protected $arabicShaper;
+
+    public function __construct(ArabicShaper $arabicShaper)
     {
+        $this->arabicShaper = $arabicShaper;
         $this->middleware('can:view purchase invoices')->only(['index', 'show', 'print']);
         $this->middleware('can:create purchase invoices')->only(['create', 'store']);
         $this->middleware('can:edit purchase invoices')->only(['edit', 'update']);
@@ -200,13 +204,7 @@ class PurchaseInvoiceController extends Controller
                 $invoice->items()->create($itemData);
             }
 
-            AuditLog::create([
-                'action' => 'create',
-                'entity_type' => 'purchase_invoice',
-                'entity_id' => $invoice->id,
-                'user_id' => auth()->id(),
-                'new_values' => $invoice->toArray(),
-            ]);
+            AuditLog::log('create', 'purchase_invoice', $invoice->id, null, $invoice->toArray());
 
             DB::commit();
 
@@ -303,14 +301,7 @@ class PurchaseInvoiceController extends Controller
                 ]);
             }
 
-            AuditLog::create([
-                'action' => 'update',
-                'entity_type' => 'purchase_invoice',
-                'entity_id' => $invoice->id,
-                'user_id' => auth()->id(),
-                'old_values' => $oldValues,
-                'new_values' => $invoice->toArray(),
-            ]);
+            AuditLog::log('update', 'purchase_invoice', $invoice->id, $oldValues, $invoice->toArray());
 
             DB::commit();
 
@@ -333,13 +324,7 @@ class PurchaseInvoiceController extends Controller
         $invoice->items()->delete();
         $invoice->delete();
 
-        AuditLog::create([
-            'action' => 'delete',
-            'entity_type' => 'purchase_invoice',
-            'entity_id' => $invoice->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-        ]);
+        AuditLog::log('delete', 'purchase_invoice', $invoice->id, $oldValues);
 
         return redirect()->route('purchases.invoices.index')
             ->with('success', __('messages.invoice_deleted'));
@@ -359,12 +344,7 @@ class PurchaseInvoiceController extends Controller
                 throw new \Exception(__('messages.invoice_already_posted'));
             }
 
-            AuditLog::create([
-                'action' => 'post',
-                'entity_type' => 'purchase_invoice',
-                'entity_id' => $invoice->id,
-                'user_id' => auth()->id(),
-            ]);
+            AuditLog::log('post', 'purchase_invoice', $invoice->id);
 
             DB::commit();
 
@@ -390,7 +370,19 @@ class PurchaseInvoiceController extends Controller
 
     public function print($id)
     {
-        $invoice = PurchaseInvoice::with(['vendor', 'branch', 'warehouse', 'items.product', 'creator'])->findOrFail($id);
+        $invoice = PurchaseInvoice::with(['vendor', 'branch', 'warehouse', 'items.product', 'creator', 'company'])->findOrFail($id);
+
+        // Reshape Arabic text for Print
+        if ($invoice->company) {
+            $invoice->company_name_ar_reshaped = $this->arabicShaper->shape($invoice->company->name_ar ?? $invoice->company->name_en);
+        }
+        $invoice->vendor_name_ar_reshaped = $this->arabicShaper->shape($invoice->vendor->name_ar ?? '');
+        $invoice->notes_ar_reshaped = $this->arabicShaper->shape($invoice->notes ?? '');
+
+        foreach ($invoice->items as $item) {
+            $item->product_name_ar_reshaped = $this->arabicShaper->shape($item->product->name_ar ?? $item->product->name_en);
+        }
+
         return view('purchases.invoices.print', compact('invoice'));
     }
 }

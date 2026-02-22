@@ -94,15 +94,16 @@
                 <strong>Document Number:</strong> {{ $customerRequest->document_number }}<br>
                 <strong>Date:</strong> {{ $customerRequest->request_date->format('Y-m-d') }}<br>
                 <strong>Needed By:</strong>
-                {{ $customerRequest->needed_date ? $customerRequest->needed_date->format('Y-m-d') : '-' }}<br>
+                {{ $customerRequest->needed_date ? $customerRequest->needed_date->format('Y-m-d') : '' }}<br>
                 <strong>Status:</strong> {{ ucfirst($customerRequest->status) }}
             </div>
         </div>
         <div class="info-box" style="{{ app()->getLocale() == 'ar' ? 'text-align: left;' : 'text-align: right;' }}">
             <div class="label">Customer Information</div>
             <div style="margin-top: 5px; line-height: 1.6;">
-                <strong style="font-size: 16px;">{{ $customerRequest->customer->name ?? '-' }}</strong><br>
-                {{ $customerRequest->branch->name ?? '-' }}
+                <strong
+                    style="font-size: 16px;">{{ $customerRequest?->customer_name_ar ?? $customerRequest->customer?->name_ar ?? $customerRequest?->customer?->name ?? '' }}</strong><br>
+                {{ $customerRequest?->branch?->name ?? '' }}
             </div>
         </div>
     </div>
@@ -121,7 +122,7 @@
         <tbody>
             @foreach($customerRequest->items as $item)
                 <tr>
-                    <td>{{ app()->getLocale() == 'ar' ? ($item->product->name_ar ?? $item->product->name_en) : ($item->product->name_en ?? 'Unknown Product') }}
+                    <td>{{ $item->product_name_ar ?? (app()->getLocale() == 'ar' ? ($item->product->name_ar ?? $item->product->name_en) : ($item->product->name_en ?? 'Unknown Product')) }}
                     </td>
                     <td style="text-align: center;">{{ number_format($item->quantity, 2) }}</td>
                     <td style="text-align: right;">{{ number_format($item->unit_price, 2) }}</td>
@@ -139,18 +140,21 @@
                 <tr style="border: none;">
                     <td style="border: none; padding: 5px; font-weight: bold;">Subtotal:</td>
                     <td style="border: none; padding: 5px; text-align: right;">
-                        {{ number_format($customerRequest->subtotal, 2) }}</td>
+                        {{ number_format($customerRequest->subtotal, 2) }}
+                    </td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 5px; font-weight: bold;">Tax Amount:</td>
                     <td style="border: none; padding: 5px; text-align: right;">
-                        {{ number_format($customerRequest->tax_amount, 2) }}</td>
+                        {{ number_format($customerRequest->tax_amount, 2) }}
+                    </td>
                 </tr>
                 <tr style="border: none; background-color: #f8f9fa;">
                     <td style="border: none; padding: 5px; font-weight: bold; font-size: 14px;">Total Amount:</td>
                     <td
                         style="border: none; padding: 5px; text-align: right; font-weight: bold; font-size: 14px; border-top: 1px solid #333;">
-                        {{ number_format($customerRequest->total_amount, 2) }}</td>
+                        {{ number_format($customerRequest->total_amount, 2) }}
+                    </td>
                 </tr>
             </table>
         </div>
@@ -161,7 +165,7 @@
         <div style="margin-top: 30px;">
             <div class="label">Notes:</div>
             <div style="margin-top: 5px; padding: 15px; border: 1px solid #eee; background-color: #fafafa; color: #444;">
-                {{ $customerRequest->notes }}
+                {{ $customerRequest->notes_ar ?? $customerRequest->notes }}
             </div>
         </div>
     @endif

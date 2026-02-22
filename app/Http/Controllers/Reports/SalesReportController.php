@@ -13,11 +13,15 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SalesReport\SalesByItemExport;
 use App\Exports\SalesReport\SalesByCustomerExport;
+use App\Services\ArabicShaper;
 
 class SalesReportController extends Controller
 {
-    public function __construct()
+    protected $arabicShaper;
+
+    public function __construct(ArabicShaper $arabicShaper)
     {
+        $this->arabicShaper = $arabicShaper;
         $this->middleware('permission:reports.view');
     }
 
@@ -351,7 +355,15 @@ class SalesReportController extends Controller
         $filename = 'sales_by_customer_' . now()->format('Y-m-d_H-i-s');
 
         if ($validated['format'] === 'pdf') {
-            $pdf = Pdf::loadView('reports.sales.by_customer_pdf', compact('invoices', 'validated'));
+            // Reshape Arabic text for PDF
+            foreach ($invoices as $invoice) {
+                $invoice->customer_name_ar_reshaped = $this->arabicShaper->shape($invoice->customer?->name_ar ?? '');
+            }
+
+            $company = \App\Models\Company::find(session('active_company_id'));
+            $company_name_ar = $company ? $this->arabicShaper->shape($company->name_ar ?? $company->name_en) : '';
+
+            $pdf = Pdf::loadView('reports.sales.by_customer_pdf', compact('invoices', 'validated', 'company', 'company_name_ar'));
             return $pdf->download($filename . '.pdf');
         }
 
@@ -448,7 +460,16 @@ class SalesReportController extends Controller
                 )
                 ->first();
 
-            $pdf = Pdf::loadView('reports.sales.by_item_pdf', compact('items', 'totals', 'validated'));
+            // Reshape Arabic text for PDF
+            foreach ($items as $item) {
+                $item->product_name_ar_reshaped = $this->arabicShaper->shape($item->product->name_ar ?? $item->product->name_en);
+                $item->customer_name_ar_reshaped = $this->arabicShaper->shape($item->salesInvoice->customer->name_ar ?? '');
+            }
+
+            $company = \App\Models\Company::find(session('active_company_id'));
+            $company_name_ar = $company ? $this->arabicShaper->shape($company->name_ar ?? $company->name_en) : '';
+
+            $pdf = Pdf::loadView('reports.sales.by_item_pdf', compact('items', 'totals', 'validated', 'company', 'company_name_ar'));
             return $pdf->download($filename . '.pdf');
         }
 

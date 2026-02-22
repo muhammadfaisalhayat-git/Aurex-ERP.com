@@ -108,7 +108,12 @@
 <body>
     <div class="certificate-container">
         <div class="header">
-            <div class="top-company">{{ strtoupper($employee->company?->name ?? config('app.name')) }}</div>
+            <div class="top-company">
+                {{ strtoupper($employee->company?->name_en ?? config('app.name')) }}
+                @if($employee->company_name_ar_reshaped)
+                    <div style="font-size: 18px; margin-top: 5px;">{{ $employee->company_name_ar_reshaped }}</div>
+                @endif
+            </div>
             @if($employee->company?->logo)
                 <img src="{{ public_path('storage/' . $employee->company->logo) }}" alt="Logo" class="logo-img">
             @endif
@@ -131,7 +136,7 @@
         <div class="content">
             <p>This is to certify that
                 <strong>{{ strtoupper($employee->name ?: ($employee->first_name_en . ' ' . $employee->last_name_en)) }}</strong>
-                (Employee Code: <strong>{{ $employee->employee_code ?: 'N/A' }}</strong>),
+                (Employee Code: <strong>{{ $employee->employee_code }}</strong>),
                 @if($employee->national_id)
                     holding National ID: <strong>{{ $employee->national_id }}</strong>,
                 @elseif($employee->passport_number)
@@ -140,7 +145,7 @@
                 has been employed with us as a
                 <strong>{{ $employee->designation?->name ?? 'Employee' }}</strong> in the
                 <strong>{{ $employee->department?->name ?? 'Department' }}</strong> department from
-                <strong>{{ $employee->joining_date ? $employee->joining_date->format('d-M-Y') : 'N/A' }}</strong> to
+                <strong>{{ $employee->joining_date ? $employee->joining_date->format('d-M-Y') : '' }}</strong> to
                 date.
             </p>
 

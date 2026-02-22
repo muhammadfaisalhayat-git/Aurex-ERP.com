@@ -10,12 +10,16 @@ use App\Models\User;
 use App\Models\AuditLog;
 use App\Models\LedgerEntry;
 use App\Models\SalesInvoice;
+use App\Services\ArabicShaper;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
-    public function __construct()
+    protected $arabicShaper;
+
+    public function __construct(ArabicShaper $arabicShaper)
     {
+        $this->arabicShaper = $arabicShaper;
         $this->middleware('can:view customers')->only(['index', 'show', 'statement', 'ajaxSearch']);
         $this->middleware('can:create customers')->only(['create', 'store']);
         $this->middleware('can:edit customers')->only(['edit', 'update']);
@@ -93,13 +97,7 @@ class CustomerController extends Controller
 
         $customer = Customer::create($validated);
 
-        AuditLog::create([
-            'action' => 'create',
-            'entity_type' => 'customer',
-            'entity_id' => $customer->id,
-            'user_id' => auth()->id(),
-            'new_values' => $customer->toArray(),
-        ]);
+        AuditLog::log('create', 'customer', $customer->id, null, $customer->toArray());
 
         return redirect()->route('sales.customers.index')
             ->with('success', __('messages.customer_created'));
@@ -132,19 +130,26 @@ class CustomerController extends Controller
         if ($request->filled('item_search')) {
             $q = $request->item_search;
             $query->where(function ($query) use ($q) {
-                $query->whereHasMorph('reference', [SalesInvoice::class], function ($query) use ($q) {
-                        $query->whereHas('items', function ($query) use ($q) {
-                                $query->whereHas('product', function ($query) use ($q) {
+                $query->whereHasMorph(
+                    'reference',
+                    [SalesInvoice::class],
+                    function ($query) use ($q) {
+                        $query->whereHas(
+                            'items',
+                            function ($query) use ($q) {
+                                $query->whereHas(
+                                    'product',
+                                    function ($query) use ($q) {
                                         $query->where('name_en', 'like', "%$q%")
                                             ->orWhere('name_ar', 'like', "%$q%")
                                             ->orWhere('code', 'like', "%$q%");
                                     }
-                                    )->orWhere('description', 'like', "%$q%");
-                                }
-                                );
+                                )->orWhere('description', 'like', "%$q%");
                             }
-                            );
-                        });
+                        );
+                    }
+                );
+            });
         }
 
         $entries = $query->with(['account', 'reference', 'reference.items', 'reference.items.product'])->orderBy('transaction_date', 'asc')->get();
@@ -205,14 +210,7 @@ class CustomerController extends Controller
         $oldValues = $customer->toArray();
         $customer->update($validated);
 
-        AuditLog::create([
-            'action' => 'update',
-            'entity_type' => 'customer',
-            'entity_id' => $customer->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-            'new_values' => $customer->toArray(),
-        ]);
+        AuditLog::log('update', 'customer', $customer->id, $oldValues, $customer->toArray());
 
         return redirect()->route('sales.customers.index')
             ->with('success', __('messages.customer_updated'));
@@ -227,13 +225,7 @@ class CustomerController extends Controller
         $oldValues = $customer->toArray();
         $customer->delete();
 
-        AuditLog::create([
-            'action' => 'delete',
-            'entity_type' => 'customer',
-            'entity_id' => $customer->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-        ]);
+        AuditLog::log('delete', 'customer', $customer->id, $oldValues);
 
         return redirect()->route('sales.customers.index')
             ->with('success', __('messages.customer_deleted'));
@@ -244,10 +236,10 @@ class CustomerController extends Controller
         $search = $request->get('q');
         $customers = Customer::active()
             ->where(function ($query) use ($search) {
-            $query->where('name_en', 'like', "%$search%")
-                ->orWhere('name_ar', 'like', "%$search%")
-                ->orWhere('code', 'like', "%$search%");
-        })
+                $query->where('name_en', 'like', "%$search%")
+                    ->orWhere('name_ar', 'like', "%$search%")
+                    ->orWhere('code', 'like', "%$search%");
+            })
             ->limit(10)
             ->get();
 
@@ -275,6 +267,13 @@ class CustomerController extends Controller
         }
 
         if ($request->get('export') == 'pdf') {
+            // Reshape Arabic text for PDF
+            $customer->name_ar_reshaped = $this->arabicShaper->shape($customer->name_ar ?? '');
+
+            foreach ($entries as $entry) {
+                $entry->description_ar_reshaped = $this->arabicShaper->shape($entry->notes ?? $entry->description ?? '');
+            }
+
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sales.customers.statement_pdf', compact('customer', 'entries', 'openingBalance'));
             return $pdf->download("statement_{$customer->code}.pdf");
         }

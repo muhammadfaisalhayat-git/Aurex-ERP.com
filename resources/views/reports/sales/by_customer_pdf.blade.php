@@ -83,7 +83,15 @@
 
 <body>
     <div class="header">
-        <div class="company-name">{{ config('app.name', 'Aurex ERP') }}</div>
+        <div class="company-branding">
+            @if(isset($company) && $company?->logo)
+                <img src="{{ public_path('storage/' . $company->logo) }}" alt="Logo"
+                    style="max-height: 50px; margin-bottom: 5px;"><br>
+            @endif
+            <div class="company-name">
+                {{ $company_name_ar ?: ($company?->name ?? config('app.name', 'Aurex ERP')) }}
+            </div>
+        </div>
         <div class="report-title">{{ __('reports.sales_by_customer') }}</div>
         <div style="font-size: 9px; color: #64748b;">{{ __('reports.date') }}: {{ now()->format('Y-m-d H:i') }}</div>
     </div>
@@ -114,7 +122,7 @@
                 <tr>
                     <td>{{ $invoice->document_number }}</td>
                     <td>{{ $invoice->invoice_date->format('Y-m-d') }}</td>
-                    <td>{{ optional($invoice->customer)->name ?? 'N/A' }}</td>
+                    <td>{{ $invoice->customer_name_ar_reshaped ?? (optional($invoice->customer)->name ?? '') }}</td>
                     <td class="text-right">{{ number_format($invoice->subtotal, 2) }}</td>
                     <td class="text-right">{{ number_format($invoice->tax_amount, 2) }}</td>
                     <td class="text-right">{{ number_format($invoice->total_amount, 2) }}</td>

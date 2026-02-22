@@ -17,17 +17,24 @@ use App\Models\User;
 use App\Models\Quotation;
 use App\Services\TaxCalculator;
 use App\Services\WhatsAppService;
+use App\Services\ArabicShaper;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 
 class SalesInvoiceController extends Controller
 {
     protected $taxCalculator;
     protected $whatsappService;
+    protected $arabicShaper;
 
-    public function __construct(TaxCalculator $taxCalculator, WhatsAppService $whatsappService)
-    {
+    public function __construct(
+        TaxCalculator $taxCalculator,
+        WhatsAppService $whatsappService,
+        ArabicShaper $arabicShaper
+    ) {
         $this->taxCalculator = $taxCalculator;
         $this->whatsappService = $whatsappService;
+        $this->arabicShaper = $arabicShaper;
 
         $this->middleware('can:view invoices')->only(['index', 'show', 'downloadPdf', 'print', 'getSourceDocuments', 'getSourceDocumentData', 'sendWhatsApp']);
         $this->middleware('can:create invoices')->only(['create', 'store', 'createFromQuotation', 'storeFromQuotation']);
@@ -195,6 +202,9 @@ class SalesInvoiceController extends Controller
             case 'sales_order':
                 $data = \App\Models\SalesOrder::with('items.product')->find($id);
                 break;
+            case 'sales_invoice':
+                $data = \App\Models\SalesInvoice::with('items.product', 'customer')->find($id);
+                break;
         }
 
         if (!$data) {
@@ -327,13 +337,7 @@ class SalesInvoiceController extends Controller
         $invoice->calculateTotals();
 
         // Log audit
-        AuditLog::create([
-            'action' => 'create',
-            'entity_type' => 'sales_invoice',
-            'entity_id' => $invoice->id,
-            'user_id' => auth()->id(),
-            'new_values' => $invoice->toArray(),
-        ]);
+        AuditLog::log('create', 'sales_invoice', $invoice->id, null, $invoice->toArray());
 
         return redirect()->route('sales.invoices.show', $invoice)
             ->with('success', __('messages.invoice_created'));
@@ -444,14 +448,7 @@ class SalesInvoiceController extends Controller
         $invoice->calculateTotals();
 
         // Log audit
-        AuditLog::create([
-            'action' => 'update',
-            'entity_type' => 'sales_invoice',
-            'entity_id' => $invoice->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-            'new_values' => $invoice->toArray(),
-        ]);
+        AuditLog::log('update', 'sales_invoice', $invoice->id, $oldValues, $invoice->toArray());
 
         return redirect()->route('sales.invoices.show', $invoice)
             ->with('success', __('messages.invoice_updated'));
@@ -469,13 +466,7 @@ class SalesInvoiceController extends Controller
         $invoice->delete();
 
         // Log audit
-        AuditLog::create([
-            'action' => 'delete',
-            'entity_type' => 'sales_invoice',
-            'entity_id' => $invoice->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-        ]);
+        AuditLog::log('delete', 'sales_invoice', $invoice->id, $oldValues);
 
         return redirect()->route('sales.invoices.index')
             ->with('success', __('messages.invoice_deleted'));
@@ -489,12 +480,7 @@ class SalesInvoiceController extends Controller
 
         if ($invoice->post()) {
             // Log audit
-            AuditLog::create([
-                'action' => 'post',
-                'entity_type' => 'sales_invoice',
-                'entity_id' => $invoice->id,
-                'user_id' => auth()->id(),
-            ]);
+            AuditLog::log('post', 'sales_invoice', $invoice->id);
 
             return back()->with('success', __('messages.invoice_posted'));
         }
@@ -510,12 +496,7 @@ class SalesInvoiceController extends Controller
 
         if ($invoice->unpost()) {
             // Log audit
-            AuditLog::create([
-                'action' => 'unpost',
-                'entity_type' => 'sales_invoice',
-                'entity_id' => $invoice->id,
-                'user_id' => auth()->id(),
-            ]);
+            AuditLog::log('unpost', 'sales_invoice', $invoice->id);
 
             return back()->with('success', __('messages.invoice_unposted'));
         }
@@ -525,7 +506,21 @@ class SalesInvoiceController extends Controller
 
     public function downloadPdf(SalesInvoice $invoice)
     {
-        $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator']);
+        $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator', 'company']);
+
+        // Reshape Arabic text for PDF
+        if ($invoice->company) {
+            $invoice->company_name_ar = $this->arabicShaper->shape($invoice->company->name_ar ?? $invoice->company->name_en);
+        }
+        $invoice->customer_name_ar = $this->arabicShaper->shape($invoice->customer?->name_ar ?? '');
+        $invoice->notes_ar = $this->arabicShaper->shape($invoice->notes ?? '');
+
+        foreach ($invoice->items as $item) {
+            $item->product_name_ar = $this->arabicShaper->shape($item->product->name_ar ?? $item->product->name_en);
+            if ($item->description) {
+                $item->description_ar = $this->arabicShaper->shape($item->description);
+            }
+        }
 
         $pdf = PDF::loadView('sales.invoices.pdf', compact('invoice'));
 
@@ -534,7 +529,21 @@ class SalesInvoiceController extends Controller
 
     public function print(SalesInvoice $invoice)
     {
-        $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator']);
+        $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator', 'company']);
+
+        // Reshape Arabic text for PDF
+        if ($invoice->company) {
+            $invoice->company_name_ar = $this->arabicShaper->shape($invoice->company->name_ar ?? $invoice->company->name_en);
+        }
+        $invoice->customer_name_ar = $this->arabicShaper->shape($invoice->customer?->name_ar ?? '');
+        $invoice->notes_ar = $this->arabicShaper->shape($invoice->notes ?? '');
+
+        foreach ($invoice->items as $item) {
+            $item->product_name_ar = $this->arabicShaper->shape($item->product->name_ar ?? $item->product->name_en);
+            if ($item->description) {
+                $item->description_ar = $this->arabicShaper->shape($item->description);
+            }
+        }
 
         return view('sales.invoices.print', compact('invoice'));
     }
@@ -655,13 +664,7 @@ class SalesInvoiceController extends Controller
             'converted_to_type' => 'sales_invoice',
         ]);
 
-        AuditLog::create([
-            'action' => 'create_from_quotation',
-            'entity_type' => 'sales_invoice',
-            'entity_id' => $invoice->id,
-            'user_id' => auth()->id(),
-            'new_values' => ['quotation_id' => $quotation->id],
-        ]);
+        AuditLog::log('create_from_quotation', 'sales_invoice', $invoice->id, null, ['quotation_id' => $quotation->id]);
 
         return redirect()->route('sales.invoices.show', $invoice)
             ->with('success', __('messages.invoice_created_from_quotation'));
@@ -687,34 +690,71 @@ class SalesInvoiceController extends Controller
         $instanceId = \App\Models\SystemSetting::getValue('whatsapp_instance_id');
         $token = \App\Models\SystemSetting::getValue('whatsapp_token');
 
-        \Log::info('WhatsApp config check in SalesInvoiceController', [
+        Log::info('WhatsApp config check in SalesInvoiceController', [
             'instance_id_configured' => !empty($instanceId),
             'token_configured' => !empty($token),
             'document_number' => $invoice->document_number
         ]);
 
         if ($instanceId && $token) {
-            // Generate PDF
-            $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator']);
-            $pdfContent = PDF::loadView('sales.invoices.pdf', compact('invoice'))->output();
+            Log::info('WhatsApp processing started for invoice: ' . $invoice->document_number);
 
-            // Save temporarily
-            $fileName = "invoice_{$invoice->document_number}.pdf";
-            $tempPath = storage_path("app/public/{$fileName}");
-            file_put_contents($tempPath, $pdfContent);
+            try {
+                // Generate PDF
+                $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator', 'company']);
 
-            // Send via API
-            $result = $this->whatsappService->sendDocument($phone, $tempPath, $fileName, $message);
+                // Reshape Arabic text for PDF
+                if ($invoice->company) {
+                    $invoice->company_name_ar = $this->arabicShaper->shape($invoice->company->name_ar ?? $invoice->company->name_en);
+                }
+                $invoice->customer_name_ar = $this->arabicShaper->shape($invoice->customer->name_ar ?? '');
+                $invoice->notes_ar = $this->arabicShaper->shape($invoice->notes ?? '');
 
-            // Clean up
-            if (file_exists($tempPath)) {
-                unlink($tempPath);
-            }
+                foreach ($invoice->items as $item) {
+                    $item->product_name_ar = $this->arabicShaper->shape($item->product->name_ar ?? $item->product->name_en);
+                    if ($item->description) {
+                        $item->description_ar = $this->arabicShaper->shape($item->description);
+                    }
+                }
 
-            if ($result['success']) {
-                return back()->with('success', 'Invoice sent successfully via WhatsApp.');
-            } else {
-                return back()->with('error', 'Failed to send WhatsApp: ' . $result['message']);
+                $pdf = PDF::loadView('sales.invoices.pdf', compact('invoice'));
+                $pdfContent = $pdf->output();
+
+                if (empty($pdfContent)) {
+                    Log::error('WhatsApp send error: PDF content is empty for invoice ' . $invoice->document_number);
+                    return back()->with('error', 'Failed to generate PDF content.');
+                }
+
+                // Save temporarily
+                $fileName = "invoice_{$invoice->document_number}.pdf";
+                $tempPath = storage_path("app/public/{$fileName}");
+
+                if (file_put_contents($tempPath, $pdfContent) === false) {
+                    Log::error('WhatsApp send error: Failed to write temporary PDF to ' . $tempPath);
+                    return back()->with('error', 'Failed to save temporary PDF file.');
+                }
+
+                Log::info('Temporary PDF created successfully: ' . $tempPath);
+
+                // Send via API
+                $result = $this->whatsappService->sendDocument($phone, $tempPath, $fileName, $message);
+
+                // Clean up
+                if (file_exists($tempPath)) {
+                    unlink($tempPath);
+                    Log::info('Temporary PDF cleaned up: ' . $tempPath);
+                }
+
+                if ($result['success']) {
+                    Log::info('Invoice sent successfully via WhatsApp API: ' . $invoice->document_number);
+                    return back()->with('success', 'Invoice sent successfully via WhatsApp.');
+                } else {
+                    Log::error('Invoice WhatsApp API send failed: ' . $invoice->document_number . ' - ' . $result['message']);
+                    return back()->with('error', 'Failed to send WhatsApp: ' . $result['message']);
+                }
+            } catch (\Exception $e) {
+                Log::error('WhatsApp process error for invoice ' . $invoice->document_number . ': ' . $e->getMessage());
+                return back()->with('error', 'An error occurred while processing WhatsApp: ' . $e->getMessage());
             }
         }
 

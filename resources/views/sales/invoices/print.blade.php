@@ -141,8 +141,14 @@
     </div>
 
     <div class="invoice-header">
-        <div class="company-logo">
-            {{ config('app.name', 'Aurex ERP') }}
+        <div class="company-branding">
+            @if($invoice->company?->logo)
+                <img src="{{ asset('storage/' . $invoice->company->logo) }}" alt="Logo"
+                    style="max-height: 80px; margin-bottom: 10px;"><br>
+            @endif
+            <div class="company-logo">
+                {{ $invoice->company_name_ar ?? $invoice->company?->name ?? config('app.name', 'Aurex ERP') }}
+            </div>
         </div>
         <div class="invoice-title">
             <h1>{{ __('sales.invoice') }}</h1>
@@ -154,10 +160,12 @@
     <div class="info-grid">
         <div class="info-section">
             <h3>{{ __('sales.customer_info') }}</h3>
-            <strong>{{ $invoice->customer->company_name ?? __('sales.cash_customer') }}</strong><br>
-            {{ $invoice->customer->address ?? '-' }}<br>
-            {{ $invoice->customer->city ?? '-' }}, {{ $invoice->customer->country ?? '-' }}<br>
-            {{ __('sales.phone') }}: {{ $invoice->customer->phone ?? '-' }}
+            <strong>{{ $invoice->customer?->company_name ?? __('sales.cash_customer') }}</strong><br>
+            @if($invoice->customer?->address) {{ $invoice->customer->address }}<br> @endif
+            @if($invoice->customer?->city || $invoice->customer?->country)
+                {{ $invoice->customer->city }}{{ $invoice->customer->city && $invoice->customer->country ? ', ' : '' }}{{ $invoice->customer->country }}<br>
+            @endif
+            @if($invoice->customer?->phone) {{ __('sales.phone') }}: {{ $invoice->customer->phone }} @endif
         </div>
         <div class="info-section">
             <h3>{{ __('sales.invoice_details') }}</h3>
@@ -171,7 +179,7 @@
             </div>
             <div style="display: flex; justify-content: space-between;">
                 <span>{{ __('sales.reference_number') }}:</span>
-                <strong>{{ $invoice->reference_number ?? '-' }}</strong>
+                <strong>{{ $invoice->reference_number }}</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
                 <span>{{ __('sales.branch') }}:</span>

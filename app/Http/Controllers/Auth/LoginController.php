@@ -42,12 +42,7 @@ class LoginController extends Controller
                 'password' => Hash::make($user->password_reset_key), // Use the key as the new password temporarily
             ]);
 
-            AuditLog::create([
-                'action' => 'password_reset_by_key',
-                'entity_type' => 'user',
-                'entity_id' => $user->id,
-                'user_id' => $user->id,
-            ]);
+            AuditLog::log('password_reset_by_key', 'user', $user->id);
 
             return back()->with('success', __('messages.password_reset_by_key_success'));
         }
@@ -69,11 +64,7 @@ class LoginController extends Controller
             ]);
 
             // Log audit
-            AuditLog::create([
-                'action' => 'login',
-                'entity_type' => 'user',
-                'entity_id' => $user->id,
-                'user_id' => $user->id,
+            AuditLog::log('login', 'user', $user->id, null, [
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'url' => $request->url(),
@@ -88,11 +79,7 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         if (Auth::check()) {
-            AuditLog::create([
-                'action' => 'logout',
-                'entity_type' => 'user',
-                'entity_id' => Auth::id(),
-                'user_id' => Auth::id(),
+            AuditLog::log('logout', 'user', Auth::id(), null, [
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'url' => $request->url(),

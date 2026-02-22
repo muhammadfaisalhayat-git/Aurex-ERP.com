@@ -96,14 +96,20 @@
 
 <body>
     <div class="header">
-        <div class="top-company">{{ $employee->company?->name ?? config('app.name') }}</div>
+        <div class="top-company">
+            {{ $employee->company?->name_en ?? config('app.name') }}
+            @if($employee->company_name_ar_reshaped)
+                <div style="font-size: 18px; margin-top: 5px;">{{ $employee->company_name_ar_reshaped }}</div>
+            @endif
+        </div>
         <div class="logo-text">OFFICIAL DOCUMENT</div>
         @if($employee->company?->logo)
             <img src="{{ public_path('storage/' . $employee->company->logo) }}" alt="Logo"
                 style="max-height: 40px; margin-bottom: 5mm;">
         @endif
         <div style="font-size: 11px; color: #999;">{{ $employee->company?->address }} |
-            {{ $employee->company?->contact_email }}</div>
+            {{ $employee->company?->contact_email }}
+        </div>
     </div>
 
     <div class="main-title">Experience Confirmation</div>

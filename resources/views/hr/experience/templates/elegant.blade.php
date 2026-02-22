@@ -127,7 +127,12 @@
     <div class="gold-frame">
         <div class="inner-frame">
             <div class="header">
-                <div class="top-company">{{ strtoupper($employee->company?->name ?? config('app.name')) }}</div>
+                <div class="top-company">
+                    {{ strtoupper($employee->company?->name_en ?? config('app.name')) }}
+                    @if($employee->company_name_ar_reshaped)
+                        <div style="font-size: 18px; margin-top: 5px;">{{ $employee->company_name_ar_reshaped }}</div>
+                    @endif
+                </div>
                 <div class="logo-container">
                     @if($employee->company?->logo)
                         <img src="{{ public_path('storage/' . $employee->company->logo) }}" alt="Logo"

@@ -8,15 +8,18 @@ use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Services\WhatsAppService;
+use App\Services\ArabicShaper;
 use Illuminate\Http\Request;
 
 class CustomerRequestController extends Controller
 {
     protected $whatsappService;
+    protected $arabicShaper;
 
-    public function __construct(WhatsAppService $whatsappService)
+    public function __construct(WhatsAppService $whatsappService, ArabicShaper $arabicShaper)
     {
         $this->whatsappService = $whatsappService;
+        $this->arabicShaper = $arabicShaper;
     }
 
     public function index(Request $request)
@@ -249,7 +252,19 @@ class CustomerRequestController extends Controller
 
     public function exportPdf(CustomerRequest $customerRequest)
     {
-        $customerRequest->load(['customer', 'branch', 'creator', 'items.product']);
+        $customerRequest->load(['customer', 'branch', 'creator', 'items.product', 'company']);
+
+        // Reshape Arabic text for PDF
+        if ($customerRequest->company) {
+            $customerRequest->company_name_ar = $this->arabicShaper->shape($customerRequest->company->name_ar ?? $customerRequest->company->name_en);
+        }
+        $customerRequest->customer_name_ar = $this->arabicShaper->shape($customerRequest->customer?->name_ar ?? '');
+        $customerRequest->notes_ar = $this->arabicShaper->shape($customerRequest->notes ?? '');
+
+        foreach ($customerRequest->items as $item) {
+            $item->product_name_ar = $this->arabicShaper->shape($item->product->name_ar ?? $item->product->name_en);
+        }
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sales.customer-requests.pdf', compact('customerRequest'));
 
         return $pdf->download('Customer_Request_' . $customerRequest->document_number . '.pdf');

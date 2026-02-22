@@ -7,12 +7,16 @@ use App\Models\Employee;
 use App\Models\Department;
 use App\Models\Designation;
 use App\Models\User;
+use App\Services\ArabicShaper;
 use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
 {
-    public function __construct()
+    protected $arabicShaper;
+
+    public function __construct(ArabicShaper $arabicShaper)
     {
+        $this->arabicShaper = $arabicShaper;
         $this->middleware('permission:view employees')->only(['index', 'show']);
         $this->middleware('permission:create employees')->only(['create', 'store']);
         $this->middleware('permission:edit employees')->only(['edit', 'update']);
@@ -117,6 +121,12 @@ class EmployeeController extends Controller
     public function salarySlip(Employee $employee)
     {
         $employee->load(['department', 'designation', 'company', 'branch']);
+
+        // Reshape Arabic text for PDF
+        $employee->name_ar_reshaped = $this->arabicShaper->shape(($employee->first_name_ar ?? '') . ' ' . ($employee->last_name_ar ?? ''));
+        $employee->designation_ar_reshaped = $this->arabicShaper->shape($employee->designation->name_ar ?? '');
+        $employee->department_ar_reshaped = $this->arabicShaper->shape($employee->department->name_ar ?? '');
+        $employee->company_name_ar_reshaped = $this->arabicShaper->shape($employee->company->name_ar ?? '');
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('hr.employees.salary-slip', compact('employee'));
 

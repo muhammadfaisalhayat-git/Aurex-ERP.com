@@ -584,7 +584,7 @@ class AccountingService
         };
     }
 
-    
+
     /**
      * Get account by mapping or default code.
      */
@@ -612,15 +612,13 @@ class AccountingService
         return $code ? $this->getAccountByCode($code) : null;
     }
 
-private function getSubLedgerTypeByCode($code)
+    private function getSubLedgerTypeByCode($code)
     {
         return match ($code) {
             '103' => 'customer',
-            '105' => 'employee', // Accounts Receivable
+            '105' => 'employee', // Accounts Receivable / Advances
             '201' => 'vendor',
-            '501' => 'employee', // Accounts Payable
-            '105' => 'employee', // Employee Advances/Loans
-            '501' => 'employee', // Salaries
+            '501' => 'employee', // Accounts Payable / Salaries
             default => 'none',
         };
     }
@@ -753,6 +751,69 @@ private function getSubLedgerTypeByCode($code)
                 'description' => 'Inventory Issue Expense: ' . $issueOrder->document_number,
                 'cost_center_no' => $issueOrder->cost_center_no,
             ]);
+
+            return true;
+        });
+    }
+
+    /**
+     * Post Sales Return to ledger automatically.
+     */
+    public function postSalesReturn($return)
+    {
+        return DB::transaction(function () use ($return) {
+            // Find or create standard accounts
+            $arAccount = $this->getAccountByCode('103'); // Accounts Receivable (Asset)
+            $salesAccount = $this->getAccountByCode('401'); // Sales Revenue (Revenue)
+            $taxAccount = $this->getAccountByCode('202'); // Taxes Payable (Liability)
+
+            // Credit Target Account (AR or Cash/Bank)
+            if ($return->return_type === 'cash' && $return->bank_account_id) {
+                $bankAccount = \App\Models\BankAccount::find($return->bank_account_id);
+                $targetAccountId = $bankAccount->chart_of_account_id;
+                $description = 'Sales Return (Cash): ' . $return->return_number;
+            } else {
+                $targetAccountId = $arAccount->id;
+                $description = 'Sales Return (Credit): ' . $return->return_number . ' (Ref: ' . ($return->salesInvoice->invoice_number ?? 'N/A') . ')';
+            }
+
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $targetAccountId,
+                'transaction_date' => $return->return_date,
+                'reference_type' => 'sales_return',
+                'reference_id' => $return->id,
+                'reference_number' => $return->return_number,
+                'debit' => 0,
+                'credit' => $return->total_amount,
+                'description' => $description,
+                'customer_id' => $return->customer_id,
+            ]);
+
+            // Debit Sales (Revenue Reversal)
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $salesAccount->id,
+                'transaction_date' => $return->return_date,
+                'reference_type' => 'sales_return',
+                'reference_id' => $return->id,
+                'reference_number' => $return->return_number,
+                'debit' => $return->subtotal,
+                'credit' => 0,
+                'description' => 'Revenue Reversal from Sales Return: ' . $return->return_number,
+            ]);
+
+            // Debit Tax (Tax Reversal)
+            if ($return->tax_amount > 0) {
+                $this->createLedgerEntry([
+                    'chart_of_account_id' => $taxAccount->id,
+                    'transaction_date' => $return->return_date,
+                    'reference_type' => 'sales_return',
+                    'reference_id' => $return->id,
+                    'reference_number' => $return->return_number,
+                    'debit' => $return->tax_amount,
+                    'credit' => 0,
+                    'description' => 'Tax Reversal on Sales Return: ' . $return->return_number,
+                ]);
+            }
 
             return true;
         });

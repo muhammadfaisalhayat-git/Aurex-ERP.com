@@ -109,7 +109,15 @@
 
 <body>
     <div class="header">
-        <div class="company-name">{{ config('app.name', 'Aurex ERP') }}</div>
+        <div class="company-branding">
+            @if(isset($company) && $company?->logo)
+                <img src="{{ public_path('storage/' . $company->logo) }}" alt="Logo"
+                    style="max-height: 50px; margin-bottom: 5px;"><br>
+            @endif
+            <div class="company-name">
+                {{ $company_name_ar ?: ($company?->name ?? config('app.name', 'Aurex ERP')) }}
+            </div>
+        </div>
         <div class="report-title">{{ __('reports.sales_by_item') }}</div>
         <div style="font-size: 9px; color: #64748b;">{{ __('reports.date') }}: {{ now()->format('Y-m-d H:i') }}</div>
     </div>
@@ -155,9 +163,9 @@
         <tbody>
             @foreach($items as $item)
                 <tr>
-                    <td>{{ $item->salesInvoice->document_number ?? 'N/A' }}</td>
-                    <td>{{ $item->salesInvoice->invoice_date->format('Y-m-d') }}</td>
-                    <td>{{ $item->product->name }}</td>
+                    <td>{{ $item->salesInvoice?->document_number ?? '' }}</td>
+                    <td>{{ $item->salesInvoice?->invoice_date->format('Y-m-d') }}</td>
+                    <td>{{ $item->product_name_ar_reshaped ?? $item->product?->name }}</td>
                     <td class="text-right">{{ number_format($item->quantity, 2) }}</td>
                     <td class="text-right">{{ number_format($item->gross_amount, 2) }}</td>
                 </tr>

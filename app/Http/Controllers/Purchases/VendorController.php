@@ -76,13 +76,7 @@ class VendorController extends Controller
 
         $vendor = Vendor::create($validated);
 
-        AuditLog::create([
-            'action' => 'create',
-            'entity_type' => 'vendor',
-            'entity_id' => $vendor->id,
-            'user_id' => auth()->id(),
-            'new_values' => $vendor->toArray(),
-        ]);
+        AuditLog::log('create', 'vendor', $vendor->id, null, $vendor->toArray());
 
         return redirect()->route('purchases.vendors.index')
             ->with('success', __('messages.vendor_created'));
@@ -124,14 +118,7 @@ class VendorController extends Controller
         $oldValues = $vendor->toArray();
         $vendor->update($validated);
 
-        AuditLog::create([
-            'action' => 'update',
-            'entity_type' => 'vendor',
-            'entity_id' => $vendor->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-            'new_values' => $vendor->toArray(),
-        ]);
+        AuditLog::log('update', 'vendor', $vendor->id, $oldValues, $vendor->toArray());
 
         return redirect()->route('purchases.vendors.index')
             ->with('success', __('messages.vendor_updated'));
@@ -147,13 +134,7 @@ class VendorController extends Controller
         $oldValues = $vendor->toArray();
         $vendor->delete();
 
-        AuditLog::create([
-            'action' => 'delete',
-            'entity_type' => 'vendor',
-            'entity_id' => $vendor->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-        ]);
+        AuditLog::log('delete', 'vendor', $vendor->id, $oldValues);
 
         return redirect()->route('purchases.vendors.index')
             ->with('success', __('messages.vendor_deleted'));

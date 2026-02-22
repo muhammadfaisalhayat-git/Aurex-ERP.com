@@ -143,8 +143,14 @@
     </div>
 
     <div class="header">
-        <div class="company-logo">
-            {{ config('app.name', 'Aurex ERP') }}
+        <div class="company-branding">
+            @if($invoice->company?->logo)
+                <img src="{{ asset('storage/' . $invoice->company->logo) }}" alt="Logo"
+                    style="max-height: 80px; margin-bottom: 10px;"><br>
+            @endif
+            <div class="company-logo">
+                {{ $invoice->company_name_ar_reshaped ?? $invoice->company?->name ?? config('app.name', 'Aurex ERP') }}
+            </div>
         </div>
         <div class="document-title">
             <h1>{{ __('messages.purchase_invoice') }}</h1>
@@ -156,18 +162,19 @@
     <div class="info-grid">
         <div class="info-section">
             <h3>{{ __('messages.vendor_information') }}</h3>
-            <strong>{{ $invoice->vendor->name ?? '-' }}</strong><br>
-            {{ $invoice->vendor->address ?? '-' }}<br>
-            {{ $invoice->vendor->phone ?? '-' }}<br>
-            {{ __('messages.tax_number') }}: {{ $invoice->vendor->tax_number ?? '-' }}
+            <strong>{{ $invoice->vendor_name_ar_reshaped ?? ($invoice->vendor?->name ?? '') }}</strong><br>
+            @if($invoice->vendor?->address) {{ $invoice->vendor->address }}<br> @endif
+            @if($invoice->vendor?->phone) {{ $invoice->vendor->phone }}<br> @endif
+            @if($invoice->vendor?->tax_number) {{ __('messages.tax_number') }}: {{ $invoice->vendor->tax_number }}
+            @endif
         </div>
         <div class="info-section">
             <h3>{{ __('messages.invoice_details') }}</h3>
             <strong>{{ __('messages.status') }}:</strong> {{ ucfirst($invoice->status) }}<br>
             <strong>{{ __('messages.due_date') }}:</strong>
-            {{ $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '-' }}<br>
-            <strong>{{ __('messages.created_by') }}:</strong> {{ $invoice->creator->name ?? '-' }}<br>
-            <strong>{{ __('messages.branch') }}:</strong> {{ $invoice->branch->name ?? '-' }}
+            {{ $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '' }}<br>
+            <strong>{{ __('messages.created_by') }}:</strong> {{ $invoice->creator->name ?? '' }}<br>
+            <strong>{{ __('messages.branch') }}:</strong> {{ $invoice->branch->name ?? '' }}
         </div>
     </div>
 
@@ -184,7 +191,7 @@
             @foreach($invoice->items as $item)
                 <tr>
                     <td>
-                        <strong>{{ $item->product->name }}</strong>
+                        <strong>{{ $item->product_name_ar_reshaped ?? $item->product->name }}</strong>
                     </td>
                     <td class="text-end">{{ number_format($item->quantity, 2) }}</td>
                     <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
@@ -226,7 +233,7 @@
     @if($invoice->notes)
         <div style="margin-top: 40px;">
             <h3 style="font-size: 16px; color: #64748b; margin-bottom: 10px;">{{ __('messages.notes') }}</h3>
-            <p style="white-space: pre-wrap;">{{ $invoice->notes }}</p>
+            <p style="white-space: pre-wrap;">{{ $invoice->notes_ar_reshaped ?? $invoice->notes }}</p>
         </div>
     @endif
 

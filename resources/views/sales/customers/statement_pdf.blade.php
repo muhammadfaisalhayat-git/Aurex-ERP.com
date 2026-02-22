@@ -1,22 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+
 <head>
     <meta charset="utf-8">
     <title>Customer Statement - {{ $customer->name }}</title>
     <style>
-        body { font-family: sans-serif; font-size: 12px; color: #333; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { margin: 0; color: #000; }
-        .info-table { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
-        .info-table td { padding: 5px; vertical-align: top; }
-        .statement-table { width: 100%; border-collapse: collapse; }
-        .statement-table th { background: #f2f2f2; border: 1px solid #ccc; padding: 8px; text-align: left; }
-        .statement-table td { border: 1px solid #ccc; padding: 8px; }
-        .text-end { text-align: right; }
-        .fw-bold { font-weight: bold; }
-        .footer { margin-top: 30px; font-size: 10px; color: #777; text-align: center; }
+        body {
+            font-family:
+                {{ app()->getLocale() == 'ar' ? "'DejaVu Sans'" : 'sans-serif' }}
+            ;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #000;
+        }
+
+        .info-table {
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+        }
+
+        .info-table td {
+            padding: 5px;
+            vertical-align: top;
+        }
+
+        .statement-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .statement-table th {
+            background: #f2f2f2;
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align:
+                {{ app()->getLocale() == 'ar' ? 'right' : 'left' }}
+            ;
+        }
+
+        .statement-table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align:
+                {{ app()->getLocale() == 'ar' ? 'right' : 'left' }}
+            ;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+
+        .fw-bold {
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 10px;
+            color: #777;
+            text-align: center;
+        }
     </style>
 </head>
+
 <body>
     <div class="header">
         <h1>CUSTOMER STATEMENT</h1>
@@ -27,7 +83,7 @@
         <tr>
             <td width="50%">
                 <p class="fw-bold">Customer:</p>
-                <p>{{ $customer->name }}</p>
+                <p>{{ $customer->name_ar_reshaped ?? $customer->name }}</p>
                 <p>{{ $customer->code }}</p>
                 <p>{{ $customer->address }}</p>
             </td>
@@ -71,7 +127,7 @@
                 <tr>
                     <td>{{ $entry->transaction_date->format('Y-m-d') }}</td>
                     <td>{{ $entry->reference_number }}</td>
-                    <td>{{ $entry->description }}</td>
+                    <td>{{ $entry->description_ar_reshaped ?? $entry->description }}</td>
                     <td class="text-end">{{ $entry->debit > 0 ? number_format($entry->debit, 2) : '-' }}</td>
                     <td class="text-end">{{ $entry->credit > 0 ? number_format($entry->credit, 2) : '-' }}</td>
                     <td class="text-end fw-bold">{{ number_format($runningBalance, 2) }}</td>
@@ -92,4 +148,5 @@
         <p>This is a computer-generated document. No signature required.</p>
     </div>
 </body>
+
 </html>

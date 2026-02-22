@@ -200,7 +200,6 @@ return [
     'date_range' => 'Date Range',
     'change_filters' => 'Change Filters',
     'generate' => 'Generate',
-    'filter' => 'Filter',
     'main_account' => 'Main Account',
     'sub_account' => 'Sub Account',
     'select_main_account' => 'Select Main Account',
@@ -254,6 +253,7 @@ return [
     'gl_account' => 'GL Account',
     'search_vouchers' => 'Search Vouchers',
     'customer_information' => 'Customer Information',
+    'customer_info' => 'Customer Information',
     'vendor_information' => 'Vendor Information',
     'total_balance' => 'Total Balance',
     'number' => 'Number',
@@ -408,6 +408,8 @@ return [
     'address_information' => 'Address Information',
     'financial_information' => 'Financial Information',
     'other_information' => 'Other Information',
+    'other_info' => 'Other Information',
+    'walking_customer' => 'Walking Customer',
 
     // Selection Hints
     'select_group' => 'Select Customer Group',
@@ -459,9 +461,6 @@ return [
     'contracts' => 'Contracts',
     'orders' => 'Orders',
     'order_number' => 'Order Number',
-    'sales_order' => 'Sales Order',
-    'sales_invoice' => 'Sales Invoice',
-    'sales_return' => 'Sales Return',
     'reports_by_customer' => 'Sales by Customer',
 
     // Invoice
@@ -551,12 +550,18 @@ return [
     'return_date' => 'Return Date',
     'return_reason' => 'Return Reason',
     'reason_description' => 'Reason Description',
+    'create_return' => 'Create Return',
+    'return_details' => 'Return Details',
+    'return_info' => 'Return Information',
+    'select_invoice' => 'Select Invoice',
+    'return_created' => 'Sales return created successfully.',
     'defective' => 'Defective',
     'wrong_item' => 'Wrong Item',
     'customer_return' => 'Customer Return',
     'other' => 'Other',
     'restock_inventory' => 'Restock Inventory',
     'credit_note' => 'Credit Note',
+    'return_type' => 'Return Type',
 
     // Commission
     'calculation_type' => 'Calculation Type',
@@ -613,7 +618,6 @@ return [
     'supply_order_converted_to_invoice' => 'Supply order converted to invoice successfully',
     'send_supply_order' => 'Send Supply Order',
     'order_to_invoice' => 'Convert to Invoice',
-    'purchase_invoice' => 'Purchase Invoice',
     'expected_delivery_date' => 'Expected Delivery Date',
 
     // Inventory
@@ -640,7 +644,6 @@ return [
     'no_components_found' => 'No components found',
 
     // Product
-    'product_code' => 'Product Code',
     'barcode' => 'Barcode',
     'sku' => 'SKU',
     'product_type' => 'Product Type',
@@ -653,7 +656,6 @@ return [
     'unit_of_measure' => 'Unit of Measure',
     'weight' => 'Weight',
     'volume' => 'Volume',
-    'reorder_level' => 'Reorder Level',
     'reorder_quantity' => 'Reorder Quantity',
     'is_sellable' => 'Is Sellable',
     'is_purchasable' => 'Is Purchasable',
@@ -784,6 +786,8 @@ return [
     'record_unposted' => 'The document has been unposted successfully.',
     'is_loading' => 'Loading...',
     'please_wait' => 'Please wait...',
+    'at' => 'at',
+    'server_error_occurred' => 'A server error occurred. Please try again.',
     'required_field' => 'This field is required',
     'invalid_email' => 'Please enter a valid email address',
     'invalid_number' => 'Please enter a valid number',

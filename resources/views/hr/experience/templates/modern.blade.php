@@ -125,7 +125,12 @@
 <body>
     <div class="page-border">
         <div class="inner-border">
-            <div class="top-company">{{ strtoupper($employee->company?->name ?? config('app.name')) }}</div>
+            <div class="top-company">
+                {{ strtoupper($employee->company?->name_en ?? config('app.name')) }}
+                @if($employee->company_name_ar_reshaped)
+                    <div style="font-size: 18px; margin-top: 5px;">{{ $employee->company_name_ar_reshaped }}</div>
+                @endif
+            </div>
             <div class="header">
                 <div class="logo-box">
                     @if($employee->company?->logo)

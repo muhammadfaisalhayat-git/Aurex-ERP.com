@@ -40,14 +40,7 @@ class BranchController extends Controller
 
         $branch = Branch::create($validated);
 
-        AuditLog::create([
-            'action' => 'create',
-            'entity_type' => 'branch',
-            'entity_id' => $branch->id,
-            'user_id' => auth()->id(),
-            'company_id' => $branch->company_id,
-            'new_values' => $branch->toArray(),
-        ]);
+        AuditLog::log('create', 'branch', $branch->id, null, $branch->toArray());
 
         return redirect()->route('admin.branches.index')
             ->with('success', __('messages.branch_created'));
@@ -82,15 +75,7 @@ class BranchController extends Controller
         $oldValues = $branch->toArray();
         $branch->update($validated);
 
-        AuditLog::create([
-            'action' => 'update',
-            'entity_type' => 'branch',
-            'entity_id' => $branch->id,
-            'user_id' => auth()->id(),
-            'company_id' => $branch->company_id,
-            'old_values' => $oldValues,
-            'new_values' => $branch->toArray(),
-        ]);
+        AuditLog::log('update', 'branch', $branch->id, $oldValues, $branch->toArray());
 
         return redirect()->route('admin.branches.index')
             ->with('success', __('messages.branch_updated'));
@@ -105,13 +90,7 @@ class BranchController extends Controller
         $oldValues = $branch->toArray();
         $branch->delete();
 
-        AuditLog::create([
-            'action' => 'delete',
-            'entity_type' => 'branch',
-            'entity_id' => $branch->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-        ]);
+        AuditLog::log('delete', 'branch', $branch->id, $oldValues);
 
         return redirect()->route('admin.branches.index')
             ->with('success', __('messages.branch_deleted'));

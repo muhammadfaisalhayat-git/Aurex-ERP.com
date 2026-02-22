@@ -49,13 +49,7 @@ class RoleController extends Controller
         }
 
         // Log audit
-        AuditLog::create([
-            'action' => 'create',
-            'entity_type' => 'role',
-            'entity_id' => $role->id,
-            'user_id' => auth()->id(),
-            'new_values' => $role->toArray(),
-        ]);
+        AuditLog::log('create', 'role', $role->id, null, $role->toArray());
 
         return redirect()->route('admin.roles.index')
             ->with('success', __('messages.role_created'));
@@ -105,14 +99,7 @@ class RoleController extends Controller
         $role->syncPermissions($permissionNames);
 
         // Log audit
-        AuditLog::create([
-            'action' => 'update',
-            'entity_type' => 'role',
-            'entity_id' => $role->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-            'new_values' => $role->toArray(),
-        ]);
+        AuditLog::log('update', 'role', $role->id, $oldValues, $role->toArray());
 
         return redirect()->route('admin.roles.index')
             ->with('success', __('messages.role_updated'));
@@ -133,13 +120,7 @@ class RoleController extends Controller
         $role->delete();
 
         // Log audit
-        AuditLog::create([
-            'action' => 'delete',
-            'entity_type' => 'role',
-            'entity_id' => $role->id,
-            'user_id' => auth()->id(),
-            'old_values' => $oldValues,
-        ]);
+        AuditLog::log('delete', 'role', $role->id, $oldValues);
 
         return redirect()->route('admin.roles.index')
             ->with('success', __('messages.role_deleted'));
@@ -162,17 +143,11 @@ class RoleController extends Controller
 
         $permissionIds = $validated['permissions'] ?? [];
         $permissionNames = Permission::whereIn('id', $permissionIds)->pluck('name');
-        
+
         $role->syncPermissions($permissionNames);
 
         // Log audit
-        AuditLog::create([
-            'action' => 'update_permissions',
-            'entity_type' => 'role',
-            'entity_id' => $role->id,
-            'user_id' => auth()->id(),
-            'new_values' => ['permissions' => $permissionNames->toArray()],
-        ]);
+        AuditLog::log('update_permissions', 'role', $role->id, null, ['permissions' => $permissionNames->toArray()]);
 
         return redirect()->route('admin.roles.index')
             ->with('success', __('messages.permissions_updated'));
