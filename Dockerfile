@@ -51,5 +51,5 @@ COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.con
 # Expose port 80
 EXPOSE 80
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Start: create storage symlink then launch Apache
+CMD ["sh", "-c", "php artisan storage:link --force 2>/dev/null || true && apache2-foreground"]

@@ -63,14 +63,39 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">{{ __('Logo') }}</label>
-                        <input type="file" name="logo" class="form-control @error('logo') is-invalid @enderror">
-                        @if(isset($company) && $company->logo)
-                            <div class="mt-2 text-muted small">
-                                Current: <img src="{{ asset('storage/' . $company->logo) }}" height="20">
-                            </div>
-                        @endif
+                        <input type="file" name="logo" id="logo-input"
+                            class="form-control @error('logo') is-invalid @enderror" accept="image/*"
+                            onchange="previewLogo(this)">
                         @error('logo') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                        {{-- Logo Preview --}}
+                        <div id="logo-preview-wrapper"
+                            style="margin-top: 12px; display: {{ isset($company) && $company->logo ? 'block' : 'none' }};">
+                            <div
+                                style="display: inline-block; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #f8fafc;">
+                                <img id="logo-preview-img"
+                                    src="{{ isset($company) && $company->logo ? asset('storage/' . $company->logo) : '' }}"
+                                    alt="Logo Preview"
+                                    style="max-height: 80px; max-width: 220px; object-fit: contain; display: block;">
+                                <div style="font-size: 11px; color: #94a3b8; margin-top: 6px; text-align: center;">
+                                    {{ isset($company) && $company->logo ? __('Current Logo') : __('New Logo Preview') }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    <script>
+                        function previewLogo(input) {
+                            if (input.files && input.files[0]) {
+                                var reader = new FileReader();
+                                reader.onload = function (e) {
+                                    document.getElementById('logo-preview-img').src = e.target.result;
+                                    document.getElementById('logo-preview-wrapper').style.display = 'block';
+                                };
+                                reader.readAsDataURL(input.files[0]);
+                            }
+                        }
+                    </script>
                     <div class="col-md-6">
                         <div class="form-check mt-4">
                             <input type="hidden" name="is_active" value="0">
