@@ -111,10 +111,13 @@
             <div class="top-company">
                 {{ strtoupper($employee->company?->name_en ?? config('app.name')) }}
                 @if($employee->company_name_ar_reshaped)
-                    <div style="font-size: 18px; margin-top: 5px;">{{ $employee->company_name_ar_reshaped }}</div>
+                    <div style="font-size: 18px; margin-top: 5px; font-family: 'DejaVu Sans', sans-serif;">
+                        {{ $employee->company_name_ar_reshaped }}</div>
                 @endif
             </div>
-            @if($employee->company?->logo)
+            @if(isset($logoBase64) && $logoBase64)
+                <img src="{{ $logoBase64 }}" alt="Logo" class="logo-img">
+            @elseif($employee->company?->logo)
                 <img src="{{ public_path('storage/' . $employee->company->logo) }}" alt="Logo" class="logo-img">
             @endif
             <div class="clear"></div>

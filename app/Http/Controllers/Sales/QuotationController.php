@@ -248,18 +248,29 @@ class QuotationController extends Controller
     {
         $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'company']);
 
+        // Base64 logo for PDF
+        $logoBase64 = null;
+        if ($quotation->company?->logo) {
+            $path = public_path('storage/' . $quotation->company->logo);
+            if (file_exists($path)) {
+                $type = pathinfo($path, PATHINFO_EXTENSION);
+                $data = file_get_contents($path);
+                $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+            }
+        }
+
         // Reshape Arabic text for PDF
         if ($quotation->company) {
-            $quotation->company_name_ar = $this->arabicShaper->shape($quotation->company->name_ar ?? $quotation->company->name_en);
+            $quotation->company_name_ar = $this->arabicShaper->shape($quotation->company?->name_ar ?? $quotation->company?->name_en);
         }
         $quotation->customer_name_ar = $this->arabicShaper->shape($quotation->customer?->name_ar ?? '');
         $quotation->notes_ar = $this->arabicShaper->shape($quotation->notes ?? '');
 
         foreach ($quotation->items as $item) {
-            $item->product_name_ar = $this->arabicShaper->shape($item->product->name_ar ?? $item->product->name_en);
+            $item->product_name_ar = $this->arabicShaper->shape($item->product?->name_ar ?? $item->product?->name_en);
         }
 
-        $pdf = Pdf::loadView('sales.quotations.pdf', compact('quotation'));
+        $pdf = Pdf::loadView('sales.quotations.pdf', compact('quotation', 'logoBase64'));
         return $pdf->download('quotation-' . $quotation->document_number . '.pdf');
     }
 

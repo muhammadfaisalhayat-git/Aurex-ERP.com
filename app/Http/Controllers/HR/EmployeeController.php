@@ -128,7 +128,18 @@ class EmployeeController extends Controller
         $employee->department_ar_reshaped = $this->arabicShaper->shape($employee->department->name_ar ?? '');
         $employee->company_name_ar_reshaped = $this->arabicShaper->shape($employee->company->name_ar ?? '');
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('hr.employees.salary-slip', compact('employee'));
+        // Base64 logo for PDF
+        $logoBase64 = null;
+        if ($employee->company?->logo) {
+            $path = public_path('storage/' . $employee->company->logo);
+            if (file_exists($path)) {
+                $type = pathinfo($path, PATHINFO_EXTENSION);
+                $data = file_get_contents($path);
+                $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+            }
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('hr.employees.salary-slip', compact('employee', 'logoBase64'));
 
         return $pdf->stream('salary-slip-' . $employee->employee_code . '.pdf');
     }

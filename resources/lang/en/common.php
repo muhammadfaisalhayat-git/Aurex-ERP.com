@@ -12,4 +12,6 @@ return [
     'confirm_delete' => 'Are you sure you want to delete this item?',
     'created_by' => 'Created By',
     'at' => 'at',
+    'close' => 'Close',
+    'print' => 'Print',
 ];

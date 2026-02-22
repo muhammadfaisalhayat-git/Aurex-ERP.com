@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+<html lang="{{ app()->getLocale() }}">
 
 <head>
     <meta charset="UTF-8">
@@ -80,16 +80,20 @@
 
 <body>
     <div class="header" style="position: relative; min-height: 100px;">
-        <div style="float: left;">
-            @if($quotation->company?->logo)
+        <div
+            style="float: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }}; text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};">
+            @if(isset($logoBase64) && $logoBase64)
+                <img src="{{ $logoBase64 }}" alt="Logo" style="max-height: 80px;"><br>
+            @elseif($quotation->company?->logo)
                 <img src="{{ public_path('storage/' . $quotation->company->logo) }}" alt="Logo"
                     style="max-height: 80px;"><br>
             @endif
-            <div style="font-size: 20px; font-weight: bold; color: #333;">
+            <div style="font-size: 20px; font-weight: bold; color: #333; font-family: 'DejaVu Sans', sans-serif;">
                 {{ $quotation->company_name_ar ?? $quotation->company?->name ?? config('app.name', 'Aurex ERP') }}
             </div>
         </div>
-        <div style="float: right; text-align: right;">
+        <div
+            style="float: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }}; text-align: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }};">
             <h2 style="margin: 0; color: #2563eb;">{{ __('messages.quotation') }}</h2>
             <p style="margin: 5px 0;">#{{ $quotation->document_number }}</p>
         </div>
@@ -98,15 +102,17 @@
 
     <table class="details-table">
         <tr>
-            <td style="width: 50%;">
+            <td style="width: 50%; text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};">
                 <h3 class="fw-bold">{{ __('messages.customer_details') }}</h3>
-                <p>{{ $quotation->customer_name_ar ?? $quotation->customer?->name_ar ?? $quotation->customer?->name_en }}<br>
-                    @if($quotation->customer?->address) {{ $quotation->customer->address }}<br> @endif
-                    @if($quotation->customer?->phone) {{ $quotation->customer->phone }}<br> @endif
-                    @if($quotation->customer?->email) {{ $quotation->customer->email }} @endif
-                </p>
+                <div style="font-family: 'DejaVu Sans', sans-serif;">
+                    <p>{{ $quotation->customer_name_ar ?? $quotation->customer?->name_ar ?? $quotation->customer?->name_en }}<br>
+                        @if($quotation->customer?->address) {{ $quotation->customer->address }}<br> @endif
+                        @if($quotation->customer?->phone) {{ $quotation->customer->phone }}<br> @endif
+                        @if($quotation->customer?->email) {{ $quotation->customer->email }} @endif
+                    </p>
+                </div>
             </td>
-            <td style="width: 50%; text-align: right;">
+            <td style="width: 50%; text-align: {{ app()->getLocale() === 'ar' ? 'left' : 'right' }};">
                 <h3 class="fw-bold">{{ __('messages.quotation_details') }}</h3>
                 <p><strong>{{ __('messages.date') }}:</strong> {{ $quotation->quotation_date->format('Y-m-d') }}<br>
                     <strong>{{ __('messages.expiry_date') }}:</strong>

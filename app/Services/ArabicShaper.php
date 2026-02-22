@@ -6,9 +6,9 @@ class ArabicShaper
 {
     /**
      * Arabic Character forms (Isolated, End, Middle, Beginning)
+     * Order: [Isolated, Final (End), Medial (Mid), Initial (Beg)]
      */
     private $arabicChars = [
-        // Char => [Iso, End, Mid, Beg, canJoinLeft, canJoinRight]
         0x0621 => [0xFE80, 0xFE80, 0xFE80, 0xFE80, false, false], // Hamza
         0x0622 => [0xFE81, 0xFE82, 0xFE82, 0xFE81, false, true],  // Alef with Madda
         0x0623 => [0xFE83, 0xFE84, 0xFE84, 0xFE83, false, true],  // Alef with Hamza Above
@@ -74,17 +74,22 @@ class ArabicShaper
             $canJoinLeft = $this->arabicChars[$current][4];
             $canJoinRight = $this->arabicChars[$current][5];
 
+            // Join with previous? 
+            // Previous must be able to join to its left AND current must be able to join to its right
             $joinPrev = $prev && isset($this->arabicChars[$prev]) && $this->arabicChars[$prev][4] && $canJoinRight;
+
+            // Join with next?
+            // Next must be able to join to its right AND current must be able to join to its left
             $joinNext = $next && isset($this->arabicChars[$next]) && $this->arabicChars[$next][5] && $canJoinLeft;
 
             if ($joinPrev && $joinNext) {
-                $shapedChars[] = $this->arabicChars[$current][2]; // Mid
+                $shapedChars[] = $this->arabicChars[$current][2]; // Medial (Mid)
             } elseif ($joinPrev) {
-                $shapedChars[] = $this->arabicChars[$current][1]; // End
+                $shapedChars[] = $this->arabicChars[$current][1]; // Final (End)
             } elseif ($joinNext) {
-                $shapedChars[] = $this->arabicChars[$current][3]; // Beg
+                $shapedChars[] = $this->arabicChars[$current][3]; // Initial (Beg)
             } else {
-                $shapedChars[] = $this->arabicChars[$current][0]; // Iso
+                $shapedChars[] = $this->arabicChars[$current][0]; // Isolated
             }
         }
 
@@ -131,9 +136,11 @@ class ArabicShaper
                     $lookingFor = ($thisValue < 224) ? 2 : 3;
                 $values[] = $thisValue;
                 if (count($values) == $lookingFor) {
-                    $number = ($lookingFor == 3) ?
-                        (($values[0] % 16) * 4096) + (($values[1] % 64) * 64) + ($values[2] % 64) :
-                        (($values[0] % 32) * 64) + ($values[1] % 64);
+                    if ($lookingFor == 3) {
+                        $number = (($values[0] % 16) * 4096) + (($values[1] % 64) * 64) + ($values[2] % 64);
+                    } else {
+                        $number = (($values[0] % 32) * 64) + ($values[1] % 64);
+                    }
                     $unicodes[] = $number;
                     $values = [];
                     $lookingFor = 0;

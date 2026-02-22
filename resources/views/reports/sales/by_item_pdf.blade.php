@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+<html lang="{{ app()->getLocale() }}">
 
 <head>
     <meta charset="UTF-8">
@@ -110,11 +110,13 @@
 <body>
     <div class="header">
         <div class="company-branding">
-            @if(isset($company) && $company?->logo)
+            @if(isset($logoBase64) && $logoBase64)
+                <img src="{{ $logoBase64 }}" alt="Logo" style="max-height: 50px; margin-bottom: 5px;"><br>
+            @elseif(isset($company) && $company?->logo)
                 <img src="{{ public_path('storage/' . $company->logo) }}" alt="Logo"
                     style="max-height: 50px; margin-bottom: 5px;"><br>
             @endif
-            <div class="company-name">
+            <div class="company-name" style="font-family: 'DejaVu Sans', sans-serif;">
                 {{ $company_name_ar ?: ($company?->name ?? config('app.name', 'Aurex ERP')) }}
             </div>
         </div>
@@ -165,7 +167,8 @@
                 <tr>
                     <td>{{ $item->salesInvoice?->document_number ?? '' }}</td>
                     <td>{{ $item->salesInvoice?->invoice_date->format('Y-m-d') }}</td>
-                    <td>{{ $item->product_name_ar_reshaped ?? $item->product?->name }}</td>
+                    <td style="font-family: 'DejaVu Sans', sans-serif;">
+                        {{ $item->product_name_ar_reshaped ?? $item->product?->name }}</td>
                     <td class="text-right">{{ number_format($item->quantity, 2) }}</td>
                     <td class="text-right">{{ number_format($item->gross_amount, 2) }}</td>
                 </tr>

@@ -29,6 +29,14 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
+# Create required Laravel directories (may not exist in repo due to .gitignore)
+RUN mkdir -p bootstrap/cache \
+    storage/framework/cache/data \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    && chmod -R 775 bootstrap/cache storage
+
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 

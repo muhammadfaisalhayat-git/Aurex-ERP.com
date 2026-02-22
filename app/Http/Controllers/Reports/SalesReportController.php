@@ -363,7 +363,18 @@ class SalesReportController extends Controller
             $company = \App\Models\Company::find(session('active_company_id'));
             $company_name_ar = $company ? $this->arabicShaper->shape($company->name_ar ?? $company->name_en) : '';
 
-            $pdf = Pdf::loadView('reports.sales.by_customer_pdf', compact('invoices', 'validated', 'company', 'company_name_ar'));
+            // Base64 logo for PDF
+            $logoBase64 = null;
+            if ($company?->logo) {
+                $path = public_path('storage/' . $company->logo);
+                if (file_exists($path)) {
+                    $type = pathinfo($path, PATHINFO_EXTENSION);
+                    $data = file_get_contents($path);
+                    $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                }
+            }
+
+            $pdf = Pdf::loadView('reports.sales.by_customer_pdf', compact('invoices', 'validated', 'company', 'company_name_ar', 'logoBase64'));
             return $pdf->download($filename . '.pdf');
         }
 
@@ -469,7 +480,18 @@ class SalesReportController extends Controller
             $company = \App\Models\Company::find(session('active_company_id'));
             $company_name_ar = $company ? $this->arabicShaper->shape($company->name_ar ?? $company->name_en) : '';
 
-            $pdf = Pdf::loadView('reports.sales.by_item_pdf', compact('items', 'totals', 'validated', 'company', 'company_name_ar'));
+            // Base64 logo for PDF
+            $logoBase64 = null;
+            if ($company?->logo) {
+                $path = public_path('storage/' . $company->logo);
+                if (file_exists($path)) {
+                    $type = pathinfo($path, PATHINFO_EXTENSION);
+                    $data = file_get_contents($path);
+                    $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                }
+            }
+
+            $pdf = Pdf::loadView('reports.sales.by_item_pdf', compact('items', 'totals', 'validated', 'company', 'company_name_ar', 'logoBase64'));
             return $pdf->download($filename . '.pdf');
         }
 

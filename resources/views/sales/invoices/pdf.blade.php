@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+<html lang="{{ app()->getLocale() }}">
 
 <head>
     <meta charset="UTF-8">
@@ -93,7 +93,16 @@
         }
 
         [dir="rtl"] .company-name {
-            text-align: right;
+            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
+        }
+        
+        .company-name {
+            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
+            font-family: 'DejaVu Sans', sans-serif;
+        }
+
+        .company-branding {
+            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
         }
 
         [dir="rtl"] .invoice-title {
@@ -120,11 +129,13 @@
     <table class="header-table">
         <tr>
             <td class="company-branding">
-                @if($invoice->company?->logo)
+                @if(isset($logoBase64) && $logoBase64)
+                    <img src="{{ $logoBase64 }}" alt="Logo" style="max-height: 80px; margin-bottom: 10px;"><br>
+                @elseif($invoice->company?->logo)
                     <img src="{{ public_path('storage/' . $invoice->company->logo) }}" alt="Logo"
                         style="max-height: 80px; margin-bottom: 10px;"><br>
                 @endif
-                <div class="company-name">
+                <div class="company-name" style="font-family: 'DejaVu Sans', sans-serif;">
                     {{ $invoice->company_name_ar ?? $invoice->company?->name ?? config('app.name', 'Aurex ERP') }}
                 </div>
             </td>
@@ -142,7 +153,9 @@
         <tr>
             <td>
                 <div class="section-title">{{ __('sales.customer_info') }}</div>
-                <strong>{{ $invoice->customer_name_ar ?? $invoice->customer?->name_ar ?? $invoice->customer?->company_name ?? __('sales.cash_customer') }}</strong><br>
+                <div style="font-family: 'DejaVu Sans', sans-serif;">
+                    <strong>{{ $invoice->customer_name_ar ?? $invoice->customer?->name_ar ?? $invoice->customer?->company_name ?? __('sales.cash_customer') }}</strong>
+                </div>
                 @if($invoice->customer?->address) {{ $invoice->customer->address }}<br> @endif
                 @if($invoice->customer?->city || $invoice->customer?->country)
                     {{ $invoice->customer->city }}{{ $invoice->customer->city && $invoice->customer->country ? ', ' : '' }}{{ $invoice->customer->country }}<br>
