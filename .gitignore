@@ -26,3 +26,8 @@ yarn-error.log
 !/storage/framework/views/.gitignore
 /storage/logs/*
 !/storage/logs/.gitignore
+
+.git_portable/
+check_perms.php
+count_tags.php
+test_coa_view.php

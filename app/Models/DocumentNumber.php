@@ -32,12 +32,12 @@ class DocumentNumber extends Model
 
         $sequence = self::firstOrCreate(
             $criteria,
-            [
-                'prefix' => $prefix ?? self::getDefaultPrefix($entityType),
-                'current_number' => 0,
-                'padding' => 5,
-                'year' => date('Y'),
-            ]
+        [
+            'prefix' => $prefix ?? self::getDefaultPrefix($entityType),
+            'current_number' => 0,
+            'padding' => 5,
+            'year' => date('Y'),
+        ]
         );
 
         // Reset if year changed
@@ -48,9 +48,45 @@ class DocumentNumber extends Model
             ]);
         }
 
-        $sequence->increment('current_number');
+        $modelClass = self::getModelForEntity($entityType);
+        $finalNumber = null;
 
-        return $sequence->prefix . '-' . date('Y') . '-' . str_pad($sequence->current_number, $sequence->padding, '0', STR_PAD_LEFT);
+        // Self-healing loop: increment until we find a number that doesn't exist in the database
+        do {
+            $sequence->increment('current_number');
+            $finalNumber = $sequence->prefix . '-' . date('Y') . '-' . str_pad($sequence->current_number, $sequence->padding, '0', STR_PAD_LEFT);
+
+            // If we have a model mapping, check for uniqueness globally (across all branches)
+            if ($modelClass) {
+                // We check globally because prefixes like "SI" might be shared but validation is global
+                $exists = $modelClass::where('document_number', $finalNumber)
+                    ->orWhere('invoice_number', $finalNumber) // Special case for invoices
+                    ->exists();
+            }
+            else {
+                $exists = false;
+            }
+        } while ($exists);
+
+        return $finalNumber;
+    }
+
+    protected static function getModelForEntity($entityType)
+    {
+        $map = [
+            'sales_invoice' => \App\Models\SalesInvoice::class ,
+            'sales_order' => \App\Models\SalesOrder::class ,
+            'quotation' => \App\Models\Quotation::class ,
+            'customer_request' => \App\Models\CustomerRequest::class ,
+            'purchase_invoice' => \App\Models\PurchaseInvoice::class ,
+            'supply_order' => \App\Models\Purchases\SupplyOrder::class ,
+            'stock_issue' => \App\Models\StockIssueOrder::class ,
+            'stock_receiving' => \App\Models\StockReceivingOrder::class ,
+            'stock_transfer' => \App\Models\StockTransfer::class ,
+            'transport_order' => \App\Models\TransportOrder::class ,
+        ];
+
+        return $map[$entityType] ?? null;
     }
 
     protected static function getDefaultPrefix($entityType)

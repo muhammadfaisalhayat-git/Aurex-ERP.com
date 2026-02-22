@@ -538,6 +538,161 @@
             justify-content: center;
             gap: 5px;
         }
+
+        /* Global Search Styles */
+        .header-center {
+            flex-grow: 1;
+            max-width: 800px;
+            margin-left: 2rem;
+            margin-right: 2rem;
+            position: relative;
+        }
+
+        .global-search-container {
+            width: 100%;
+            position: relative;
+        }
+
+        .global-search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .global-search-input {
+            width: 100%;
+            height: 42px;
+            padding: 0 1rem 0 3rem;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: rgba(243, 244, 246, 0.8);
+            backdrop-filter: blur(8px);
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .global-search-input:focus {
+            outline: none;
+            background: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .global-search-icon {
+            position: absolute;
+            left: 1.2rem;
+            color: #9ca3af;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        .global-search-input:focus + .global-search-icon {
+            color: var(--primary-color);
+        }
+
+        .search-results-container {
+            position: absolute;
+            top: 110%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            max-height: 450px;
+            overflow-y: auto;
+            z-index: 1050;
+            display: none;
+            animation: slideDown 0.2s ease-out;
+            min-height: 50px;
+        }
+
+        .search-loading {
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        .search-error {
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--danger-color);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1.2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.2s ease;
+        }
+
+        .search-result-item:hover, .search-result-item.active {
+            background: #f9fafb;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .search-result-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(var(--primary-rgb), 0.1);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1rem;
+        }
+
+        [dir="rtl"] .search-result-icon {
+            margin-right: 0;
+            margin-left: 1rem;
+        }
+
+        .result-content {
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .result-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+            display: block;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .result-subtitle {
+            font-size: 0.75rem;
+            color: #6b7280;
+            display: block;
+        }
+
+        .result-type {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #f3f4f6;
+            color: #4b5563;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .search-no-results {
+            padding: 2rem;
+            text-align: center;
+            color: #6b7280;
+        }
     </style>
 
     @stack('styles')
@@ -616,6 +771,17 @@
                             @endforeach
                         </ul>
                     </div>
+                </div>
+            </div>
+
+            <div class="header-center d-none d-md-block">
+                <div class="global-search-container">
+                    <div class="global-search-input-wrapper">
+                        <input type="text" id="global-search-input" class="global-search-input" 
+                               placeholder="{{ __('messages.search_placeholder') ?? 'Search anything...' }}" autocomplete="off">
+                        <i class="fas fa-search global-search-icon"></i>
+                    </div>
+                    <div id="search-results" class="search-results-container"></div>
                 </div>
             </div>
 
@@ -718,6 +884,125 @@
                     link.classList.add('active');
                 } else {
                     link.classList.remove('active');
+                }
+            });
+        });
+        // Global Search Logic
+        document.addEventListener('turbo:load', function() {
+            const searchInput = document.getElementById('global-search-input');
+            const resultsContainer = document.getElementById('search-results');
+            let debounceTimer;
+            let currentFocus = -1;
+
+            if (!searchInput) return;
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const q = this.value;
+
+                if (q.length < 2) {
+                    resultsContainer.style.display = 'none';
+                    return;
+                }
+
+                // Show loading state
+                resultsContainer.innerHTML = `<div class="search-loading">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                </div>`;
+                resultsContainer.style.display = 'block';
+
+                debounceTimer = setTimeout(() => {
+                    fetch(`{{ route('ajax.global.search') }}?q=${encodeURIComponent(q)}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Network response was not ok');
+                        return res.json();
+                    })
+                    .then(data => {
+                        renderResults(data);
+                    })
+                    .catch(err => {
+                        console.error('Search error:', err);
+                        resultsContainer.innerHTML = `<div class="search-error">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                            <p class="mb-0">Error performing search. Please try again.</p>
+                        </div>`;
+                    });
+                }, 400);
+            });
+
+            function renderResults(data) {
+                if (data.length === 0) {
+                    resultsContainer.innerHTML = `<div class="search-no-results">
+                        <i class="fas fa-search-minus fa-2x mb-2 opacity-20"></i>
+                        <p class="mb-0">{{ __('messages.no_results_found') ?? 'No results found' }}</p>
+                    </div>`;
+                } else {
+                    let html = '';
+                    data.forEach((item, index) => {
+                        html += `
+                            <a href="${item.url}" class="search-result-item" data-index="${index}">
+                                <div class="search-result-icon">
+                                    <i class="${item.icon}"></i>
+                                </div>
+                                <div class="result-content">
+                                    <span class="result-title">${item.title}</span>
+                                    <span class="result-subtitle">${item.subtitle}</span>
+                                </div>
+                                <span class="result-type">${item.type}</span>
+                            </a>
+                        `;
+                    });
+                    resultsContainer.innerHTML = html;
+                }
+                resultsContainer.style.display = 'block';
+                currentFocus = -1;
+            }
+
+            searchInput.addEventListener('keydown', function(e) {
+                const items = resultsContainer.getElementsByClassName('search-result-item');
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    currentFocus++;
+                    addActive(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    currentFocus--;
+                    addActive(items);
+                } else if (e.key === 'Enter') {
+                    if (currentFocus > -1) {
+                        if (items[currentFocus]) items[currentFocus].click();
+                    } else if (items.length > 0) {
+                        items[0].click();
+                    }
+                } else if (e.key === 'Escape') {
+                    resultsContainer.style.display = 'none';
+                }
+            });
+
+            function addActive(items) {
+                if (!items) return false;
+                removeActive(items);
+                if (currentFocus >= items.length) currentFocus = 0;
+                if (currentFocus < 0) currentFocus = (items.length - 1);
+                items[currentFocus].classList.add('active');
+                items[currentFocus].scrollIntoView({ block: 'nearest' });
+            }
+
+            function removeActive(items) {
+                for (let i = 0; i < items.length; i++) {
+                    items[i].classList.remove('active');
+                }
+            }
+
+            // Close when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+                    resultsContainer.style.display = 'none';
                 }
             });
         });

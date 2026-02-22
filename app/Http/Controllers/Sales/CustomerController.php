@@ -8,6 +8,8 @@ use App\Models\CustomerGroup;
 use App\Models\Branch;
 use App\Models\User;
 use App\Models\AuditLog;
+use App\Models\LedgerEntry;
+use App\Models\SalesInvoice;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -103,10 +105,62 @@ class CustomerController extends Controller
             ->with('success', __('messages.customer_created'));
     }
 
-    public function show(Customer $customer)
+    public function show(Request $request, Customer $customer)
     {
         $customer->load(['group', 'branch', 'salesman', 'customerRequests', 'quotations', 'salesInvoices']);
+
+        if ($request->get('tab') == 'statement') {
+            $statementData = $this->getStatementData($request, $customer);
+            return view('sales.customers.show', array_merge(['customer' => $customer], $statementData));
+        }
+
         return view('sales.customers.show', compact('customer'));
+    }
+
+    protected function getStatementData(Request $request, Customer $customer)
+    {
+        $query = LedgerEntry::where('customer_id', $customer->id);
+
+        if ($request->filled('date_from')) {
+            $query->where('transaction_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->where('transaction_date', '<=', $request->date_to);
+        }
+
+        if ($request->filled('item_search')) {
+            $q = $request->item_search;
+            $query->where(function ($query) use ($q) {
+                $query->whereHasMorph('reference', [SalesInvoice::class], function ($query) use ($q) {
+                        $query->whereHas('items', function ($query) use ($q) {
+                                $query->whereHas('product', function ($query) use ($q) {
+                                        $query->where('name_en', 'like', "%$q%")
+                                            ->orWhere('name_ar', 'like', "%$q%")
+                                            ->orWhere('code', 'like', "%$q%");
+                                    }
+                                    )->orWhere('description', 'like', "%$q%");
+                                }
+                                );
+                            }
+                            );
+                        });
+        }
+
+        $entries = $query->with(['account', 'reference', 'reference.items', 'reference.items.product'])->orderBy('transaction_date', 'asc')->get();
+
+        $openingBalance = 0;
+        if ($request->filled('date_from')) {
+            $openingBalance = LedgerEntry::where('customer_id', $customer->id)
+                ->where('transaction_date', '<', $request->date_from)
+                ->selectRaw('SUM(debit) - SUM(credit) as balance')
+                ->value('balance') ?? 0;
+        }
+
+        return [
+            'entries' => $entries,
+            'openingBalance' => $openingBalance
+        ];
     }
 
     public function edit(Customer $customer)
@@ -190,10 +244,10 @@ class CustomerController extends Controller
         $search = $request->get('q');
         $customers = Customer::active()
             ->where(function ($query) use ($search) {
-                $query->where('name_en', 'like', "%$search%")
-                    ->orWhere('name_ar', 'like', "%$search%")
-                    ->orWhere('code', 'like', "%$search%");
-            })
+            $query->where('name_en', 'like', "%$search%")
+                ->orWhere('name_ar', 'like', "%$search%")
+                ->orWhere('code', 'like', "%$search%");
+        })
             ->limit(10)
             ->get();
 
@@ -205,5 +259,26 @@ class CustomerController extends Controller
                 'text' => $customer->name . ' (' . $customer->code . ')',
             ];
         }));
+    }
+
+    public function statement(Request $request, Customer $customer)
+    {
+        $data = $this->getStatementData($request, $customer);
+        $entries = $data['entries'];
+        $openingBalance = $data['openingBalance'];
+
+        if ($request->get('export') == 'excel') {
+            return \Maatwebsite\Excel\Facades\Excel::download(
+                new \App\Exports\CustomerStatementExport($customer, $entries, $openingBalance),
+                "statement_{$customer->code}.xlsx"
+            );
+        }
+
+        if ($request->get('export') == 'pdf') {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sales.customers.statement_pdf', compact('customer', 'entries', 'openingBalance'));
+            return $pdf->download("statement_{$customer->code}.pdf");
+        }
+
+        return view('sales.customers.statement', compact('customer', 'entries', 'openingBalance'));
     }
 }

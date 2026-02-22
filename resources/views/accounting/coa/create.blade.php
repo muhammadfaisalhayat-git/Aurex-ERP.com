@@ -6,7 +6,7 @@
     <div class="container-fluid px-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 mb-0 text-gray-800">{{ __('messages.create_account') }}</h1>
-            <a href="{{ route('accounting.gl.coa.index') }}" class="btn btn-secondary">
+            <a href="{{ route('accounting.gl.coa.index') }}" class="btn btn-secondary" data-turbo-frame="main-frame">
                 <i class="fas fa-arrow-left me-1"></i> {{ __('messages.back') }}
             </a>
         </div>
@@ -40,7 +40,7 @@
                             <label class="form-label">{{ __('messages.account_type') }} <span
                                     class="text-danger">*</span></label>
                             <div class="input-group">
-                                <select name="account_type_id" id="account_type_id" class="form-select @error('account_type_id') is-invalid @enderror" requried>
+                                <select name="account_type_id" id="account_type_id" class="form-select @error('account_type_id') is-invalid @enderror" required>
                                     <option value="">{{ __('messages.select_type') }}</option>
                                     @foreach($accountTypes as $type)
                                         <option value="{{ $type->id }}" {{ old('account_type_id') == $type->id ? 'selected' : '' }}>
@@ -112,7 +112,6 @@
                 </form>
             </div>
         </div>
-    </div>
     </div>
 
     <!-- Add Account Type Modal -->

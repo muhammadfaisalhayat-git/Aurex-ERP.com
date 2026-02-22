@@ -19,6 +19,8 @@ return [
     'settings' => 'الإعدادات',
     'customize' => 'تخصيص',
     'search' => 'بحث',
+    'search_placeholder' => 'البحث عن أي شيء...',
+    'no_results_found' => 'لم يتم العثور على نتائج',
     'filter' => 'تصفية',
     'filter_by_status' => 'تصفية حسب الحالة',
     'all' => 'الكل',
@@ -255,6 +257,9 @@ return [
     'vendor_information' => 'معلومات المورد',
     'total_balance' => 'إجمالي الرصيد',
     'number' => 'الرقم',
+    'work_center' => 'مركز عمل',
+    'transport_order' => 'أمر نقل',
+    'maintenance_voucher' => 'سند صيانة',
 
 
     // Login
@@ -451,6 +456,9 @@ return [
     'contracts' => 'العقود',
     'orders' => 'الأوامر',
     'order_number' => 'رقم الطلب',
+    'sales_order' => 'أمر بيع',
+    'sales_invoice' => 'فاتورة مبيعات',
+    'sales_return' => 'مرتجع مبيعات',
     'reports_by_customer' => 'المبيعات حسب العميل',
 
     // Invoice
@@ -602,6 +610,7 @@ return [
     'supply_order_converted_to_invoice' => 'تم تحويل أمر التوريد إلى فاتورة بنجاح',
     'send_supply_order' => 'إرسال أمر توريد',
     'order_to_invoice' => 'تحويل لفاتورة',
+    'purchase_invoice' => 'فاتورة مشتريات',
     'expected_delivery_date' => 'تاريخ التسليم المتوقع',
 
     // Inventory

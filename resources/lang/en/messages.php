@@ -19,6 +19,8 @@ return [
     'settings' => 'Settings',
     'customize' => 'Customize',
     'search' => 'Search',
+    'search_placeholder' => 'Search anything...',
+    'no_results_found' => 'No results found',
     'filter' => 'Filter',
     'filter_by_status' => 'Filter by Status',
     'all' => 'All',
@@ -255,6 +257,9 @@ return [
     'vendor_information' => 'Vendor Information',
     'total_balance' => 'Total Balance',
     'number' => 'Number',
+    'work_center' => 'Work Center',
+    'transport_order' => 'Transport Order',
+    'maintenance_voucher' => 'Maintenance Voucher',
 
 
     // Login
@@ -393,6 +398,9 @@ return [
     'quotation_details' => 'Quotation Details',
     'details' => 'Details',
     'recent_transactions' => 'Recent Transactions',
+    'statement' => 'Statement',
+    'balance_statement' => 'Balance Statement',
+    'item_search' => 'Item Search',
 
     // Form Sections
     'basic_information' => 'Basic Information',
@@ -451,6 +459,9 @@ return [
     'contracts' => 'Contracts',
     'orders' => 'Orders',
     'order_number' => 'Order Number',
+    'sales_order' => 'Sales Order',
+    'sales_invoice' => 'Sales Invoice',
+    'sales_return' => 'Sales Return',
     'reports_by_customer' => 'Sales by Customer',
 
     // Invoice
@@ -602,6 +613,7 @@ return [
     'supply_order_converted_to_invoice' => 'Supply order converted to invoice successfully',
     'send_supply_order' => 'Send Supply Order',
     'order_to_invoice' => 'Convert to Invoice',
+    'purchase_invoice' => 'Purchase Invoice',
     'expected_delivery_date' => 'Expected Delivery Date',
 
     // Inventory
@@ -1124,6 +1136,9 @@ return [
     'logistics_transport' => 'Logistics & Transport',
     'fleet_management' => 'Fleet Management',
     'delivery_vehicles' => 'Delivery Vehicles',
+    'vehicle' => 'Vehicle',
+    'trailers' => 'Trailers',
+    'trailer' => 'Trailer',
     'register_vehicle' => 'Register Vehicle',
     'total_fleet' => 'Total Fleet',
     'vehicle_list' => 'Vehicle List',
@@ -1142,6 +1157,7 @@ return [
     'vehicle_specifications' => 'Vehicle Specifications',
     'fuel_monitoring' => 'Fuel Monitoring',
     'fuel_logs' => 'Fuel Logs',
+    'fuel_log' => 'Fuel Log',
     'record_fuel' => 'Record Fuel',
     'liters' => 'Liters',
     'cost_per_liter' => 'Cost/L',

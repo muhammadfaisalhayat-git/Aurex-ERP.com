@@ -85,18 +85,6 @@ class Quotation extends Model
 
     public static function generateNextNumber()
     {
-        $lastQuotation = self::orderByRaw('CAST(SUBSTRING(document_number, 4) AS INTEGER) DESC')
-            ->where('document_number', 'LIKE', 'QT-%')
-            ->first();
-
-        $nextNumber = 1;
-        if ($lastQuotation) {
-            $numberPart = substr($lastQuotation->document_number, 3);
-            if (is_numeric($numberPart)) {
-                $nextNumber = (int) $numberPart + 1;
-            }
-        }
-
-        return 'QT-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+        return DocumentNumber::generate('quotation');
     }
 }

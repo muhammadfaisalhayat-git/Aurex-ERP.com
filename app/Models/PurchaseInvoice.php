@@ -68,12 +68,12 @@ class PurchaseInvoice extends Model
 
     public function creator()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class , 'created_by');
     }
 
     public function poster()
     {
-        return $this->belongsTo(User::class, 'posted_by');
+        return $this->belongsTo(User::class , 'posted_by');
     }
 
     public function items()
@@ -88,13 +88,7 @@ class PurchaseInvoice extends Model
 
     public static function generateNextDocumentNumber()
     {
-        $lastInvoice = self::orderBy('id', 'desc')->first();
-        if (!$lastInvoice || !preg_match('/PINV-(\d+)/', $lastInvoice->document_number, $matches)) {
-            return 'PINV-001';
-        }
-
-        $nextNumber = intval($matches[1]) + 1;
-        return 'PINV-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        return DocumentNumber::generate('purchase_invoice');
     }
 
     public function post()

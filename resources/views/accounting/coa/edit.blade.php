@@ -6,7 +6,7 @@
     <div class="container-fluid px-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 mb-0 text-gray-800">{{ __('messages.edit_account') }}</h1>
-            <a href="{{ route('accounting.gl.coa.index') }}" class="btn btn-secondary">
+            <a href="{{ route('accounting.gl.coa.index') }}" class="btn btn-secondary" data-turbo-frame="main-frame">
                 <i class="fas fa-arrow-left me-1"></i> {{ __('messages.back') }}
             </a>
         </div>

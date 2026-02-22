@@ -60,17 +60,21 @@
             <div class="col-md-8">
                 <ul class="nav nav-tabs mb-3" id="customerTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details"
+                        <button class="nav-link {{ !request('tab') || request('tab') == 'details' ? 'active' : '' }}" id="details-tab" data-bs-toggle="tab" data-bs-target="#details"
                             type="button" role="tab">{{ __('messages.details') }}</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions"
+                        <button class="nav-link {{ request('tab') == 'transactions' ? 'active' : '' }}" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions"
                             type="button" role="tab">{{ __('messages.transactions') }}</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {{ request('tab') == 'statement' ? 'active' : '' }}" id="statement-tab" data-bs-toggle="tab" data-bs-target="#statement"
+                            type="button" role="tab">{{ __('messages.statement') ?? 'Statement' }}</button>
                     </li>
                 </ul>
 
                 <div class="tab-content" id="customerTabsContent">
-                    <div class="tab-pane fade show active" id="details" role="tabpanel">
+                    <div class="tab-pane fade {{ !request('tab') || request('tab') == 'details' ? 'show active' : '' }}" id="details" role="tabpanel">
                         <div class="card mb-4">
                             <div class="card-header">{{ __('messages.basic_information') }}</div>
                             <div class="card-body">
@@ -134,7 +138,7 @@
                         </div>
                     </div>
 
-                    <div class="tab-pane fade" id="transactions" role="tabpanel">
+                    <div class="tab-pane fade {{ request('tab') == 'transactions' ? 'show active' : '' }}" id="transactions" role="tabpanel">
                         <div class="card">
                             <div class="card-header">{{ __('messages.recent_transactions') }}</div>
                             <div class="card-body">
@@ -231,6 +235,126 @@
                                 @else
                                     <p class="text-muted text-center pt-3">{{ __('messages.no_records_found') }}</p>
                                 @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade {{ request('tab') == 'statement' ? 'show active' : '' }}" id="statement" role="tabpanel">
+                        <div class="card shadow-sm mb-4 border-0">
+                            <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white py-3">
+                                <h6 class="mb-0 fw-bold"><i class="fas fa-file-invoice-dollar me-2"></i>{{ __('messages.balance_statement') ?? 'Balance Statement' }}</h6>
+                                <div class="btn-group">
+                                    <a href="{{ route('sales.customers.statement', [$customer, 'export' => 'excel'] + request()->all()) }}" class="btn btn-sm btn-light border fw-bold text-success">
+                                        <i class="fas fa-file-excel me-1"></i> Excel
+                                    </a>
+                                    <a href="{{ route('sales.customers.statement', [$customer, 'export' => 'pdf'] + request()->all()) }}" class="btn btn-sm btn-light border fw-bold text-danger">
+                                        <i class="fas fa-file-pdf me-1"></i> PDF
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ route('sales.customers.show', $customer) }}" method="GET" class="row g-3 mb-4 p-3 bg-light rounded border mx-0">
+                                    <input type="hidden" name="tab" value="statement">
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">{{ __('messages.from_date') ?? 'From Date' }}</label>
+                                        <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">{{ __('messages.to_date') ?? 'To Date' }}</label>
+                                        <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">{{ __('messages.item_search') ?? 'Search Item' }}</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                                            <input type="text" name="item_search" class="form-control" placeholder="Product name or code..." value="{{ request('item_search') }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">
+                                            <i class="fas fa-filter me-1"></i> {{ __('messages.filter') }}
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover align-middle border">
+                                        <thead class="bg-dark text-white">
+                                            <tr>
+                                                <th class="ps-3">{{ __('messages.date') }}</th>
+                                                <th>{{ __('messages.reference') ?? 'Reference' }}</th>
+                                                <th>{{ __('messages.description') }}</th>
+                                                <th class="text-end">{{ __('messages.debit') }}</th>
+                                                <th class="text-end">{{ __('messages.credit') }}</th>
+                                                <th class="text-end pe-3">{{ __('messages.balance') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $entriesList = $entries ?? collect();
+                                                $runningBalance = $openingBalance ?? 0;
+                                                $totalDebit = 0;
+                                                $totalCredit = 0;
+                                            @endphp
+                                            <tr class="table-info fw-bold">
+                                                <td colspan="2"></td>
+                                                <td><i class="fas fa-history me-2 text-primary"></i>{{ __('messages.opening_balance') }}</td>
+                                                <td colspan="2"></td>
+                                                <td class="text-end pe-3">{{ number_format($runningBalance, 2) }}</td>
+                                            </tr>
+                                            @forelse ($entriesList as $entry)
+                                                @php
+                                                    $runningBalance += ($entry->debit - $entry->credit);
+                                                    $totalDebit += $entry->debit;
+                                                    $totalCredit += $entry->credit;
+                                                @endphp
+                                                <tr>
+                                                    <td class="ps-3 small text-muted">{{ $entry->transaction_date->format('Y-m-d') }}</td>
+                                                    <td>
+                                                        <span class="fw-bold small text-primary">{{ $entry->reference_number }}</span>
+                                                        <br>
+                                                        <span class="badge bg-secondary" style="font-size: 0.6rem;">{{ strtoupper(class_basename($entry->reference_type)) }}</span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="fw-semibold text-dark">{{ $entry->description }}</div>
+                                                        @if($entry->reference instanceof \App\Models\SalesInvoice)
+                                                            <div class="mt-1 d-flex flex-wrap gap-1">
+                                                                @foreach($entry->reference->items as $item)
+                                                                    <span class="badge bg-light text-dark border fw-normal" style="font-size: 0.65rem;">
+                                                                        <i class="fas fa-box text-muted me-1"></i>{{ $item->product->name_en ?? $item->description }}
+                                                                    </span>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-end text-danger fw-semibold">{{ $entry->debit > 0 ? number_format($entry->debit, 2) : '-' }}</td>
+                                                    <td class="text-end text-success fw-semibold">{{ $entry->credit > 0 ? number_format($entry->credit, 2) : '-' }}</td>
+                                                    <td class="text-end pe-3 fw-bold {{ $runningBalance >= 0 ? 'text-dark' : 'text-danger' }}">
+                                                        {{ number_format($runningBalance, 2) }}
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-5 text-muted">
+                                                        <i class="fas fa-folder-open fa-3x mb-2 opacity-25"></i>
+                                                        <br>
+                                                        {{ __('messages.no_records_found') }}
+                                                    </td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                        @if(isset($entries) && $entries->count() > 0)
+                                            <tfoot class="table-light">
+                                                <tr class="fw-bold border-top-2">
+                                                    <td colspan="3" class="text-end text-uppercase pe-3" style="font-size: 0.75rem;">{{ __('messages.total') ?? 'Total' }}</td>
+                                                    <td class="text-end text-danger py-2">{{ number_format($totalDebit, 2) }}</td>
+                                                    <td class="text-end text-success py-2">{{ number_format($totalCredit, 2) }}</td>
+                                                    <td class="text-end pe-3 py-2 bg-dark text-white">{{ number_format($runningBalance, 2) }}</td>
+                                                </tr>
+                                            </tfoot>
+                                        @endif
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>

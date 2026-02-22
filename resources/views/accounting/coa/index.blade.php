@@ -7,7 +7,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 mb-0 text-gray-800">{{ __('messages.chart_of_accounts') }}</h1>
             @can('manage chart of accounts')
-                <a href="{{ route('accounting.gl.coa.create') }}" class="btn btn-primary">
+                <a href="{{ route('accounting.gl.coa.create') }}" class="btn btn-primary" data-turbo-frame="main-frame">
                     <i class="fas fa-plus me-1"></i> {{ __('messages.create') }}
                 </a>
             @endcan

@@ -30,18 +30,16 @@ trait BelongsToTenant
                 $table = $builder->getModel()->getTable();
                 $model = $builder->getModel();
 
-                // Determine active company ID (with fallback to user's branch if user record is incomplete)
+                // Determine active company ID
                 $activeCompanyId = Session::get('active_company_id');
                 if (!$activeCompanyId && !$user->isSuperAdmin()) {
                     $activeCompanyId = $user->company_id ?: ($user->branch?->company_id);
                 }
 
-                // Super Admin can see EVERYTHING unless a specific company is selected in session
+                // Super Admin can see EVERYTHING unless a specific company is selected
                 if ($user->hasRole('Super Admin')) {
                     if (Session::has('active_company_id')) {
-                        if ($model instanceof Branch) {
-                            $builder->where($table . '.company_id', Session::get('active_company_id'));
-                        } else {
+                        if (\Schema::hasColumn($table, 'company_id')) {
                             $builder->where($table . '.company_id', Session::get('active_company_id'));
                         }
                     }
@@ -51,11 +49,11 @@ trait BelongsToTenant
 
                     if ($model instanceof Company) {
                         $builder->where($table . '.id', $userCompanyId);
-                    } else {
+                    } elseif (\Schema::hasColumn($table, 'company_id')) {
                         $builder->where($table . '.company_id', $userCompanyId);
                     }
 
-                    // If they are a Branch Manager or Salesman, further restrict to branch
+                    // Branch restrictions
                     $hasBranchColumn = \Schema::hasColumn($table, 'branch_id');
 
                     if ($model instanceof Branch) {
