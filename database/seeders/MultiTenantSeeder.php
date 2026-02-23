@@ -23,77 +23,77 @@ class MultiTenantSeeder extends Seeder
 
         foreach ($roles as $name => $displayName) {
             Role::firstOrCreate(
-                ['name' => $name],
-                [
-                    'display_name_en' => $displayName,
-                    'guard_name' => 'web',
-                ]
+            ['name' => $name],
+            [
+                'display_name_en' => $displayName,
+                'guard_name' => 'web',
+            ]
             );
         }
 
         // 1. Create Companies
         $companyA = Company::updateOrCreate(
-            ['registration_number' => 'REG-001'],
-            [
-                'name_en' => 'Global Corp A',
-                'name_ar' => 'شركة العالمية أ',
-                'tax_number' => 'TAX-001',
-                'currency' => 'USD',
-                'is_active' => true,
-            ]
+        ['registration_number' => 'REG-001'],
+        [
+            'name_en' => 'BIN AWF AGRICULTURAL',
+            'name_ar' => 'بن عوف الزراعية',
+            'tax_number' => 'TAX-001',
+            'currency' => 'SAR',
+            'is_active' => true,
+        ]
         );
 
         $companyB = Company::updateOrCreate(
-            ['registration_number' => 'REG-002'],
-            [
-                'name_en' => 'Tech Solutions B',
-                'name_ar' => 'حلول التقنية ب',
-                'tax_number' => 'TAX-002',
-                'currency' => 'SAR',
-                'is_active' => true,
-            ]
+        ['registration_number' => 'REG-002'],
+        [
+            'name_en' => 'Tech Solutions B',
+            'name_ar' => 'حلول التقنية ب',
+            'tax_number' => 'TAX-002',
+            'currency' => 'SAR',
+            'is_active' => true,
+        ]
         );
 
         // 2. Create Branches for Company A
         $branchA1 = Branch::updateOrCreate(
-            ['code' => 'NY-01'],
-            [
-                'company_id' => $companyA->id,
-                'name_en' => 'New York Branch',
-                'name_ar' => 'فرع نيويورك',
-                'is_active' => true,
-            ]
+        ['code' => 'NY-01'],
+        [
+            'company_id' => $companyA->id,
+            'name_en' => 'New York Branch',
+            'name_ar' => 'فرع نيويورك',
+            'is_active' => true,
+        ]
         );
 
         $branchA2 = Branch::updateOrCreate(
-            ['code' => 'LDN-01'],
-            [
-                'company_id' => $companyA->id,
-                'name_en' => 'London Branch',
-                'name_ar' => 'فرع لندن',
-                'is_active' => true,
-            ]
+        ['code' => 'LDN-01'],
+        [
+            'company_id' => $companyA->id,
+            'name_en' => 'London Branch',
+            'name_ar' => 'فرع لندن',
+            'is_active' => true,
+        ]
         );
 
         // 3. Create Branches for Company B
         $branchB1 = Branch::updateOrCreate(
-            ['code' => 'RUH-01'],
-            [
-                'company_id' => $companyB->id,
-                'name_en' => 'Riyadh Branch',
-                'name_ar' => 'فرع الرياض',
-                'is_active' => true,
-            ]
+        ['code' => 'RUH-01'],
+        [
+            'company_id' => $companyB->id,
+            'name_en' => 'Riyadh Branch',
+            'name_ar' => 'فرع الرياض',
+            'is_active' => true,
+        ]
         );
 
         $branchB2 = Branch::updateOrCreate(
-            ['code' => 'DXB-01'],
-            [
-                'company_id' => $companyB->id,
-                'name_en' => 'Dubai Branch',
-                'name_ar' => 'فرع دبي',
-                'is_active' => true,
-            ]
+        ['code' => 'DXB-01'],
+        [
+            'company_id' => $companyB->id,
+            'name_en' => 'Dubai Branch',
+            'name_ar' => 'فرع دبي',
+            'is_active' => true,
+        ]
         );
 
         // 4. Create Users
@@ -130,14 +130,14 @@ class MultiTenantSeeder extends Seeder
 
         foreach ($users as $userData) {
             $user = User::updateOrCreate(
-                ['email' => $userData['email']],
-                [
-                    'name' => $userData['name'],
-                    'password' => Hash::make('password'),
-                    'company_id' => $userData['company_id'],
-                    'branch_id' => $userData['branch_id'],
-                    'is_active' => true,
-                ]
+            ['email' => $userData['email']],
+            [
+                'name' => $userData['name'],
+                'password' => Hash::make('password'),
+                'company_id' => $userData['company_id'],
+                'branch_id' => $userData['branch_id'],
+                'is_active' => true,
+            ]
             );
             $user->syncRoles([$userData['role']]);
         }
