@@ -19,6 +19,9 @@
                                     </button>
                                 </form>
                             @endif
+                            <a href="{{ route('sales.returns.print', $salesReturn) }}" target="_blank" class="btn btn-outline-info me-2">
+                                <i class="fas fa-print me-1"></i> {{ __('messages.print') ?? 'Print' }}
+                            </a>
                             <a href="{{ route('sales.returns.index') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-1"></i> {{ __('messages.back') }}
                             </a>

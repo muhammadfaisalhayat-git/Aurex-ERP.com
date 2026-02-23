@@ -6,13 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ __('messages.quotation') }} #{{ $quotation->document_number }}</title>
     <style>
-        body {
-            font-family: 'Inter', 'Cairo', sans-serif;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #333;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #334155;
+            background: #fff;
+            padding: 20px 40px;
         }
 
         @media print {
@@ -21,216 +29,453 @@
             }
 
             .no-print {
-                display: none;
+                display: none !important;
             }
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+        }
+
+        .document-container {
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .header {
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+
+        .branding-top {
+            text-align: center;
+            width: 100%;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .branding-top h1 {
+            font-size: 32pt;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+            padding: 0;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+
+        .branding-top h2 {
+            font-size: 24pt;
+            color: #1e293b;
+            margin: 5px 0 0 0;
+            padding: 0;
+            line-height: 1.2;
+        }
+
+        .logo-section {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .company-logo-img {
+            max-height: 250px;
+            max-width: 500px;
+        }
+
+        .header-lower {
+            display: flex;
             justify-content: space-between;
-            margin-bottom: 40px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 20px;
+            align-items: flex-end;
+            width: 100%;
         }
 
-        .company-logo {
-            font-size: 28px;
-            font-weight: bold;
-            color: #2563eb;
+        .company-info-box {
+            flex: 1;
+            font-size: 10pt;
+            color: #64748b;
+            line-height: 1.5;
         }
 
-        .document-title {
+        .doc-meta-title {
+            flex: 1;
+            max-width: 33%;
             text-align: right;
         }
 
-        .document-title h1 {
-            margin: 0;
-            color: #1e293b;
-            font-size: 32px;
+        .doc-meta-title h2 {
+            font-size: 32pt;
+            font-weight: 800;
+            color: #1e40af;
+            margin: 0 0 5px 0;
+            line-height: 1;
         }
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 40px;
+        .meta-table {
+            border-collapse: collapse;
+            width: 280px;
         }
 
-        .info-section h3 {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-            font-size: 16px;
+        .meta-table td {
+            border: 1px solid #cbd5e1;
+            padding: 4px 10px;
+            font-size: 10pt;
+        }
+
+        .meta-label {
+            background: #f8fafc;
             color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            width: 40%;
+            text-align: left;
         }
 
+        /* Customer Section */
+        .customer-section {
+            margin-bottom: 10px;
+        }
+
+        .customer-title {
+            font-weight: 700;
+            color: #1e40af;
+            border-bottom: 2px solid #1e40af;
+            padding-bottom: 2px;
+            margin-bottom: 5px;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .customer-details {
+            line-height: 1.4;
+        }
+
+        /* Items Table */
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
         }
 
         .items-table th {
-            background-color: #f8fafc;
-            border-bottom: 2px solid #e2e8f0;
-            padding: 12px;
+            border: 2px solid #1e40af;
+            background: #f8fafc;
+            padding: 4px 12px;
+            font-size: 10pt;
+            font-weight: 700;
+            color: #1e40af;
             text-align: left;
-            font-weight: 600;
         }
 
         .items-table td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
+            border: 1px solid #cbd5e1;
+            padding: 4px 12px;
+            font-size: 10pt;
+            height: 25px;
         }
 
-        .text-end {
-            text-align: right !important;
+        /* Totals */
+        .header-details {
+            width: 100%;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        
+        .header-details table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .totals-section {
-            margin-left: auto;
-            width: 300px;
-        }
-
-        .total-row {
+        .totals-container {
             display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
+            justify-content: flex-end;
         }
 
-        .total-row.grand-total {
-            border-top: 2px solid #2563eb;
-            margin-top: 10px;
-            padding-top: 15px;
-            font-weight: bold;
-            font-size: 18px;
-            color: #2563eb;
+        .totals-table {
+            width: 250px;
+            border-collapse: collapse;
         }
 
-        .footer {
-            margin-top: 60px;
-            text-align: center;
-            font-size: 12px;
-            color: #94a3b8;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
+        .totals-table td {
+            padding: 6px 12px;
+            font-size: 10pt;
         }
 
-        [dir="rtl"] .items-table th,
-        [dir="rtl"] .items-table td {
+        .total-label {
+            text-align: right;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .total-value {
+            text-align: right;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .grand-total-row td {
+            border-top: 2px solid #1e40af;
+            font-size: 12pt !important;
+            padding-top: 10px;
+        }
+
+        /* Themes */
+        .theme-minimalist {
+            font-family: 'Inter', sans-serif;
+            color: #475569;
+        }
+        .theme-minimalist .branding-top { border: none; padding-bottom: 5px; }
+        .theme-minimalist .branding-top h1 { font-size: 28pt; color: #64748b; font-weight: 400; letter-spacing: 0.1em; }
+        .theme-minimalist .branding-top h2 { font-size: 20pt; color: #94a3b8; }
+        .theme-minimalist .doc-meta-title h2 { color: #64748b; font-weight: 400; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; }
+        .theme-minimalist .customer-title { color: #64748b; border-bottom: 1px solid #e2e8f0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 9pt; }
+        .theme-minimalist .items-table th { background: none; border: none; border-bottom: 2px solid #64748b; color: #64748b; }
+        .theme-minimalist .items-table td { border: none; border-bottom: 1px solid #f1f5f9; }
+        .theme-minimalist .grand-total-row td { border-top: 2px solid #64748b; color: #334155 !important; }
+
+        .theme-indigo { color: #1e1b4b; }
+        .theme-indigo .branding-top { background: #1e40af; padding: 20px; border-radius: 8px; border: none; }
+        .theme-indigo .branding-top h1 { color: #ffffff; }
+        .theme-indigo .branding-top h2 { color: #bfdbfe; }
+        .theme-indigo .doc-meta-title h2 { color: #1e40af; border-left: 5px solid #1e40af; padding-left: 10px; text-align: left; }
+        .theme-indigo .customer-title { background: #f1f5f9; padding: 8px 15px; border: none; border-left: 5px solid #1e40af; color: #1e40af; }
+        .theme-indigo .items-table th { background: #1e40af; color: #ffffff; border: 1px solid #1e40af; }
+        .theme-indigo .items-table td { border: 1px solid #e2e8f0; }
+        .theme-indigo .grand-total-row td { background: #1e40af; color: #ffffff !important; padding: 10px 15px; }
+
+        .theme-elegant { color: #2d3748; }
+        .theme-elegant .branding-top { border-bottom: 3px double #cbd5e1; }
+        .theme-elegant .branding-top h1 { font-family: 'Inter', serif; color: #0f172a; font-style: italic; }
+        .theme-elegant .doc-meta-title h2 { color: #0f172a; text-transform: none; font-weight: 300; font-size: 36pt; }
+        .theme-elegant .customer-title { color: #0f172a; border-bottom: 1px solid #0f172a; }
+        .theme-elegant .items-table th { background: #fdf2f2; color: #991b1b; border: none; border-bottom: 1px solid #991b1b; }
+        .theme-elegant .items-table tr:nth-child(even) { background: #fafafa; }
+        .theme-elegant .grand-total-row td { border-top: 1px solid #0f172a; border-bottom: 4px double #0f172a; }
+
+        .theme-bold .branding-top { border: 10px solid #000; padding: 20px; }
+        .theme-bold .branding-top h1 { font-size: 40pt; font-weight: 900; }
+        .theme-bold .doc-meta-title h2 { background: #000; color: #fff; padding: 5px 20px; display: inline-block; }
+        .theme-bold .customer-title { background: #000; color: #fff; padding: 5px 15px; }
+        .theme-bold .items-table th { background: #000; color: #fff; border: 2px solid #000; }
+        .theme-bold .items-table td { border: 2px solid #000; font-weight: 600; }
+        .theme-bold .grand-total-row td { background: #000; color: #fff !important; }
+
+        .theme-corporate .branding-top { border-left: 10px solid #92400e; padding-left: 20px; text-align: left; }
+        .theme-corporate .branding-top h1 { color: #451a03; }
+        .theme-corporate .doc-meta-title h2 { color: #92400e; border-bottom: 2px solid #92400e; }
+        .theme-corporate .customer-title { color: #92400e; border-left: 3px solid #92400e; padding-left: 10px; }
+        .theme-corporate .items-table th { background: #451a03; color: #fff; border: 1px solid #451a03; }
+        .theme-corporate .items-table td { border: 1px solid #dcdcdc; }
+        .theme-corporate .grand-total-row td { border-top: 3px solid #92400e; background: #fff7ed; color: #92400e !important; }
+
+        [dir="rtl"] .doc-meta-title, [dir="rtl"] .meta-label, [dir="rtl"] .items-table th {
             text-align: right;
         }
-
-        [dir="rtl"] .text-end {
-            text-align: left !important;
+        
+        [dir="rtl"] .total-label, [dir="rtl"] .total-value {
+            text-align: left;
         }
 
-        [dir="rtl"] .totals-section {
-            margin-left: 0;
-            margin-right: auto;
-        }
+        [dir="rtl"] .theme-corporate .branding-top { border-left: none; border-right: 10px solid #92400e; padding-left: 0; padding-right: 20px; text-align: right; }
+        [dir="rtl"] .theme-indigo .doc-meta-title h2 { border-left: none; border-right: 5px solid #1e40af; padding-left: 0; padding-right: 10px; text-align: right; }
     </style>
 </head>
 
-<body onload="window.print()">
-    <div class="no-print" style="margin-bottom: 20px;">
-        <button onclick="window.print()"
-            style="padding: 10px 20px; cursor: pointer;">{{ __('messages.print') }}</button>
-        <button onclick="window.close()"
-            style="padding: 10px 20px; cursor: pointer;">{{ __('messages.close') }}</button>
+<body>
+    <div class="toolbar no-print">
+        <select class="btn btn-secondary" id="themeSelector" onchange="switchTheme(this.value)">
+            <option value="theme-modern">Modern (Default)</option>
+            <option value="theme-minimalist">Minimalist</option>
+            <option value="theme-indigo">Indigo Professional</option>
+            <option value="theme-elegant">Elegant Soft</option>
+            <option value="theme-bold">Bold Contrast</option>
+            <option value="theme-corporate">Corporate Premium</option>
+        </select>
+        <button class="btn btn-primary" onclick="window.print()">{{ __('messages.print') }}</button>
+        <button class="btn btn-secondary" onclick="window.close()">{{ __('messages.close') }}</button>
     </div>
 
-    <div class="header">
-        <div class="company-branding">
-            @if($quotation->company?->logo)
-                <img src="{{ asset('storage/' . $quotation->company->logo) }}" alt="Logo"
-                    style="max-height: 80px; margin-bottom: 10px;"><br>
-            @endif
-            <div class="company-logo">
-                {{ $quotation->company_name_ar ?? $quotation->company?->name ?? config('app.name', 'Aurex ERP') }}
+    <div class="document-container theme-modern" id="printContainer">
+        {{-- Header Section --}}
+        <div class="header">
+            <div class="branding-top">
+                <h1>{{ strtoupper($quotation->company?->name_en ?? $quotation->company?->name ?? 'BIN AWF AGRICULTURAL') }}</h1>
+                <h2>{{ $quotation->company?->name_ar ?? 'بن عوف الزراعية' }}</h2>
+            </div>
+
+            <div class="logo-section">
+                @if($quotation->company?->logo)
+                    <img src="{{ asset('storage/' . $quotation->company->logo) }}" 
+                         alt="{{ $quotation->company->name_en }}"
+                         class="company-logo-img">
+                @else
+                    <div class="logo-placeholder" style="width: 300px; height: 100px; background: #f8fafc; border: 2px dashed #e2e8f0; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #94a3b8;">
+                        Insert Your Logo
+                    </div>
+                @endif
+            </div>
+
+            <div class="header-lower">
+                <div class="company-info-box">
+                    @if($quotation->company?->vat_number)
+                        <div style="font-weight: 600;">VAT Number: {{ $quotation->company->vat_number }}</div>
+                    @endif
+                    <div>{{ $quotation->company?->address ?? 'Street Address' }}</div>
+                    <div>{{ $quotation->company?->city ?? 'City' }}, {{ $quotation->company?->state ?? 'ST' }} {{ $quotation->company?->zip_code ?? 'ZIP Code' }}</div>
+                    <div>{{ $quotation->company?->phone ?? 'Phone' }}</div>
+                </div>
+
+                <div class="doc-meta-title">
+                    <h2>{{ __('messages.quotation') }}</h2>
+                    <table class="meta-table" style="margin-left: auto;">
+                        <tr>
+                            <td class="meta-label">Date:</td>
+                            <td>{{ $quotation->quotation_date->format('F d, Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Quotation #:</td>
+                            <td>{{ $quotation->document_number }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Customer ID:</td>
+                            <td>{{ $quotation->customer?->code ?? 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Expiry Date:</td>
+                            <td>{{ $quotation->expiry_date ? $quotation->expiry_date->format('F d, Y') : '-' }}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="document-title">
-            <h1>{{ __('messages.quotation') }}</h1>
-            <div># {{ $quotation->document_number }}</div>
-            <div>{{ __('messages.date') }}: {{ $quotation->quotation_date->format('Y-m-d') }}</div>
-        </div>
-    </div>
 
-    <div class="info-grid">
-        <div class="info-section">
-            <h3>{{ __('messages.customer_information') }}</h3>
-            <strong>{{ $quotation->customer_name_ar ?? $quotation->customer?->name_ar ?? $quotation->customer?->name }}</strong><br>
-            @if($quotation->customer?->address) {{ $quotation->customer->address }}<br> @endif
-            @if($quotation->customer?->phone) {{ $quotation->customer->phone }} @endif
+        {{-- Customer Section --}}
+        <div class="customer-section">
+            <div class="customer-title">Customer Information</div>
+            <div class="customer-details">
+                <div style="font-weight: 700; font-size: 12pt; color: #0f172a;">
+                    {{ $quotation->customer?->company_name ?? $quotation->customer?->name ?? __('messages.walking_customer') }}
+                </div>
+                @if($quotation->customer?->tax_number)
+                    <div>Tax Number: {{ $quotation->customer->tax_number }}</div>
+                @endif
+                <div>{{ $quotation->customer?->address ?? 'Street Address' }}</div>
+                <div>
+                    {{ implode(', ', array_filter([$quotation->customer?->city, $quotation->customer?->state, $quotation->customer?->zip_code])) ?: 'City, ST ZIP Code' }}
+                </div>
+                @if($quotation->customer?->phone)
+                    <div>Phone: {{ $quotation->customer->phone }}</div>
+                @endif
+            </div>
         </div>
-        <div class="info-section">
-            <h3>{{ __('messages.quotation_details') }}</h3>
-            <strong>{{ __('messages.status') }}:</strong> {{ ucfirst($quotation->status) }}<br>
-            <strong>{{ __('messages.expiry_date') }}:</strong>
-            {{ $quotation->expiry_date ? $quotation->expiry_date->format('Y-m-d') : '' }}<br>
-            <strong>{{ __('messages.created_by') }}:</strong> {{ $quotation->creator->name ?? '' }}
-        </div>
-    </div>
 
-    <table class="items-table">
-        <thead>
-            <tr>
-                <th width="50%">{{ __('messages.product') }}</th>
-                <th width="10%" class="text-end">{{ __('messages.quantity') }}</th>
-                <th width="20%" class="text-end">{{ __('messages.unit_price') }}</th>
-                <th width="20%" class="text-end">{{ __('messages.total') }}</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($quotation->items as $item)
+        {{-- Items Table --}}
+        <table class="items-table">
+            <thead>
                 <tr>
-                    <td>
-                        <strong>{{ $item->product_name_ar ?? $item->product->name_en }}</strong>
-                    </td>
-                    <td class="text-end">{{ number_format($item->quantity, 2) }}</td>
-                    <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
-                    <td class="text-end">{{ number_format($item->net_amount, 2) }}</td>
+                    <th style="width: 15%;">Item Code #</th>
+                    <th style="width: 45%;">Item Description</th>
+                    <th style="width: 10%; text-align: center;">Qty</th>
+                    <th style="width: 15%; text-align: right;">Unit Price</th>
+                    <th style="width: 15%; text-align: right;">Total</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach($quotation->items as $item)
+                    <tr>
+                        <td>{{ $item->product?->code ?? $item->product?->sku ?? '-' }}</td>
+                        <td>
+                            <strong>{{ $item->product?->name_en ?? $item->product?->name ?? '-' }}</strong>
+                            @if($item->description && $item->description !== $item->product?->name)
+                                <div style="font-size: 9pt; color: #64748b; margin-top: 2px;">{{ $item->description }}</div>
+                            @endif
+                        </td>
+                        <td style="text-align: center;">{{ number_format($item->quantity, 2) }}</td>
+                        <td style="text-align: right;">{{ number_format($item->unit_price, 2) }}</td>
+                        <td style="text-align: right;">{{ number_format($item->net_amount, 2) }}</td>
+                    </tr>
+                @endforeach
+                {{-- Fill empty rows to maintain layout if few items --}}
+                @for($i = count($quotation->items); $i < 10; $i++)
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                @endfor
+            </tbody>
+        </table>
 
-    <div class="totals-section">
-        <div class="total-row">
-            <span>{{ __('messages.subtotal') }}</span>
-            <span>{{ number_format($quotation->subtotal, 2) }}</span>
+        {{-- Totals Section --}}
+        <div class="totals-container">
+            <table class="totals-table">
+                <tr>
+                    <td class="total-label">{{ __('messages.subtotal') }}:</td>
+                    <td class="total-value">{{ number_format($quotation->subtotal, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="total-label">{{ __('messages.tax') }}:</td>
+                    <td class="total-value">{{ number_format($quotation->tax_amount, 2) }}</td>
+                </tr>
+                @if($quotation->discount_amount > 0)
+                    <tr>
+                        <td class="total-label">{{ __('messages.discount') }}:</td>
+                        <td class="total-value">-{{ number_format($quotation->discount_amount, 2) }}</td>
+                    </tr>
+                @endif
+                <tr class="grand-total-row">
+                    <td class="total-label" style="color: #1e40af; font-size: 14pt;">TOTAL:</td>
+                    <td class="total-value" style="color: #1e40af; font-size: 14pt;">{{ number_format($quotation->total_amount, 2) }}</td>
+                </tr>
+            </table>
         </div>
-        @if($quotation->tax_amount > 0)
-            <div class="total-row">
-                <span>{{ __('messages.tax') }} ({{ number_format($quotation->tax_rate, 0) }}%)</span>
-                <span>{{ number_format($quotation->tax_amount, 2) }}</span>
+
+        {{-- Terms & Conditions --}}
+        @if($quotation->terms_conditions)
+            <div style="margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                <div style="font-weight: 700; color: #64748b; font-size: 9pt; text-transform: uppercase;">{{ __('messages.terms_conditions') }}</div>
+                <p style="white-space: pre-wrap; color: #334155; font-size: 10pt; margin-top: 5px;">{{ $quotation->terms_conditions }}</p>
             </div>
         @endif
-        @if($quotation->discount_amount > 0)
-            <div class="total-row">
-                <span>{{ __('messages.discount') }}</span>
-                <span>-{{ number_format($quotation->discount_amount, 2) }}</span>
-            </div>
-        @endif
-        <div class="total-row grand-total">
-            <span>{{ __('messages.grand_total') }}</span>
-            <span>{{ number_format($quotation->total_amount, 2) }}</span>
-        </div>
     </div>
 
-    @if($quotation->terms_conditions)
-        <div style="margin-top: 40px;">
-            <h3 style="font-size: 16px; color: #64748b; margin-bottom: 10px;">{{ __('messages.terms_conditions') }}</h3>
-            <p style="white-space: pre-wrap;">{{ $quotation->terms_conditions_ar ?? $quotation->terms_conditions }}</p>
-        </div>
-    @endif
-
-    <div class="footer">
-        <p>{{ config('app.url') }}</p>
-    </div>
+    <script>
+        function switchTheme(theme) {
+            const container = document.getElementById('printContainer');
+            container.className = 'document-container ' + theme;
+        }
+    </script>
 </body>
 
 </html>

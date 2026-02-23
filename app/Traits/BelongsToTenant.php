@@ -36,11 +36,22 @@ trait BelongsToTenant
                     $activeCompanyId = $user->company_id ?: ($user->branch?->company_id);
                 }
 
-                // Super Admin can see EVERYTHING unless a specific company is selected
+                // Super Admin scoping
                 if ($user->hasRole('Super Admin')) {
+                    // Company Filter
                     if (Session::has('active_company_id')) {
                         if (\Schema::hasColumn($table, 'company_id')) {
                             $builder->where($table . '.company_id', Session::get('active_company_id'));
+                        }
+                    }
+
+                    // Branch Filter
+                    if (\Schema::hasColumn($table, 'branch_id')) {
+                        if (Session::has('active_branch_id')) {
+                            $builder->where($table . '.branch_id', Session::get('active_branch_id'));
+                        } else {
+                            // If no branch selected, show nothing for models that belong to branches
+                            $builder->where($table . '.branch_id', 0);
                         }
                     }
                 } else {
@@ -61,12 +72,18 @@ trait BelongsToTenant
                             $builder->where($table . '.id', $user->branch_id);
                         } elseif (Session::has('active_branch_id')) {
                             $builder->where($table . '.id', Session::get('active_branch_id'));
+                        } else {
+                            // No branch selected? Show nothing.
+                            $builder->where($table . '.id', 0);
                         }
                     } elseif ($hasBranchColumn) {
                         if (($user->hasRole('Branch Manager') || $user->hasRole('Salesman')) && !Session::has('view_all_branches')) {
                             $builder->where($table . '.branch_id', $user->branch_id);
                         } elseif (Session::has('active_branch_id')) {
                             $builder->where($table . '.branch_id', Session::get('active_branch_id'));
+                        } else {
+                            // No branch selected? Show nothing.
+                            $builder->where($table . '.branch_id', 0);
                         }
                     }
                 }
