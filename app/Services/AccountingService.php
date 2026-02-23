@@ -134,13 +134,12 @@ class AccountingService
     public function createLedgerEntry(array $data)
     {
         $extraData = [
-            'company_id' => Session::get('active_company_id'),
-            'branch_id' => Session::get('active_branch_id'),
-            'created_by' => auth()->id(),
+            'company_id' => $data['company_id'] ?? Session::get('active_company_id'),
+            'branch_id' => $data['branch_id'] ?? Session::get('active_branch_id'),
+            'created_by' => $data['created_by'] ?? auth()->id(),
         ];
 
-        // Merge extra data, but data['customer_id'] and data['vendor_id'] will be preserved if passed
-        return LedgerEntry::create(array_merge($data, $extraData));
+        return LedgerEntry::create(array_merge($extraData, $data));
     }
 
     /**
@@ -548,14 +547,28 @@ class AccountingService
 
     private function getAccountByCode($code)
     {
-        return ChartOfAccount::where('code', $code)->first() ??
-            ChartOfAccount::create([
-                'code' => $code,
-                'name_en' => $this->getDefaultAccountName($code),
-                'type' => $this->getAccountTypeByCode($code),
-                'sub_ledger_type' => $this->getSubLedgerTypeByCode($code),
-                'is_active' => true,
-            ]);
+        $companyId = session('active_company_id') ?? auth()->user()?->company_id;
+        $branchId = session('active_branch_id') ?? auth()->user()?->branch_id;
+
+        $account = ChartOfAccount::withoutGlobalScope('tenant')
+            ->where('code', $code)
+            ->where('company_id', $companyId)
+            ->first();
+
+        if ($account) {
+            return $account;
+        }
+
+        return ChartOfAccount::create([
+            'company_id' => $companyId,
+            'branch_id' => $branchId,
+            'code' => $code,
+            'name_en' => $this->getDefaultAccountName($code),
+            'type' => $this->getAccountTypeByCode($code),
+            'sub_ledger_type' => $this->getSubLedgerTypeByCode($code),
+            'is_active' => true,
+            'is_posting_allowed' => true,
+        ]);
     }
 
     private function getDefaultAccountName($code)

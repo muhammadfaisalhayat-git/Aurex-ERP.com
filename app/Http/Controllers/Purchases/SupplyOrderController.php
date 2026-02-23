@@ -141,7 +141,20 @@ class SupplyOrderController extends Controller
 
     public function show(SupplyOrder $supplyOrder)
     {
-        $supplyOrder->load(['vendor', 'branch', 'warehouse', 'items.product', 'creator', 'statusHistory.changer']);
+        $supplyOrder->load([
+            'vendor',
+            'branch' => function ($query) {
+                $query->withoutGlobalScope('tenant');
+            },
+            'warehouse' => function ($query) {
+                $query->withoutGlobalScope('tenant');
+            },
+            'items.product' => function ($query) {
+                $query->withoutGlobalScope('tenant');
+            },
+            'creator',
+            'statusHistory.changer'
+        ]);
         return view('purchases.supply-orders.show', compact('supplyOrder'));
     }
 
@@ -339,7 +352,18 @@ class SupplyOrderController extends Controller
 
     public function print(SupplyOrder $supplyOrder)
     {
-        $supplyOrder->load(['vendor', 'branch', 'warehouse', 'items.product']);
+        $supplyOrder->load([
+            'vendor',
+            'branch' => function ($query) {
+                $query->withoutGlobalScope('tenant');
+            },
+            'warehouse' => function ($query) {
+                $query->withoutGlobalScope('tenant');
+            },
+            'items.product' => function ($query) {
+                $query->withoutGlobalScope('tenant');
+            }
+        ]);
         return view('purchases.supply-orders.print', compact('supplyOrder'));
     }
 }

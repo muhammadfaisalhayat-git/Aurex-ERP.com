@@ -130,19 +130,36 @@ class WhatsAppService
     {
         // Ensure branch relationship is loaded for localized names
         if (method_exists($document, 'loadMissing')) {
-            $document->loadMissing(['branch', 'customer']);
+            $relations = ['branch'];
+            if ($type === 'stock_supply') {
+                $relations[] = 'vendor';
+            } else {
+                $relations[] = 'customer';
+            }
+            $document->loadMissing($relations);
         }
 
         $documentNumber = $document->document_number ?? $document->invoice_number ?? 'N/A';
         $totalAmount = isset($document->total_amount) ? number_format($document->total_amount, 2) : '0.00';
-        $customerName = $document->customer?->name ?? 'Customer';
+
+        $receiverName = 'Recipient';
+        if ($type === 'stock_supply') {
+            $receiverName = $document->vendor?->name ?? 'Vendor';
+        } else {
+            $receiverName = $document->customer?->name ?? 'Customer';
+        }
 
         $isCredit = ($document->payment_terms === 'Credit' || (isset($document->balance_amount) && $document->balance_amount > 0));
-        $currentBalance = $document->customer?->current_balance ?? 0;
+        $currentBalance = 0;
+        if ($type === 'stock_supply') {
+            $currentBalance = $document->vendor?->current_balance ?? 0;
+        } else {
+            $currentBalance = $document->customer?->current_balance ?? 0;
+        }
         $formattedBalance = number_format($currentBalance, 2);
 
         // English part
-        $enMessage = "Hello {$customerName},\n\n";
+        $enMessage = "Hello {$receiverName},\n\n";
         switch ($type) {
             case 'quotation':
                 $enMessage .= "Here is your Quotation #{$documentNumber}.\n";
@@ -154,6 +171,10 @@ class WhatsAppService
                 break;
             case 'request':
                 $enMessage .= "Regarding your Customer Request #{$documentNumber}.\n";
+                break;
+            case 'stock_supply':
+                $enMessage .= "Here is the Stock Supply document #{$documentNumber}.\n";
+                $enMessage .= "Total: {$totalAmount} SAR\n";
                 break;
             default:
                 $enMessage .= "Regarding document #{$documentNumber}.\n";
@@ -167,7 +188,7 @@ class WhatsAppService
         $enMessage .= "\nThank you for choosing {$branchNameEn}.";
 
         // Arabic part
-        $arMessage = "مرحباً {$customerName}،\n\n";
+        $arMessage = "مرحباً {$receiverName}،\n\n";
         switch ($type) {
             case 'quotation':
                 $arMessage .= "إليك عرض السعر رقم #{$documentNumber}.\n";
@@ -180,8 +201,13 @@ class WhatsAppService
             case 'request':
                 $arMessage .= "بخصوص طلب العميل رقم #{$documentNumber}.\n";
                 break;
+            case 'stock_supply':
+                $arMessage .= "إليك مستند توريد المخزون رقم #{$documentNumber}.\n";
+                $arMessage .= "الإجمالي: {$totalAmount} ريال سعودي\n";
+                break;
             default:
                 $arMessage .= "بخصوص المستند رقم #{$documentNumber}.\n";
+                break;
         }
 
         if ($isCredit) {

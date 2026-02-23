@@ -19,4 +19,24 @@ class StockReceiving extends Model
     {
         return $this->hasMany(StockReceivingItem::class);
     }
+
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function receiver()
+    {
+        return $this->belongsTo(User::class, 'received_by');
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 }

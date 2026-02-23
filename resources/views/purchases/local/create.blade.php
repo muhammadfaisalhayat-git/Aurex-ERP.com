@@ -12,7 +12,7 @@
                     <i class="fas fa-magic"></i> {{ __('local_purchase.scan_invoice') }}
                 </button>
                 <a href="{{ route('purchases.local-purchases.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> {{ __('general.back') }}
+                    <i class="fas fa-arrow-left"></i> {{ __('messages.back') }}
                 </a>
             </div>
         </div>
@@ -117,7 +117,7 @@
                                 <label for="branch_id" class="form-label">{{ __('local_purchase.branch') }} *</label>
                                 <select class="form-select @error('branch_id') is-invalid @enderror" id="branch_id"
                                     name="branch_id" required>
-                                    <option value="">{{ __('general.select') }}</option>
+                                    <option value="">{{ __('messages.select_option') }}</option>
                                     @foreach(\App\Models\Branch::where('is_active', true)->get() as $branch)
                                         <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
                                             {{ $branch->name }}
@@ -132,7 +132,7 @@
                                 <label for="warehouse_id" class="form-label">{{ __('local_purchase.warehouse') }} *</label>
                                 <select class="form-select @error('warehouse_id') is-invalid @enderror" id="warehouse_id"
                                     name="warehouse_id" required>
-                                    <option value="">{{ __('general.select') }}</option>
+                                    <option value="">{{ __('messages.select_option') }}</option>
                                     @foreach($warehouses as $warehouse)
                                         <option value="{{ $warehouse->id }}" {{ old('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
                                             {{ $warehouse->name }}
@@ -178,7 +178,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-save"></i> {{ __('general.save') }}
+                        <i class="fas fa-save"></i> {{ __('messages.save') }}
                     </button>
                 </div>
             </div>
@@ -189,7 +189,7 @@
         <tr class="item-row">
             <td>
                 <select class="form-select item-select" name="items[INDEX][product_id]" required>
-                    <option value="">{{ __('general.select_item') }}</option>
+                    <option value="">{{ __('messages.select_item') }}</option>
                     @foreach($products as $product)
                         <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? $product->sale_price }}">
                             {{ $product->code }} - {{ $product->name }}
@@ -228,242 +228,168 @@
 
 @push('scripts')
     <script>
-        document.addEventListener('turbo:load', function () {
+        (function () {
+            // Guard: only run once even if turbo re-fires
+            if (window._localPurchaseInitDone) return;
+            window._localPurchaseInitDone = true;
+
+            // Product price map for Select2 autofill
+            const productPrices = {
+                @foreach($products as $product)
+                    {{ $product->id }}: {{ $product->purchase_price ?? $product->sale_price ?? 0 }},
+                @endforeach
+            };
+
             let itemIndex = 0;
             const itemsBody = document.getElementById('itemsBody');
-            const template = document.getElementById('itemRowTemplate');
+            const template  = document.getElementById('itemRowTemplate');
             const addItemBtn = document.getElementById('addItemBtn');
+
+            function initSelect2OnRow(row) {
+                $(row).find('.item-select').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: '{{ __("messages.select_item") }}',
+                    allowClear: true,
+                }).on('change', function () {
+                    const price = productPrices[$(this).val()] || 0;
+                    $(row).find('.unit-price').val(price);
+                    calculateRowTotal(row);
+                });
+            }
 
             function addItemRow() {
                 const clone = template.content.cloneNode(true);
-                const row = clone.querySelector('tr');
+                const row   = clone.querySelector('tr');
 
-                // Update indices
                 row.querySelectorAll('[name*="INDEX"]').forEach(el => {
                     el.name = el.name.replace('INDEX', itemIndex);
                 });
 
-                // Add event listeners
-                row.querySelector('.remove-item').addEventListener('click', function () {
+                row.querySelector('.remove-item').addEventListener('click', () => {
                     row.remove();
                     calculateTotals();
                 });
 
-                row.querySelector('.item-select').addEventListener('change', function () {
-                    const option = this.options[this.selectedIndex];
-                    const price = option.dataset.price || 0;
-                    row.querySelector('.unit-price').value = price;
-                    calculateRowTotal(row);
-                });
-
                 ['quantity', 'unit-price', 'discount', 'tax-rate'].forEach(cls => {
-                    row.querySelector('.' + cls).addEventListener('input', function () {
-                        calculateRowTotal(row);
-                    });
+                    const el = row.querySelector('.' + cls);
+                    if (el) el.addEventListener('input', () => calculateRowTotal(row));
                 });
 
-                itemsBody.appendChild(row);
+                itemsBody.appendChild(row);   // append BEFORE Select2 init
+                initSelect2OnRow(row);
                 itemIndex++;
             }
 
             function calculateRowTotal(row) {
-                const qty = parseFloat(row.querySelector('.quantity').value) || 0;
-                const price = parseFloat(row.querySelector('.unit-price').value) || 0;
-                const discount = parseFloat(row.querySelector('.discount').value) || 0;
-                const taxRate = parseFloat(row.querySelector('.tax-rate').value) || 0;
-
-                const gross = qty * price;
-                const grossAfterDiscount = gross - discount;
-                const net = grossAfterDiscount / (1 + (taxRate / 100));
-                const tax = grossAfterDiscount - net;
-
-                row.querySelector('.item-total').textContent = grossAfterDiscount.toFixed(2);
+                const qty      = parseFloat($(row).find('.quantity').val())  || 0;
+                const price    = parseFloat($(row).find('.unit-price').val()) || 0;
+                const discount = parseFloat($(row).find('.discount').val())   || 0;
+                const taxRate  = parseFloat($(row).find('.tax-rate').val())   || 0;
+                const gross    = qty * price;
+                const after    = gross - discount;
+                $(row).find('.item-total').text(after.toFixed(2));
                 calculateTotals();
             }
 
             function calculateTotals() {
-                let subtotal = 0;
-                let totalDiscount = 0;
-                let totalTax = 0;
-                let grandTotal = 0;
-
+                let subtotal = 0, totalDiscount = 0, totalTax = 0, grandTotal = 0;
                 document.querySelectorAll('.item-row').forEach(row => {
-                    const qty = parseFloat(row.querySelector('.quantity').value) || 0;
-                    const price = parseFloat(row.querySelector('.unit-price').value) || 0;
-                    const discount = parseFloat(row.querySelector('.discount').value) || 0;
-                    const taxRate = parseFloat(row.querySelector('.tax-rate').value) || 0;
-
-                    const gross = qty * price;
-                    const grossAfterDiscount = gross - discount;
-                    const net = grossAfterDiscount / (1 + (taxRate / 100));
-                    const tax = grossAfterDiscount - net;
-
-                    subtotal += gross;
+                    const qty      = parseFloat($(row).find('.quantity').val())  || 0;
+                    const price    = parseFloat($(row).find('.unit-price').val()) || 0;
+                    const discount = parseFloat($(row).find('.discount').val())   || 0;
+                    const taxRate  = parseFloat($(row).find('.tax-rate').val())   || 0;
+                    const gross    = qty * price;
+                    const after    = gross - discount;
+                    const net      = after / (1 + taxRate / 100);
+                    subtotal      += gross;
                     totalDiscount += discount;
-                    totalTax += tax;
-                    grandTotal += grossAfterDiscount;
+                    totalTax      += after - net;
+                    grandTotal    += after;
                 });
-
-                document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+                document.getElementById('subtotal').textContent      = subtotal.toFixed(2);
                 document.getElementById('totalDiscount').textContent = totalDiscount.toFixed(2);
-                document.getElementById('totalTax').textContent = totalTax.toFixed(2);
-                document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+                document.getElementById('totalTax').textContent      = totalTax.toFixed(2);
+                document.getElementById('grandTotal').textContent    = grandTotal.toFixed(2);
             }
 
             addItemBtn.addEventListener('click', addItemRow);
 
-            // Scanning Logic
-            const scanBtn = document.getElementById('scanInvoiceBtn');
+            // ── Scan invoice logic ──────────────────────────────────────────────
+            const scanBtn   = document.getElementById('scanInvoiceBtn');
             const scanInput = document.getElementById('invoiceScanInput');
+            let scannedImagePath = null;
 
             scanBtn.addEventListener('click', () => scanInput.click());
 
-            let scannedImagePath = null; // Store the scanned image path
-            
-            scanInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    const formData = new FormData();
-                    formData.append('invoice_image', this.files[0]);
-                    formData.append('_token', '{{ csrf_token() }}');
+            scanInput.addEventListener('change', function () {
+                if (!this.files || !this.files[0]) return;
+                const formData = new FormData();
+                formData.append('invoice_image', this.files[0]);
+                formData.append('_token', '{{ csrf_token() }}');
+                scanBtn.disabled = true;
+                scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ __("local_purchase.scanning") }}...';
 
-                    // Show loading state
-                    scanBtn.disabled = true;
-                    scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ __("local_purchase.scanning") }}...';
-
-                    fetch('{{ route("purchases.ai.scan") }}', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
+                fetch('{{ route("purchases.ai.scan") }}', { method: 'POST', body: formData })
+                    .then(r => r.json())
                     .then(data => {
                         if (data.success) {
-                            // Store scanned image path for later use
                             scannedImagePath = data.data.image_path;
-                            
-                            // Pre-fill main fields
-                            if (data.data.supplier_name) document.getElementById('supplier_name').value = data.data.supplier_name;
+                            if (data.data.supplier_name)  document.getElementById('supplier_name').value  = data.data.supplier_name;
                             if (data.data.invoice_number) document.getElementById('invoice_number').value = data.data.invoice_number;
-                            if (data.data.invoice_date) document.getElementById('invoice_date').value = data.data.invoice_date;
+                            if (data.data.invoice_date)   document.getElementById('invoice_date').value   = data.data.invoice_date;
 
-                            // Add items
                             if (data.data.items && data.data.items.length > 0) {
-                                // Clear existing empty items if any
                                 const rows = document.querySelectorAll('.item-row');
-                                if (rows.length === 1) {
-                                    const firstRow = rows[0];
-                                    if (!firstRow.querySelector('.item-select').value) {
-                                        firstRow.remove();
-                                    }
-                                }
+                                if (rows.length === 1 && !$(rows[0]).find('.item-select').val()) rows[0].remove();
 
                                 data.data.items.forEach(item => {
                                     const clone = template.content.cloneNode(true);
-                                    const row = clone.querySelector('tr');
-                                    
-                                    row.querySelectorAll('[name*="INDEX"]').forEach(el => {
-                                        el.name = el.name.replace('INDEX', itemIndex);
-                                    });
-
-                                    // Pre-select product if product_id is provided
-                                    const productSelect = row.querySelector('.item-select');
-                                    if (item.product_id) {
-                                        productSelect.value = item.product_id;
-                                    }
-
-                                    // Pre-fill item row data
-                                    row.querySelector('.quantity').value = item.quantity;
+                                    const row   = clone.querySelector('tr');
+                                    row.querySelectorAll('[name*="INDEX"]').forEach(el => { el.name = el.name.replace('INDEX', itemIndex); });
+                                    row.querySelector('.remove-item').addEventListener('click', () => { row.remove(); calculateTotals(); });
+                                    ['quantity','unit-price','discount','tax-rate'].forEach(cls => { const el = row.querySelector('.' + cls); if (el) el.addEventListener('input', () => calculateRowTotal(row)); });
+                                    row.querySelector('.quantity').value   = item.quantity;
                                     row.querySelector('.unit-price').value = item.unit_price;
-                                    row.querySelector('.discount').value = item.discount_amount || 0;
-                                    row.querySelector('.tax-rate').value = item.tax_rate || 15;
-
-                                    // Add event listeners (standard item logic)
-                                    row.querySelector('.remove-item').addEventListener('click', function () {
-                                        row.remove();
-                                        calculateTotals();
-                                    });
-                                    row.querySelector('.item-select').addEventListener('change', function () {
-                                        const option = this.options[this.selectedIndex];
-                                        const price = option.dataset.price || 0;
-                                        row.querySelector('.unit-price').value = price;
-                                        calculateRowTotal(row);
-                                    });
-                                    ['quantity', 'unit-price', 'discount', 'tax-rate'].forEach(cls => {
-                                        row.querySelector('.' + cls).addEventListener('input', function () {
-                                            calculateRowTotal(row);
-                                        });
-                                    });
-
+                                    row.querySelector('.discount').value   = item.discount_amount || 0;
+                                    row.querySelector('.tax-rate').value   = item.tax_rate || 15;
                                     itemsBody.appendChild(row);
+                                    const sel = $(row).find('.item-select');
+                                    initSelect2OnRow(row);
+                                    if (item.product_id) sel.val(item.product_id).trigger('change.select2');
                                     calculateRowTotal(row);
                                     itemIndex++;
                                 });
                             }
-
-                            Swal.fire({
-                                icon: 'success',
-                                title: '{{ __("local_purchase.scan_complete") }}',
-                                text: '{{ __("local_purchase.scan_success_msg") }}',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
+                            Swal.fire({ icon: 'success', title: '{{ __("local_purchase.scan_complete") }}', text: '{{ __("local_purchase.scan_success_msg") }}', timer: 2000, showConfirmButton: false });
                         } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: '{{ __("general.error") }}',
-                                text: data.message || '{{ __("local_purchase.scan_failed") }}'
-                            });
+                            Swal.fire({ icon: 'error', title: '{{ __("messages.error") }}', text: data.message || '{{ __("local_purchase.scan_failed") }}' });
                         }
                     })
-                    .catch(error => {
-                        console.error('Scan Error:', error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: '{{ __("general.error") }}',
-                            text: '{{ __("local_purchase.scan_failed") }}'
-                        });
-                    })
+                    .catch(() => Swal.fire({ icon: 'error', title: '{{ __("messages.error") }}', text: '{{ __("local_purchase.scan_failed") }}' }))
                     .finally(() => {
                         scanBtn.disabled = false;
                         scanBtn.innerHTML = '<i class="fas fa-magic"></i> {{ __("local_purchase.scan_invoice") }}';
-                        scanInput.value = ''; // Reset input
+                        scanInput.value = '';
                     });
-                }
             });
 
-            // Save scanned invoice to vendor on form submit
             const form = document.getElementById('localPurchaseForm');
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', function (e) {
                 if (scannedImagePath) {
                     e.preventDefault();
-                    
-                    // First save the invoice image to vendor
-                    const vendorFormData = new FormData();
-                    vendorFormData.append('vendor_id', document.getElementById('vendor_id')?.value || '');
-                    vendorFormData.append('image_path', scannedImagePath);
-                    vendorFormData.append('invoice_number', document.getElementById('invoice_number').value);
-                    vendorFormData.append('_token', '{{ csrf_token() }}');
-                    
-                    fetch('{{ route("purchases.ai.save-to-vendor") }}', {
-                        method: 'POST',
-                        body: vendorFormData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Continue with form submission regardless of whether save succeeded
-                        scannedImagePath = null; // Clear to avoid duplicate saves
-                        form.submit();
-                    })
-                    .catch(error => {
-                        console.error('Save to vendor error:', error);
-                        // Still submit the form
-                        scannedImagePath = null;
-                        form.submit();
-                    });
+                    const fd = new FormData();
+                    fd.append('vendor_id', document.getElementById('vendor_id')?.value || '');
+                    fd.append('image_path', scannedImagePath);
+                    fd.append('invoice_number', document.getElementById('invoice_number').value);
+                    fd.append('_token', '{{ csrf_token() }}');
+                    fetch('{{ route("purchases.ai.save-to-vendor") }}', { method: 'POST', body: fd })
+                        .finally(() => { scannedImagePath = null; form.submit(); });
                 }
             });
 
-            // Add first item row
+            // Add the first row on load
             addItemRow();
-        });
+        })();
     </script>
 @endpush

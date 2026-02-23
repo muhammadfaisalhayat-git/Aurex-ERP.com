@@ -67,7 +67,7 @@ class SalesReturnController extends Controller
         $products = Product::sellable()->active()->get();
         $taxSetting = TaxSetting::first();
         $documentNumber = DocumentNumber::generate('sales_return');
-        $invoices = SalesInvoice::posted()->get();
+        $invoices = SalesInvoice::with('customer')->posted()->get();
         $bankAccounts = BankAccount::active()->get();
 
         return view('sales.returns.create', compact('customers', 'branches', 'warehouses', 'products', 'taxSetting', 'documentNumber', 'invoices', 'bankAccounts'));

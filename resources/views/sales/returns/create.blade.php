@@ -45,12 +45,14 @@
                                 <div class="col-md-3 mb-3">
                                     <label for="sales_invoice_id"
                                         class="form-label">{{ __('messages.sales_invoice') ?? 'Sales Invoice' }}</label>
-                                    <select class="form-select @error('sales_invoice_id') is-invalid @enderror" name="sales_invoice_id" id="sales_invoice_id">
+                                    <select class="form-select @error('sales_invoice_id') is-invalid @enderror"
+                                        name="sales_invoice_id" id="sales_invoice_id">
                                         <option value="">-- {{ __('messages.select_invoice') ?? 'Select Invoice' }} --
                                         </option>
                                         @foreach($invoices as $invoice)
                                             <option value="{{ $invoice->id }}" {{ old('sales_invoice_id') == $invoice->id ? 'selected' : '' }}>
-                                                {{ $invoice->invoice_number }} ({{ $invoice->customer->name }})
+                                                {{ $invoice->invoice_number }}
+                                                ({{ $invoice->customer->name ?? __('messages.unknown_customer') }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -60,10 +62,14 @@
                                 </div>
 
                                 <div class="col-md-3 mb-3">
-                                    <label for="return_type" class="form-label">{{ __('messages.return_type') ?? 'Return Type' }} <span class="text-danger">*</span></label>
-                                    <select class="form-select @error('return_type') is-invalid @enderror" name="return_type" id="return_type" required>
+                                    <label for="return_type"
+                                        class="form-label">{{ __('messages.return_type') ?? 'Return Type' }} <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select @error('return_type') is-invalid @enderror"
+                                        name="return_type" id="return_type" required>
                                         <option value="credit" {{ old('return_type', 'credit') == 'credit' ? 'selected' : '' }}>{{ __('messages.credit') ?? 'Credit' }}</option>
-                                        <option value="cash" {{ old('return_type') == 'cash' ? 'selected' : '' }}>{{ __('messages.cash') ?? 'Cash' }}</option>
+                                        <option value="cash" {{ old('return_type') == 'cash' ? 'selected' : '' }}>
+                                            {{ __('messages.cash') ?? 'Cash' }}</option>
                                     </select>
                                     @error('return_type')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -73,9 +79,13 @@
 
                             <div class="row">
                                 <div class="col-md-3 mb-3 d-none" id="bank_account_container">
-                                    <label for="bank_account_id" class="form-label">{{ __('messages.bank_account') ?? 'Bank/Cash Account' }} <span class="text-danger">*</span></label>
-                                    <select class="form-select @error('bank_account_id') is-invalid @enderror" name="bank_account_id" id="bank_account_id">
-                                        <option value="">-- {{ __('messages.select_account') ?? 'Select Account' }} --</option>
+                                    <label for="bank_account_id"
+                                        class="form-label">{{ __('messages.bank_account') ?? 'Bank/Cash Account' }} <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select @error('bank_account_id') is-invalid @enderror"
+                                        name="bank_account_id" id="bank_account_id">
+                                        <option value="">-- {{ __('messages.select_account') ?? 'Select Account' }} --
+                                        </option>
                                         @foreach($bankAccounts as $account)
                                             <option value="{{ $account->id }}" {{ old('bank_account_id') == $account->id ? 'selected' : '' }}>
                                                 {{ $account->name }} ({{ $account->account_number }})
@@ -201,33 +211,33 @@
     </div>
 
     <script type="text/template" id="item-row-template">
-            <tr>
-                <td>
-                    <select name="items[INDEX][product_id]" class="form-select product-select" required>
-                        <option value="">-- {{ __('messages.select_product') }} --</option>
-                        @foreach($products as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->sale_price }}">
-                                {{ $product->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </td>
-                <td>
-                    <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
-                </td>
-                <td>
-                    <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
-                </td>
-                <td class="text-end">
-                    <span class="row-total">0.00</span>
-                </td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-danger remove-item">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        </script>
+                <tr>
+                    <td>
+                        <select name="items[INDEX][product_id]" class="form-select product-select" required>
+                            <option value="">-- {{ __('messages.select_product') }} --</option>
+                            @foreach($products as $product)
+                                <option value="{{ $product->id }}" data-price="{{ $product->sale_price }}">
+                                    {{ $product->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
+                    </td>
+                    <td>
+                        <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
+                    </td>
+                    <td class="text-end">
+                        <span class="row-total">0.00</span>
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-danger remove-item">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </script>
 @endsection
 
 @push('scripts')
@@ -331,14 +341,14 @@
                     // Cash Return
                     bankAccountContainer.classList.remove('d-none');
                     document.getElementById('bank_account_id').setAttribute('required', 'required');
-                    
+
                     customerAsterisk.classList.add('d-none');
                     customerSelect.removeAttribute('required');
                 } else {
                     // Credit Return
                     bankAccountContainer.classList.add('d-none');
                     document.getElementById('bank_account_id').removeAttribute('required');
-                    
+
                     customerAsterisk.classList.remove('d-none');
                     customerSelect.setAttribute('required', 'required');
                 }

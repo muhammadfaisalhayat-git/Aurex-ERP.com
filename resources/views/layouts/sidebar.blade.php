@@ -275,7 +275,7 @@
                 @if($checkVisibility('sidebar_stock_management'))
                     @can('view inventory')
                         <div
-                            class="menu-item {{ request()->routeIs('inventory.stock-supply.*') || request()->routeIs('inventory.stock-receiving.*') || request()->routeIs('inventory.stock-transfers.*') || request()->routeIs('inventory.transfer-requests.*') || request()->routeIs('inventory.issue-orders.*') || request()->routeIs('inventory.assemblies.*') ? 'open' : '' }}">
+                            class="menu-item {{ request()->routeIs('inventory.stock-supply.*') || request()->routeIs('inventory.stock-receiving.*') || request()->routeIs('inventory.stock-transfers.*') || request()->routeIs('inventory.transfer-requests.*') || request()->routeIs('inventory.issue-orders.*') || request()->routeIs('inventory.composite-assemblies.*') ? 'open' : '' }}">
                             <a href="#" class="menu-link" data-submenu>
                                 <i class="fas fa-warehouse fa-fw"></i>
                                 <span>{{ __('messages.stock_management') }}</span>
@@ -302,8 +302,8 @@
                                     class="menu-link {{ request()->routeIs('inventory.issue-orders.*') ? 'active' : '' }}">
                                     {{ __('messages.issue_orders') }}
                                 </a>
-                                <a href="{{ route('inventory.assemblies.index') }}"
-                                    class="menu-link {{ request()->routeIs('inventory.assemblies.*') ? 'active' : '' }}">
+                                <a href="{{ route('inventory.composite-assemblies.index') }}"
+                                    class="menu-link {{ request()->routeIs('inventory.composite-assemblies.*') ? 'active' : '' }}">
                                     {{ __('messages.composite_assemblies') }}
                                 </a>
                             </div>

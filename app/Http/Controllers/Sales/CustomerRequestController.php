@@ -265,7 +265,18 @@ class CustomerRequestController extends Controller
             $item->product_name_ar = $this->arabicShaper->shape($item->product->name_ar ?? $item->product->name_en);
         }
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sales.customer-requests.pdf', compact('customerRequest'));
+        // Base64 logo for PDF
+        $logoBase64 = null;
+        if ($customerRequest->company?->logo) {
+            $path = public_path('storage/' . $customerRequest->company->logo);
+            if (file_exists($path)) {
+                $type = pathinfo($path, PATHINFO_EXTENSION);
+                $data = file_get_contents($path);
+                $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+            }
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sales.customer-requests.pdf', compact('customerRequest', 'logoBase64'));
 
         return $pdf->download('Customer_Request_' . $customerRequest->document_number . '.pdf');
     }

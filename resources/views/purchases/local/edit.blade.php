@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">{{ __('local_purchase.edit') }}</h1>
         <a href="{{ route('purchases.local-purchases.show', $localPurchase) }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> {{ __('general.back') }}
+        <i class="fas fa-arrow-left"></i> {{ __('messages.back') }}
         </a>
     </div>
 
@@ -83,7 +83,7 @@
                                     <tr class="item-row">
                                         <td>
                                             <select class="form-select item-select" name="items[{{ $index }}][product_id]" required>
-                                                <option value="">{{ __('general.select_item') }}</option>
+                                                <option value="">{{ __('messages.select_item') }}</option>
                                                 @foreach(\App\Models\Product::where('is_active', true)->get() as $product)
                                                     <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? $product->sale_price }}" 
                                                         {{ $item->product_id == $product->id ? 'selected' : '' }}>
@@ -138,7 +138,7 @@
                         <div class="mb-3">
                             <label for="branch_id" class="form-label">{{ __('local_purchase.branch') }} *</label>
                             <select class="form-select @error('branch_id') is-invalid @enderror" id="branch_id" name="branch_id" required>
-                                <option value="">{{ __('general.select') }}</option>
+                                <option value="">{{ __('messages.select_option') }}</option>
                                 @foreach(\App\Models\Branch::where('is_active', true)->get() as $branch)
                                     <option value="{{ $branch->id }}" {{ old('branch_id', $localPurchase->branch_id) == $branch->id ? 'selected' : '' }}>
                                         {{ $branch->name }}
@@ -149,7 +149,7 @@
                         <div class="mb-3">
                             <label for="warehouse_id" class="form-label">{{ __('local_purchase.warehouse') }} *</label>
                             <select class="form-select @error('warehouse_id') is-invalid @enderror" id="warehouse_id" name="warehouse_id" required>
-                                <option value="">{{ __('general.select') }}</option>
+                                <option value="">{{ __('messages.select_option') }}</option>
                                 @foreach(\App\Models\Warehouse::where('is_active', true)->get() as $warehouse)
                                     <option value="{{ $warehouse->id }}" {{ old('warehouse_id', $localPurchase->warehouse_id) == $warehouse->id ? 'selected' : '' }}>
                                         {{ $warehouse->name }}
@@ -192,7 +192,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-save"></i> {{ __('general.update') }}
+                    <i class="fas fa-save"></i> {{ __('messages.update') }}
                 </button>
             </div>
         </div>
@@ -203,7 +203,7 @@
     <tr class="item-row">
         <td>
             <select class="form-select item-select" name="items[INDEX][product_id]" required>
-                <option value="">{{ __('general.select_item') }}</option>
+                <option value="">{{ __('messages.select_item') }}</option>
                 @foreach(\App\Models\Product::where('is_active', true)->get() as $product)
                     <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? $product->sale_price }}">
                         {{ $product->code }} - {{ $product->name }}
@@ -274,6 +274,7 @@ document.addEventListener('turbo:load', function() {
         });
         
         itemsBody.appendChild(row);
+        if (window.initGlobalSelect2) window.initGlobalSelect2(row);
         itemIndex++;
     }
 

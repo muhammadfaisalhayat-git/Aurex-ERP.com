@@ -22,4 +22,24 @@ class StockTransfer extends Model
     {
         return $this->hasMany(StockTransferItem::class);
     }
+
+    public function requestedBy()
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function receivedBy()
+    {
+        return $this->belongsTo(User::class, 'received_by');
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 }

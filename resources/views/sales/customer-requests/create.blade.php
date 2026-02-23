@@ -285,6 +285,7 @@
                             `;
 
                     itemsBody.appendChild(tr);
+                    if (window.initGlobalSelect2) window.initGlobalSelect2(tr);
 
                     const searchInput = tr.querySelector('.product-search-input');
                     const idInput = tr.querySelector('.product-id-input');

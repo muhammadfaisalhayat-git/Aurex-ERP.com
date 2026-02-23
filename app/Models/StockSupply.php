@@ -59,6 +59,11 @@ class StockSupply extends Model
         return $this->hasMany(StockSupplyItem::class);
     }
 
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     public function isPosted()
     {
         return $this->status === 'posted';

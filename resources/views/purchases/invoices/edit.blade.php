@@ -78,7 +78,8 @@
                                         <option value="cash" {{ old('payment_terms', $invoice->payment_terms) == 'cash' ? 'selected' : '' }}>{{ __('messages.cash') }}</option>
                                         <option value="credit" {{ old('payment_terms', $invoice->payment_terms) == 'credit' ? 'selected' : '' }}>{{ __('messages.credit') }}</option>
                                         <option value="installment" {{ old('payment_terms', $invoice->payment_terms) == 'installment' ? 'selected' : '' }}>
-                                            {{ __('messages.installment') }}</option>
+                                            {{ __('messages.installment') }}
+                                        </option>
                                     </select>
                                     @error('payment_terms')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -120,7 +121,8 @@
                                                         @endphp
                                                         @if($product)
                                                             <option value="{{ $product->id }}" selected>{{ $product->code }} -
-                                                                {{ $product->name_en }}</option>
+                                                                {{ $product->name_en }}
+                                                            </option>
                                                         @endif
                                                     </select>
                                                 </td>
@@ -281,7 +283,6 @@
 @endsection
 
 @push('styles')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         .select2-container .select2-selection--single {
             height: 38px !important;
@@ -298,8 +299,6 @@
 @endpush
 
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function () {
             let rowIndex = {{ count(old('items', $invoice->items)) }};

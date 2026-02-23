@@ -20,6 +20,11 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+    <!-- Select2 CSS + Bootstrap 5 Theme -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+
     <!-- Google Fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@300;400;500;600;700&display=swap"
@@ -36,6 +41,9 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
         // Global functions
@@ -89,7 +97,7 @@
                     const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
                     if (bsAlert) bsAlert.close();
                 });
-            }, 50000);
+            }, 5000);
         });
 
         // Cleanup Bootstrap state before Turbo caches/replaces the body
@@ -122,6 +130,42 @@
 
         document.addEventListener('turbo:load', function () {
             // Re-initialize any components that might need it
+            initGlobalSelect2();
+        });
+
+        // ── Global Select2 Auto-Initializer ──────────────────────────────────────
+        window.initGlobalSelect2 = function (scope) {
+            const isRtl = document.documentElement.dir === 'rtl';
+            const root  = scope ? $(scope) : $('body');
+
+            // Target all form-select and form-control <select> elements
+            // Exclude: theme selectors, elements with data-no-select2, and <template> contents
+            root.find('select.form-select, select.form-control').addBack('select.form-select, select.form-control').not(
+                '#themeSelector, [data-no-select2]'
+            ).each(function () {
+                // Skip if already initialized or inside a <template> tag
+                if ($(this).hasClass('select2-hidden-accessible')) return;
+                if ($(this).closest('template').length) return;
+
+                const placeholder = $(this).find('option[value=""]').first().text().trim()
+                                 || '{{ __("messages.select_option") }}';
+
+                $(this).select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    dir: isRtl ? 'rtl' : 'ltr',
+                    allowClear: true,
+                    placeholder: placeholder,
+                });
+            });
+        };
+
+
+        // Destroy Select2 before Turbo caches the page to prevent ghost DOM elements
+        document.addEventListener('turbo:before-cache', function () {
+            $('select.select2-hidden-accessible').each(function () {
+                try { $(this).select2('destroy'); } catch (e) { }
+            });
         });
     </script>
 
@@ -776,10 +820,99 @@
             text-align: center;
             color: #6b7280;
         }
+
+        /* ── Select2 Premium Overrides ────────────────────────────────────────── */
+        .select2-container--bootstrap-5 .select2-selection {
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 0.875rem;
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            background-color: #fff;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .select2-container--bootstrap-5.select2-container--focus .select2-selection,
+        .select2-container--bootstrap-5.select2-container--open .select2-selection {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+
+        .select2-container--bootstrap-5 .select2-dropdown {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);
+            font-size: 0.875rem;
+            overflow: hidden;
+        }
+
+        .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            padding: 8px 12px;
+            font-size: 0.875rem;
+            transition: border-color 0.15s ease;
+        }
+
+        .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+
+        .select2-container--bootstrap-5 .select2-results__option {
+            padding: 9px 14px;
+            font-size: 0.875rem;
+            transition: background-color 0.15s ease;
+        }
+
+        .select2-container--bootstrap-5 .select2-results__option--highlighted {
+            background-color: var(--primary-color) !important;
+            color: #fff !important;
+        }
+
+        .select2-container--bootstrap-5 .select2-results__option--selected {
+            background-color: rgba(37, 99, 235, 0.08);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        /* Ensure dropdown appears above modals */
+        .select2-container {
+            z-index: 1060;
+        }
+
+        /* RTL support */
+        [dir="rtl"] .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+            left: 10px;
+            right: auto;
+        }
+
+        [dir="rtl"] .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            padding-right: 0;
+            padding-left: 20px;
+        }
+
+        /* Clear button styling */
+        .select2-container--bootstrap-5 .select2-selection__clear {
+            color: #9ca3af;
+            font-weight: 400;
+            font-size: 1.1rem;
+            line-height: 1;
+            margin-left: auto;
+        }
+
+        .select2-container--bootstrap-5 .select2-selection__clear:hover {
+            color: var(--danger-color);
+        }
     </style>
 
     @stack('styles')
 </head>
+
 
 <body>
     <!-- Sidebar -->
@@ -911,39 +1044,40 @@
         <!-- Content -->
         <div class="content-wrapper">
             <turbo-frame id="main-frame" data-turbo-action="advance">
+                <!-- Notifications -->
+                <div id="notifications-container">
+                    @if(session('success'))
+                        <script>
+                            Swal.fire({
+                                icon: 'success',
+                                title: '{{ __("messages.success") }}',
+                                text: '{{ session("success") }}',
+                                timer: 3000,
+                                showConfirmButton: false,
+                                background: 'rgba(255, 255, 255, 0.9)',
+                                backdrop: `rgba(0,0,123,0.1)`
+                            });
+                        </script>
+                    @endif
+
+                    @if(session('error'))
+                        <script>
+                            Swal.fire({
+                                icon: 'error',
+                                title: '{{ __("messages.error") }}',
+                                text: '{{ session("error") }}',
+                                background: 'rgba(255, 255, 255, 0.9)'
+                            });
+                        </script>
+                    @endif
+                </div>
+
                 @yield('content')
                 @stack('scripts')
             </turbo-frame>
         </div>
     </div>
 
-    <!-- Notifications -->
-    <div id="notifications-container">
-        @if(session('success'))
-            <script>
-                Swal.fire({
-                    icon: 'success',
-                    title: '{{ __("messages.success") }}',
-                    text: '{{ session("success") }}',
-                    timer: 3000,
-                    showConfirmButton: false,
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdrop: `rgba(0,0,123,0.1)`
-                });
-            </script>
-        @endif
-
-        @if(session('error'))
-            <script>
-                Swal.fire({
-                    icon: 'error',
-                    title: '{{ __("messages.error") }}',
-                    text: '{{ session("error") }}',
-                    background: 'rgba(255, 255, 255, 0.9)'
-                });
-            </script>
-        @endif
-    </div>
 
     @stack('scripts')
 
