@@ -313,15 +313,15 @@
 
             const productData = [
                 @foreach($products as $product)
-                    {
+                        {
                     id: {{ $product->id }},
                     name: "{{ addslashes($product->name) }}",
                     code: "{{ $product->product_code ?? '' }}",
                     price: {{ $product->unit_price ?? $product->sale_price ?? 0 }},
                     tax: {{ $product->tax_rate ?? $defaultTaxRate }}
-                    },
+                        },
                 @endforeach
-                ];
+                    ];
 
             function initProductSearch(row) {
                 const searchInput = row.querySelector('.product-search-input');
@@ -364,11 +364,11 @@
 
                     if (results.length > 0) {
                         resultsDiv.innerHTML = results.map(p => `
-                                <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-tax="${p.tax}" style="cursor:pointer;">
-                                    <div class="fw-bold">${p.name}</div>
-                                    <small class="text-muted">${p.code} | Price: ${parseFloat(p.price).toFixed(2)}</small>
-                                </div>
-                            `).join('');
+                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-tax="${p.tax}" style="cursor:pointer;">
+                                        <div class="fw-bold">${p.name}</div>
+                                        <small class="text-muted">${p.code} | Price: ${parseFloat(p.price).toFixed(2)}</small>
+                                    </div>
+                                `).join('');
                         resultsDiv.style.display = 'block';
 
                         resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
@@ -411,7 +411,11 @@
                 itemIndex++;
             }
 
-            document.getElementById('add-item').addEventListener('click', addItem);
+            // Use named function to avoid stacking listeners on turbo:load
+            const addItemBtnEl = document.getElementById('add-item');
+            addItemBtnEl.removeEventListener('click', addItemBtnEl._addItemHandler);
+            addItemBtnEl._addItemHandler = addItem;
+            addItemBtnEl.addEventListener('click', addItemBtnEl._addItemHandler);
 
             // Remove Row
             $(document).on('click', '.remove-item', function () {
@@ -481,6 +485,14 @@
                     if (emptyInput) { emptyInput.focus(); emptyInput.select(); }
                 }
             });
+        });
+    </script>
+
+    {{-- Clear dynamic content before Turbo caches the page --}}
+    <script>
+        document.addEventListener('turbo:before-cache', function () {
+            const tb = document.querySelector('#items-table tbody');
+            if (tb) tb.innerHTML = '';
         });
     </script>
 @endpush

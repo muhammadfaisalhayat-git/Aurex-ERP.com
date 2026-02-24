@@ -485,16 +485,25 @@
                 document.getElementById('grand_total').value = grandTotal.toFixed(2);
             }
 
-            addItemBtn.addEventListener('click', () => addItem());
+            // Use named function to avoid stacking listeners on turbo:load
+            addItemBtn.removeEventListener('click', addItemBtn._addItemHandler);
+            addItemBtn._addItemHandler = () => addItem();
+            addItemBtn.addEventListener('click', addItemBtn._addItemHandler);
 
-            // Add initial row if empty
+            // Add initial row only if table is empty
             @if(old('items'))
                 @foreach(old('items') as $item)
                     addItem(@json($item));
                 @endforeach
             @else
-                addItem();
+                if (itemsBody.children.length === 0) addItem();
             @endif
+        });
+
+        // Clear dynamic content before Turbo caches the page
+        document.addEventListener('turbo:before-cache', function () {
+            const tb = document.getElementById('itemsBody');
+            if (tb) tb.innerHTML = '';
         });
 
         // Enter key to next field navigation

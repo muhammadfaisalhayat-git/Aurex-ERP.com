@@ -212,32 +212,32 @@
     </div>
 
     <script type="text/template" id="item-row-template">
-                            <tr>
-                                <td>
-                                    <div class="position-relative product-search-container">
-                                        <input type="text" class="form-control product-search-input"
-                                            placeholder="{{ __('messages.select_product') ?? 'Search product...' }}"
-                                            autocomplete="off" required>
-                                        <input type="hidden" name="items[INDEX][product_id]" class="product-id-input" required>
-                                        <div class="product-results" style="display: none; position: absolute; z-index: 1000; width: 100%; background: white; border: 1px solid #ddd; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
-                                </td>
-                                <td>
-                                    <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
-                                </td>
-                                <td class="text-end">
-                                    <span class="row-total">0.00</span>
-                                </td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-danger remove-item">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </script>
+                                <tr>
+                                    <td>
+                                        <div class="position-relative product-search-container">
+                                            <input type="text" class="form-control product-search-input"
+                                                placeholder="{{ __('messages.select_product') ?? 'Search product...' }}"
+                                                autocomplete="off" required>
+                                            <input type="hidden" name="items[INDEX][product_id]" class="product-id-input" required>
+                                            <div class="product-results" style="display: none; position: absolute; z-index: 1000; width: 100%; background: white; border: 1px solid #ddd; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="row-total">0.00</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-danger remove-item">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </script>
 @endsection
 
 @push('scripts')
@@ -250,14 +250,14 @@
 
             const productData = [
                 @foreach($products as $product)
-                        {
+                            {
                     id: {{ $product->id }},
                     name: "{{ addslashes($product->name) }}",
                     code: "{{ $product->product_code ?? '' }}",
                     price: {{ $product->sale_price ?? 0 }}
-                        },
+                            },
                 @endforeach
-                    ];
+                        ];
 
             function initProductSearch(row) {
                 const searchInput = row.querySelector('.product-search-input');
@@ -300,11 +300,11 @@
 
                     if (results.length > 0) {
                         resultsDiv.innerHTML = results.map(p => `
-                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" style="cursor:pointer;">
-                                        <div class="fw-bold">${p.name}</div>
-                                        <small class="text-muted">${p.code} | Price: ${parseFloat(p.price).toFixed(2)}</small>
-                                    </div>
-                                `).join('');
+                                        <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" style="cursor:pointer;">
+                                            <div class="fw-bold">${p.name}</div>
+                                            <small class="text-muted">${p.code} | Price: ${parseFloat(p.price).toFixed(2)}</small>
+                                        </div>
+                                    `).join('');
                         resultsDiv.style.display = 'block';
 
                         resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
@@ -431,12 +431,21 @@
             returnTypeSelect.addEventListener('change', toggleReturnFields);
             toggleReturnFields(); // Initial check
 
-            document.getElementById('add-item-btn').addEventListener('click', () => addItem());
+            const addItemBtn = document.getElementById('add-item-btn');
+            addItemBtn.removeEventListener('click', addItemBtn._addItemHandler);
+            addItemBtn._addItemHandler = () => addItem();
+            addItemBtn.addEventListener('click', addItemBtn._addItemHandler);
 
-            // Add initial row if not editing/fetching
-            if (!invoiceSelect.value) {
+            // Add initial row only if table is empty and no invoice is pre-selected
+            if (!invoiceSelect.value && tableBody.children.length === 0) {
                 addItem();
             }
+        });
+
+        // Clear dynamic content before Turbo caches the page
+        document.addEventListener('turbo:before-cache', function () {
+            const tb = document.querySelector('#items-table tbody');
+            if (tb) tb.innerHTML = '';
         });
     </script>
 @endpush
