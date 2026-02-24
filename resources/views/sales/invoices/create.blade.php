@@ -180,7 +180,7 @@
                                             <th style="width: 12%;">{{ __('sales.quantity') }}</th>
                                             <th style="width: 15%;">{{ __('sales.unit_price') }}</th>
                                             <th style="width: 12%;">{{ __('sales.discount') }} (%)</th>
-                                            <th style="width: 12%;" class="d-none">{{ __('sales.tax') }}</th>
+                                            <th style="width: 12%;" class="d-none">{{ __('sales.vat') }}</th>
                                             <th style="width: 15%;">{{ __('sales.total') }}</th>
                                             <th style="width: 4%;"></th>
                                         </tr>
@@ -202,7 +202,7 @@
                                             <td></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="5" class="text-end fw-bold">{{ __('sales.tax') }}</td>
+                                            <td colspan="5" class="text-end fw-bold">{{ __('sales.vat') }}</td>
                                             <td class="text-end" id="tax_amount">0.00</td>
                                             <td></td>
                                         </tr>
@@ -237,43 +237,43 @@
     </div>
 
     <script type="text/template" id="item-row-template">
-                                                                                        <tr>
-                                                                                            <td class="position-relative product-cell">
-                                                                                                <div class="input-group">
-                                                                                                    <input type="text" class="form-control product-search-input" 
-                                                                                                           placeholder="Type to search products..." 
-                                                                                                           autocomplete="off"
-                                                                                                           data-product-id="">
-                                                                                                    <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
-                                                                                                    <button class="btn btn-outline-secondary product-search-btn" type="button" title="Search Product (F2)">
-                                                                                                        <i class="fas fa-search"></i>
-                                                                                                    </button>
-                                                                                                </div>
-                                                                                                <div class="search-results-container glassy product-results"></div>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0" required>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <input type="number" class="form-control discount-input" name="items[INDEX][discount_percentage]" step="0.01" min="0" max="100" value="0">
-                                                                                            </td>
-                                                                                            <td class="d-none">
-                                                                                                <input type="text" class="form-control tax-display" readonly>
-                                                                                                <input type="hidden" class="tax-rate-input">
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <input type="text" class="form-control total-display" readonly>
-                                                                                            </td>
-                                                                                            <td class="text-center">
-                                                                                                <button type="button" class="btn btn-sm btn-danger remove-item">
-                                                                                                    <i class="fas fa-trash"></i>
-                                                                                                </button>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    </script>
+                                                                                                <tr>
+                                                                                                    <td class="position-relative product-cell">
+                                                                                                        <div class="input-group">
+                                                                                                            <input type="text" class="form-control product-search-input" 
+                                                                                                                   placeholder="Type to search products..." 
+                                                                                                                   autocomplete="off"
+                                                                                                                   data-product-id="">
+                                                                                                            <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
+                                                                                                            <button class="btn btn-outline-secondary product-search-btn" type="button" title="Search Product (F2)">
+                                                                                                                <i class="fas fa-search"></i>
+                                                                                                            </button>
+                                                                                                        </div>
+                                                                                                        <div class="search-results-container glassy product-results"></div>
+                                                                                                    </td>
+                                                                                                    <td>
+                                                                                                        <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
+                                                                                                    </td>
+                                                                                                    <td>
+                                                                                                        <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0" required>
+                                                                                                    </td>
+                                                                                                    <td>
+                                                                                                        <input type="number" class="form-control discount-input" name="items[INDEX][discount_percentage]" step="0.01" min="0" max="100" value="0">
+                                                                                                    </td>
+                                                                                                    <td class="d-none">
+                                                                                                        <input type="text" class="form-control tax-display" placeholder="{{ __('sales.vat') }}" readonly>
+                                                                                                        <input type="hidden" class="tax-rate-input">
+                                                                                                    </td>
+                                                                                                    <td>
+                                                                                                        <input type="text" class="form-control total-display" readonly>
+                                                                                                    </td>
+                                                                                                    <td class="text-center">
+                                                                                                        <button type="button" class="btn btn-sm btn-danger remove-item">
+                                                                                                            <i class="fas fa-trash"></i>
+                                                                                                        </button>
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                            </script>
 
     <!-- Import Source Modal -->
     <div class="modal fade" id="importSourceModal" tabindex="-1" aria-labelledby="importSourceModalLabel"
@@ -332,26 +332,26 @@
                 @foreach($salesmen as $salesman)
                     { id: {{ $salesman->id }}, name: "{{ $salesman->name }}" },
                 @endforeach
-                                                    ];
+                                                            ];
 
             const customerData = [
                 @foreach($customers as $customer)
                     { id: {{ $customer->id }}, name: "{{ $customer->name_en }}", code: "{{ $customer->customer_code }}" },
                 @endforeach
-                                                    ];
+                                                            ];
 
             const productData = [
                 @foreach($products as $product)
-                                                            {
+                                                                    {
                     id: {{ $product->id }},
                     name: "{{ $product->name }}",
                     code: "{{ $product->product_code }}",
                     price: {{ $product->sale_price ?? 0 }},
                     cost_price: {{ $product->cost_price ?? 0 }},
                     tax: {{ $product->tax_rate ?? $taxSetting->default_tax_rate ?? 0 }} 
-                                                            },
+                                                                    },
                 @endforeach
-                                                    ];
+                                                            ];
 
             function addItem() {
                 const html = template.replace(/INDEX/g, itemIndex++);
@@ -452,18 +452,18 @@
                     div.className = 'search-result-item';
                     if (isProduct) {
                         div.innerHTML = `
-                                                                    <div class="item-title">${item.name}</div>
-                                                                    <div class="item-subtitle">${item.code}</div>
-                                                                    <div class="item-meta d-flex gap-3">
-                                                                        <span style="color:#198754; font-weight:600;">{{ __('messages.sale_price') }}: ${parseFloat(item.price).toFixed(2)}</span>
-                                                                        <span style="color:#dc3545; font-weight:600;">{{ __('messages.cost_price') }}: ${parseFloat(item.cost_price).toFixed(2)}</span>
-                                                                    </div>
-                                                                `;
+                                                                            <div class="item-title">${item.name}</div>
+                                                                            <div class="item-subtitle">${item.code}</div>
+                                                                            <div class="item-meta d-flex gap-3">
+                                                                                <span style="color:#198754; font-weight:600;">{{ __('messages.sale_price') }}: ${parseFloat(item.price).toFixed(2)}</span>
+                                                                                <span style="color:#dc3545; font-weight:600;">{{ __('messages.cost_price') }}: ${parseFloat(item.cost_price).toFixed(2)}</span>
+                                                                            </div>
+                                                                        `;
                     } else {
                         div.innerHTML = `
-                                                                    <div class="item-title">${item.name}</div>
-                                                                    ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
-                                                                `;
+                                                                            <div class="item-title">${item.name}</div>
+                                                                            ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
+                                                                        `;
                     }
 
                     div.addEventListener('click', () => onSelect(item));
@@ -529,16 +529,16 @@
                         data.forEach(item => {
                             const tr = document.createElement('tr');
                             tr.innerHTML = `
-                                                <td>${item.text}</td>
-                                                <td>${item.customer_name || '-'}</td>
-                                                <td>${item.date || '-'}</td>
-                                                <td>${item.total_amount ? parseFloat(item.total_amount).toFixed(2) : '-'}</td>
-                                                <td class="text-end">
-                                                    <button class="btn btn-sm btn-primary select-document" data-id="${item.id}">
-                                                        {{ __("common.select") }}
-                                                    </button>
-                                                </td>
-                                            `;
+                                                        <td>${item.text}</td>
+                                                        <td>${item.customer_name || '-'}</td>
+                                                        <td>${item.date || '-'}</td>
+                                                        <td>${item.total_amount ? parseFloat(item.total_amount).toFixed(2) : '-'}</td>
+                                                        <td class="text-end">
+                                                            <button class="btn btn-sm btn-primary select-document" data-id="${item.id}">
+                                                                {{ __("common.select") }}
+                                                            </button>
+                                                        </td>
+                                                    `;
 
                             tr.querySelector('.select-document').addEventListener('click', function () {
                                 if (confirm('Importing this document will clear existing items. Continue?')) {
@@ -683,59 +683,59 @@
 
                 if (!qEl || !pEl) return;
 
-                const quantity  = parseFloat(qEl.value) || 0;
-                const price     = parseFloat(pEl.value) || 0;
+                const quantity = parseFloat(qEl.value) || 0;
+                const price = parseFloat(pEl.value) || 0;
                 const discountPercent = parseFloat(dEl ? dEl.value : 0) || 0;
-                const taxRate   = parseFloat(trEl ? trEl.value : 0) || 0;
+                const taxRate = parseFloat(trEl ? trEl.value : 0) || 0;
 
                 // Tax-inclusive: price already contains tax
-                const gross     = quantity * price * (1 - discountPercent / 100);
-                const net       = taxRate > 0 ? gross / (1 + taxRate / 100) : gross;
-                const tax       = gross - net;
+                const gross = quantity * price * (1 - discountPercent / 100);
+                const net = taxRate > 0 ? gross / (1 + taxRate / 100) : gross;
+                const tax = gross - net;
 
-                const tdEl  = row.querySelector('.tax-display');
+                const tdEl = row.querySelector('.tax-display');
                 const totEl = row.querySelector('.total-display');
 
-                if (tdEl)  tdEl.value  = tax.toFixed(2);
+                if (tdEl) tdEl.value = tax.toFixed(2);
                 if (totEl) totEl.value = gross.toFixed(2);  // Total shown = the inclusive price
 
                 calculateTotals();
             }
 
             function calculateTotals() {
-                let subtotal  = 0;
+                let subtotal = 0;
                 let taxAmount = 0;
 
                 tableBody.querySelectorAll('tr').forEach(row => {
-                    const qEl  = row.querySelector('.quantity-input');
-                    const pEl  = row.querySelector('.price-input');
-                    const dEl  = row.querySelector('.discount-input');
+                    const qEl = row.querySelector('.quantity-input');
+                    const pEl = row.querySelector('.price-input');
+                    const dEl = row.querySelector('.discount-input');
                     const trEl = row.querySelector('.tax-rate-input');
 
                     if (qEl && pEl) {
-                        const quantity       = parseFloat(qEl.value) || 0;
-                        const price          = parseFloat(pEl.value) || 0;
+                        const quantity = parseFloat(qEl.value) || 0;
+                        const price = parseFloat(pEl.value) || 0;
                         const discountPercent = parseFloat(dEl ? dEl.value : 0) || 0;
-                        const taxRate        = parseFloat(trEl ? trEl.value : 0) || 0;
+                        const taxRate = parseFloat(trEl ? trEl.value : 0) || 0;
 
                         // Tax-inclusive extraction
                         const gross = quantity * price * (1 - discountPercent / 100);
-                        const net   = taxRate > 0 ? gross / (1 + taxRate / 100) : gross;
-                        const tax   = gross - net;
+                        const net = taxRate > 0 ? gross / (1 + taxRate / 100) : gross;
+                        const tax = gross - net;
 
-                        subtotal  += net;
+                        subtotal += net;
                         taxAmount += tax;
                     }
                 });
 
                 const grandTotal = subtotal + taxAmount;
 
-                const subEl   = document.getElementById('subtotal');
-                const taxEl   = document.getElementById('tax_amount');
+                const subEl = document.getElementById('subtotal');
+                const taxEl = document.getElementById('tax_amount');
                 const grandEl = document.getElementById('grand_total');
 
-                if (subEl)   subEl.textContent   = subtotal.toFixed(2);
-                if (taxEl)   taxEl.textContent   = taxAmount.toFixed(2);
+                if (subEl) subEl.textContent = subtotal.toFixed(2);
+                if (taxEl) taxEl.textContent = taxAmount.toFixed(2);
                 if (grandEl) grandEl.textContent = grandTotal.toFixed(2);
             }
         });

@@ -155,7 +155,7 @@
                                             <th width="150">{{ __('sales.quantity') }}</th>
                                             <th width="150">{{ __('sales.unit_price') }}</th>
                                             <th width="150">{{ __('sales.discount') }} (%)</th>
-                                            <th width="150" class="d-none">{{ __('sales.tax') }}</th>
+                                            <th width="150" class="d-none">{{ __('sales.vat') }}</th>
                                             <th width="150">{{ __('sales.total') }}</th>
                                             <th width="50"></th>
                                         </tr>
@@ -193,6 +193,7 @@
                                                 </td>
                                                 <td class="d-none">
                                                     <input type="text" class="form-control tax-display"
+                                                        placeholder="{{ __('sales.vat') }}"
                                                         value="{{ number_format($item->tax_amount, 2) }}" readonly>
                                                     <input type="hidden" class="tax-rate-input" value="{{ $item->tax_rate }}">
                                                 </td>
@@ -223,7 +224,7 @@
                                             <td></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="5" class="text-end fw-bold">{{ __('sales.tax') }}</td>
+                                            <td colspan="5" class="text-end fw-bold">{{ __('sales.vat') }}</td>
                                             <td class="text-end" id="tax_amount">
                                                 {{ number_format($invoice->tax_amount, 2) }}
                                             </td>
@@ -288,7 +289,7 @@
                     step="0.01" min="0" max="100" value="0">
             </td>
             <td class="d-none">
-                <input type="text" class="form-control tax-display" readonly>
+                <input type="text" class="form-control tax-display" placeholder="{{ __('sales.vat') }}" readonly>
                 <input type="hidden" class="tax-rate-input">
             </td>
             <td>
@@ -313,16 +314,16 @@
 
             const productData = [
                 @foreach($products as $product)
-                                    {
+                                            {
                     id: {{ $product->id }},
                     name: "{{ addslashes($product->name) }}",
                     code: "{{ $product->product_code ?? '' }}",
                     price: {{ $product->unit_price ?? $product->sale_price ?? 0 }},
                     cost: {{ $product->cost_price ?? 0 }},
                     tax: {{ $product->tax_rate ?? $defaultTaxRate }}
-                                    },
+                                            },
                 @endforeach
-                                ];
+                                        ];
 
             function initProductSearch(row) {
                 const searchInput = row.querySelector('.product-search-input');
@@ -365,17 +366,17 @@
 
                     if (results.length > 0) {
                         resultsDiv.innerHTML = results.map(p => `
-                                            <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-tax="${p.tax}" data-cost="${p.cost}" style="cursor:pointer;">
-                                                <div class="d-flex justify-content-between align-items-start">
-                                                    <div class="fw-bold">${p.name}</div>
-                                                    <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
-                                                        <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
-                                                        <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
+                                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-tax="${p.tax}" data-cost="${p.cost}" style="cursor:pointer;">
+                                                        <div class="d-flex justify-content-between align-items-start">
+                                                            <div class="fw-bold">${p.name}</div>
+                                                            <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
+                                                                <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
+                                                                <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
+                                                            </div>
+                                                        </div>
+                                                        <small class="text-muted">${p.code}</small>
                                                     </div>
-                                                </div>
-                                                <small class="text-muted">${p.code}</small>
-                                            </div>
-                                        `).join('');
+                                                `).join('');
                         resultsDiv.style.display = 'block';
 
                         resultsDiv.querySelectorAll('.search-result-item').forEach(item => {

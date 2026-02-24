@@ -24,6 +24,7 @@ return [
     'unit_price' => 'Unit Price',
     'discount' => 'Discount',
     'tax' => 'Tax',
+    'vat' => 'VAT',
     'total' => 'Total',
     'subtotal' => 'Subtotal',
     'grand_total' => 'Grand Total',
