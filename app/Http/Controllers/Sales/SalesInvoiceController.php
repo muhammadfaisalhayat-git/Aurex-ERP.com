@@ -119,6 +119,7 @@ class SalesInvoiceController extends Controller
                     })
                     ->active()
                     ->limit(20)
+                    ->get()
                     ->map(function ($item) {
                         return [
                             'id' => $item->id,

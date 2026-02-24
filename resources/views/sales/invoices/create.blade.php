@@ -237,43 +237,43 @@
     </div>
 
     <script type="text/template" id="item-row-template">
-                                                                                    <tr>
-                                                                                        <td class="position-relative product-cell">
-                                                                                            <div class="input-group">
-                                                                                                <input type="text" class="form-control product-search-input" 
-                                                                                                       placeholder="Type to search products..." 
-                                                                                                       autocomplete="off"
-                                                                                                       data-product-id="">
-                                                                                                <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
-                                                                                                <button class="btn btn-outline-secondary product-search-btn" type="button" title="Search Product (F2)">
-                                                                                                    <i class="fas fa-search"></i>
+                                                                                        <tr>
+                                                                                            <td class="position-relative product-cell">
+                                                                                                <div class="input-group">
+                                                                                                    <input type="text" class="form-control product-search-input" 
+                                                                                                           placeholder="Type to search products..." 
+                                                                                                           autocomplete="off"
+                                                                                                           data-product-id="">
+                                                                                                    <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
+                                                                                                    <button class="btn btn-outline-secondary product-search-btn" type="button" title="Search Product (F2)">
+                                                                                                        <i class="fas fa-search"></i>
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                                <div class="search-results-container glassy product-results"></div>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0" required>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <input type="number" class="form-control discount-input" name="items[INDEX][discount_percentage]" step="0.01" min="0" max="100" value="0">
+                                                                                            </td>
+                                                                                            <td class="d-none">
+                                                                                                <input type="text" class="form-control tax-display" readonly>
+                                                                                                <input type="hidden" class="tax-rate-input">
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <input type="text" class="form-control total-display" readonly>
+                                                                                            </td>
+                                                                                            <td class="text-center">
+                                                                                                <button type="button" class="btn btn-sm btn-danger remove-item">
+                                                                                                    <i class="fas fa-trash"></i>
                                                                                                 </button>
-                                                                                            </div>
-                                                                                            <div class="search-results-container glassy product-results"></div>
-                                                                                        </td>
-                                                                                        <td>
-                                                                                            <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
-                                                                                        </td>
-                                                                                        <td>
-                                                                                            <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0" required>
-                                                                                        </td>
-                                                                                        <td>
-                                                                                            <input type="number" class="form-control discount-input" name="items[INDEX][discount_percentage]" step="0.01" min="0" max="100" value="0">
-                                                                                        </td>
-                                                                                        <td class="d-none">
-                                                                                            <input type="text" class="form-control tax-display" readonly>
-                                                                                            <input type="hidden" class="tax-rate-input">
-                                                                                        </td>
-                                                                                        <td>
-                                                                                            <input type="text" class="form-control total-display" readonly>
-                                                                                        </td>
-                                                                                        <td class="text-center">
-                                                                                            <button type="button" class="btn btn-sm btn-danger remove-item">
-                                                                                                <i class="fas fa-trash"></i>
-                                                                                            </button>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                </script>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    </script>
 
     <!-- Import Source Modal -->
     <div class="modal fade" id="importSourceModal" tabindex="-1" aria-labelledby="importSourceModalLabel"
@@ -332,26 +332,26 @@
                 @foreach($salesmen as $salesman)
                     { id: {{ $salesman->id }}, name: "{{ $salesman->name }}" },
                 @endforeach
-                                                ];
+                                                    ];
 
             const customerData = [
                 @foreach($customers as $customer)
                     { id: {{ $customer->id }}, name: "{{ $customer->name_en }}", code: "{{ $customer->customer_code }}" },
                 @endforeach
-                                                ];
+                                                    ];
 
             const productData = [
                 @foreach($products as $product)
-                                                        {
+                                                            {
                     id: {{ $product->id }},
                     name: "{{ $product->name }}",
                     code: "{{ $product->product_code }}",
                     price: {{ $product->sale_price ?? 0 }},
                     cost_price: {{ $product->cost_price ?? 0 }},
                     tax: {{ $product->tax_rate ?? $taxSetting->default_tax_rate ?? 0 }} 
-                                                        },
+                                                            },
                 @endforeach
-                                                ];
+                                                    ];
 
             function addItem() {
                 const html = template.replace(/INDEX/g, itemIndex++);
@@ -452,18 +452,18 @@
                     div.className = 'search-result-item';
                     if (isProduct) {
                         div.innerHTML = `
-                                                                <div class="item-title">${item.name}</div>
-                                                                <div class="item-subtitle">${item.code}</div>
-                                                                <div class="item-meta d-flex justify-content-between">
-                                                                    <span>{{ __('messages.sale_price') }}: <strong>${parseFloat(item.price).toFixed(2)}</strong></span>
-                                                                    <span>{{ __('messages.cost_price') }}: <strong>${parseFloat(item.cost_price).toFixed(2)}</strong></span>
-                                                                </div>
-                                                            `;
+                                                                    <div class="item-title">${item.name}</div>
+                                                                    <div class="item-subtitle">${item.code}</div>
+                                                                    <div class="item-meta d-flex gap-3">
+                                                                        <span style="color:#198754; font-weight:600;">{{ __('messages.sale_price') }}: ${parseFloat(item.price).toFixed(2)}</span>
+                                                                        <span style="color:#dc3545; font-weight:600;">{{ __('messages.cost_price') }}: ${parseFloat(item.cost_price).toFixed(2)}</span>
+                                                                    </div>
+                                                                `;
                     } else {
                         div.innerHTML = `
-                                                                <div class="item-title">${item.name}</div>
-                                                                ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
-                                                            `;
+                                                                    <div class="item-title">${item.name}</div>
+                                                                    ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
+                                                                `;
                     }
 
                     div.addEventListener('click', () => onSelect(item));
@@ -525,16 +525,16 @@
                         data.forEach(item => {
                             const tr = document.createElement('tr');
                             tr.innerHTML = `
-                                            <td>${item.text}</td>
-                                            <td>${item.customer_name || '-'}</td>
-                                            <td>${item.date || '-'}</td>
-                                            <td>${item.total_amount ? parseFloat(item.total_amount).toFixed(2) : '-'}</td>
-                                            <td class="text-end">
-                                                <button class="btn btn-sm btn-primary select-document" data-id="${item.id}">
-                                                    {{ __("common.select") }}
-                                                </button>
-                                            </td>
-                                        `;
+                                                <td>${item.text}</td>
+                                                <td>${item.customer_name || '-'}</td>
+                                                <td>${item.date || '-'}</td>
+                                                <td>${item.total_amount ? parseFloat(item.total_amount).toFixed(2) : '-'}</td>
+                                                <td class="text-end">
+                                                    <button class="btn btn-sm btn-primary select-document" data-id="${item.id}">
+                                                        {{ __("common.select") }}
+                                                    </button>
+                                                </td>
+                                            `;
 
                             tr.querySelector('.select-document').addEventListener('click', function () {
                                 if (confirm('Importing this document will clear existing items. Continue?')) {
@@ -550,7 +550,7 @@
             }
 
             function loadSourceData(type, id) {
-                fetch(`{{ url('sales/invoices/source-data') }}/${type}/${id}`)
+                fetch(`{{ route('sales.invoices.source-data', ['type' => '__TYPE__', 'id' => '__ID__']) }}`.replace('__TYPE__', type).replace('__ID__', id))
                     .then(response => response.json())
                     .then(data => {
                         // Populate Main Fields
