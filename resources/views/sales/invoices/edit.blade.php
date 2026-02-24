@@ -313,16 +313,16 @@
 
             const productData = [
                 @foreach($products as $product)
-                                {
+                                    {
                     id: {{ $product->id }},
                     name: "{{ addslashes($product->name) }}",
                     code: "{{ $product->product_code ?? '' }}",
                     price: {{ $product->unit_price ?? $product->sale_price ?? 0 }},
                     cost: {{ $product->cost_price ?? 0 }},
                     tax: {{ $product->tax_rate ?? $defaultTaxRate }}
-                                },
+                                    },
                 @endforeach
-                            ];
+                                ];
 
             function initProductSearch(row) {
                 const searchInput = row.querySelector('.product-search-input');
@@ -365,17 +365,17 @@
 
                     if (results.length > 0) {
                         resultsDiv.innerHTML = results.map(p => `
-                                        <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-tax="${p.tax}" data-cost="${p.cost}" style="cursor:pointer;">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div class="fw-bold">${p.name}</div>
-                                                <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
-                                                    <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
-                                                    <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
+                                            <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-tax="${p.tax}" data-cost="${p.cost}" style="cursor:pointer;">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div class="fw-bold">${p.name}</div>
+                                                    <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
+                                                        <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
+                                                        <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
+                                                    </div>
                                                 </div>
+                                                <small class="text-muted">${p.code}</small>
                                             </div>
-                                            <small class="text-muted">${p.code}</small>
-                                        </div>
-                                    `).join('');
+                                        `).join('');
                         resultsDiv.style.display = 'block';
 
                         resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
@@ -447,20 +447,19 @@
                 const discountPercent = parseFloat(row.find('.discount-input').val()) || 0;
                 const taxRate = parseFloat(row.find('.tax-rate-input').val()) || 0;
 
-                const gross = quantity * price;
-                const discount = gross * (discountPercent / 100);
-                const taxable = gross - discount;
-                const tax = taxable * (taxRate / 100);
-                const total = taxable + tax;
+                // Tax-inclusive: price already contains tax
+                const gross = quantity * price * (1 - discountPercent / 100);
+                const net = taxRate > 0 ? gross / (1 + taxRate / 100) : gross;
+                const tax = gross - net;
 
                 row.find('.tax-display').val(tax.toFixed(2));
-                row.find('.total-display').val(total.toFixed(2));
+                row.find('.total-display').val(gross.toFixed(2));  // Total = inclusive price
 
                 calculateTotals();
             }
 
             function calculateTotals() {
-                let subtotal = 0, taxAmount = 0, grandTotal = 0;
+                let subtotal = 0, taxAmount = 0;
 
                 $('#items-table tbody tr').each(function () {
                     const row = $(this);
@@ -469,16 +468,16 @@
                     const discountPercent = parseFloat(row.find('.discount-input').val()) || 0;
                     const taxRate = parseFloat(row.find('.tax-rate-input').val()) || 0;
 
-                    const gross = quantity * price;
-                    const discount = gross * (discountPercent / 100);
-                    const taxable = gross - discount;
-                    const tax = taxable * (taxRate / 100);
+                    // Tax-inclusive extraction
+                    const gross = quantity * price * (1 - discountPercent / 100);
+                    const net = taxRate > 0 ? gross / (1 + taxRate / 100) : gross;
+                    const tax = gross - net;
 
-                    subtotal += taxable;
+                    subtotal += net;
                     taxAmount += tax;
                 });
 
-                grandTotal = subtotal + taxAmount;
+                const grandTotal = subtotal + taxAmount;
                 $('#subtotal').text(subtotal.toFixed(2));
                 $('#tax_amount').text(taxAmount.toFixed(2));
                 $('#grand_total').text(grandTotal.toFixed(2));

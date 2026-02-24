@@ -683,61 +683,59 @@
 
                 if (!qEl || !pEl) return;
 
-                const quantity = parseFloat(qEl.value) || 0;
-                const price = parseFloat(pEl.value) || 0;
+                const quantity  = parseFloat(qEl.value) || 0;
+                const price     = parseFloat(pEl.value) || 0;
                 const discountPercent = parseFloat(dEl ? dEl.value : 0) || 0;
-                const taxRate = parseFloat(trEl ? trEl.value : 0) || 0;
+                const taxRate   = parseFloat(trEl ? trEl.value : 0) || 0;
 
-                const gross = quantity * price;
-                const discount = gross * (discountPercent / 100);
-                const taxable = gross - discount;
-                const tax = taxable * (taxRate / 100);
-                const total = taxable + tax;
+                // Tax-inclusive: price already contains tax
+                const gross     = quantity * price * (1 - discountPercent / 100);
+                const net       = taxRate > 0 ? gross / (1 + taxRate / 100) : gross;
+                const tax       = gross - net;
 
-                const tdEl = row.querySelector('.tax-display');
+                const tdEl  = row.querySelector('.tax-display');
                 const totEl = row.querySelector('.total-display');
 
-                if (tdEl) tdEl.value = tax.toFixed(2);
-                if (totEl) totEl.value = total.toFixed(2);
+                if (tdEl)  tdEl.value  = tax.toFixed(2);
+                if (totEl) totEl.value = gross.toFixed(2);  // Total shown = the inclusive price
 
                 calculateTotals();
             }
 
             function calculateTotals() {
-                let subtotal = 0;
+                let subtotal  = 0;
                 let taxAmount = 0;
-                let grandTotal = 0;
 
                 tableBody.querySelectorAll('tr').forEach(row => {
-                    const qEl = row.querySelector('.quantity-input');
-                    const pEl = row.querySelector('.price-input');
-                    const dEl = row.querySelector('.discount-input');
+                    const qEl  = row.querySelector('.quantity-input');
+                    const pEl  = row.querySelector('.price-input');
+                    const dEl  = row.querySelector('.discount-input');
                     const trEl = row.querySelector('.tax-rate-input');
 
                     if (qEl && pEl) {
-                        const quantity = parseFloat(qEl.value) || 0;
-                        const price = parseFloat(pEl.value) || 0;
+                        const quantity       = parseFloat(qEl.value) || 0;
+                        const price          = parseFloat(pEl.value) || 0;
                         const discountPercent = parseFloat(dEl ? dEl.value : 0) || 0;
-                        const taxRate = parseFloat(trEl ? trEl.value : 0) || 0;
+                        const taxRate        = parseFloat(trEl ? trEl.value : 0) || 0;
 
-                        const gross = quantity * price;
-                        const discount = gross * (discountPercent / 100);
-                        const taxable = gross - discount;
-                        const tax = taxable * (taxRate / 100);
+                        // Tax-inclusive extraction
+                        const gross = quantity * price * (1 - discountPercent / 100);
+                        const net   = taxRate > 0 ? gross / (1 + taxRate / 100) : gross;
+                        const tax   = gross - net;
 
-                        subtotal += taxable;
+                        subtotal  += net;
                         taxAmount += tax;
                     }
                 });
 
-                grandTotal = subtotal + taxAmount;
+                const grandTotal = subtotal + taxAmount;
 
-                const subEl = document.getElementById('subtotal');
-                const taxEl = document.getElementById('tax_amount');
+                const subEl   = document.getElementById('subtotal');
+                const taxEl   = document.getElementById('tax_amount');
                 const grandEl = document.getElementById('grand_total');
 
-                if (subEl) subEl.textContent = subtotal.toFixed(2);
-                if (taxEl) taxEl.textContent = taxAmount.toFixed(2);
+                if (subEl)   subEl.textContent   = subtotal.toFixed(2);
+                if (taxEl)   taxEl.textContent   = taxAmount.toFixed(2);
                 if (grandEl) grandEl.textContent = grandTotal.toFixed(2);
             }
         });
