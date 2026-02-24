@@ -21,7 +21,7 @@
     </div>
 </div>
 
-<turbo-frame id="maintenance_vouchers_frame" data-turbo-action="advance">
+
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">Workshop Orders</h5>
@@ -44,7 +44,7 @@
                     <tbody>
                         @forelse ($vouchers as $voucher)
                             <tr>
-                                <td><a href="{{ route('maintenance.vouchers.show', $voucher) }}" class="fw-bold text-decoration-none" data-turbo-frame="main-frame">{{ $voucher->voucher_number }}</a></td>
+                                <td><a href="{{ route('maintenance.vouchers.show', $voucher) }}" class="fw-bold text-decoration-none">{{ $voucher->voucher_number }}</a></td>
                                 <td>{{ $voucher->voucher_date->format('Y-m-d') }}</td>
                                 <td>
                                     <div class="fw-semibold">{{ $voucher->entity_name }}</div>
@@ -68,11 +68,11 @@
                                 <td>{{ number_format($voucher->estimated_cost, 2) }}</td>
                                 <td class="text-end">
                                     <div class="btn-group">
-                                        <a href="{{ route('maintenance.vouchers.show', $voucher) }}" class="btn btn-sm btn-outline-primary" title="Details" data-turbo-frame="main-frame">
+                                        <a href="{{ route('maintenance.vouchers.show', $voucher) }}" class="btn btn-sm btn-outline-primary" title="Details">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         @if($voucher->status === 'draft')
-                                            <a href="{{ route('maintenance.vouchers.edit', $voucher) }}" class="btn btn-sm btn-outline-info" title="Edit" data-turbo-frame="main-frame">
+                                            <a href="{{ route('maintenance.vouchers.edit', $voucher) }}" class="btn btn-sm btn-outline-info" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         @endif
@@ -99,5 +99,5 @@
             </div>
         @endif
     </div>
-</turbo-frame>
+
 @endsection

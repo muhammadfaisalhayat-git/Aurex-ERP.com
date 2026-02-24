@@ -13,7 +13,7 @@
             @endcan
         </div>
 
-        <turbo-frame id="products_frame" data-turbo-action="advance">
+        
             <div class="card glassy">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -44,19 +44,19 @@
                                             <div class="btn-group">
                                                 @can('view inventory')
                                                     <a href="{{ route('inventory.products.show', $product) }}"
-                                                        class="btn btn-sm btn-outline-info" data-turbo-frame="main-frame">
+                                                        class="btn btn-sm btn-outline-info">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
                                                 @endcan
                                                 @can('edit inventory')
                                                     <a href="{{ route('inventory.products.edit', $product) }}"
-                                                        class="btn btn-sm btn-outline-primary" data-turbo-frame="main-frame">
+                                                        class="btn btn-sm btn-outline-primary">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 @endcan
                                                 @can('view inventory')
                                                     <a href="{{ route('inventory.products.bom', $product) }}"
-                                                        class="btn btn-sm btn-outline-warning" data-turbo-frame="main-frame">
+                                                        class="btn btn-sm btn-outline-warning">
                                                         <i class="fas fa-microchip"></i>
                                                     </a>
                                                 @endcan
@@ -76,6 +76,6 @@
                     </div>
                 </div>
             </div>
-        </turbo-frame>
+        
     </div>
 @endsection

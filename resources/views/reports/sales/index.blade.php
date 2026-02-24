@@ -8,7 +8,7 @@
         <h1 class="h3">{{ __('reports.sales_title') }}</h1>
     </div>
 
-        <turbo-frame id="sales_reports_frame" data-turbo-action="advance">
+        
             <div class="row">
                 <div class="col-md-4">
                     <div class="card mb-4">
@@ -17,7 +17,7 @@
                         </div>
                         <div class="card-body">
                             <p class="text-muted">{{ __('reports.by_customer_desc') }}</p>
-                            <a href="{{ route('reports.sales.by-customer') }}" class="btn btn-primary w-100" data-turbo-frame="main-frame">
+                            <a href="{{ route('reports.sales.by-customer') }}" class="btn btn-primary w-100">
                                 <i class="fas fa-users"></i> {{ __('reports.view_report') }}
                             </a>
                         </div>
@@ -30,7 +30,7 @@
                         </div>
                         <div class="card-body">
                             <p class="text-muted">{{ __('reports.by_item_desc') }}</p>
-                            <a href="{{ route('reports.sales.by-item') }}" class="btn btn-primary w-100" data-turbo-frame="main-frame">
+                            <a href="{{ route('reports.sales.by-item') }}" class="btn btn-primary w-100">
                                 <i class="fas fa-boxes"></i> {{ __('reports.view_report') }}
                             </a>
                         </div>
@@ -43,13 +43,13 @@
                         </div>
                         <div class="card-body">
                             <p class="text-muted">{{ __('reports.date_wise_desc') }}</p>
-                            <a href="{{ route('reports.sales.date-wise') }}" class="btn btn-primary w-100" data-turbo-frame="main-frame">
+                            <a href="{{ route('reports.sales.date-wise') }}" class="btn btn-primary w-100">
                                 <i class="fas fa-calendar-alt"></i> {{ __('reports.view_report') }}
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
-        </turbo-frame>
+        
 </div>
 @endsection

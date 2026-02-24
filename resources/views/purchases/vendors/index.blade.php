@@ -27,7 +27,7 @@
             </div>
         </div>
 
-        <turbo-frame id="vendors_frame" data-turbo-action="advance">
+        
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -49,7 +49,7 @@
                                     <tr>
                                         <td>
                                             <a href="{{ route('purchases.vendors.show', $vendor) }}"
-                                                data-turbo-frame="main-frame">
+                                               >
                                                 {{ $vendor->code }}
                                             </a>
                                         </td>
@@ -70,26 +70,25 @@
                                             <div class="btn-group">
                                                 <a href="{{ route('purchases.vendors.show', $vendor) }}"
                                                     class="btn btn-sm btn-info" title="{{ __('messages.view') }}"
-                                                    data-turbo-frame="main-frame">
+                                                   >
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 @can('edit vendors')
                                                     <a href="{{ route('purchases.vendors.edit', $vendor) }}"
                                                         class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}"
-                                                        data-turbo-frame="main-frame">
+                                                       >
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 @endcan
                                                 <a href="{{ route('purchases.vendors.statement', $vendor) }}"
                                                     class="btn btn-sm btn-secondary" title="{{ __('messages.view_statement') }}"
-                                                    data-turbo-frame="main-frame">
+                                                   >
                                                     <i class="fas fa-file-invoice-dollar"></i>
                                                 </a>
                                                 @can('delete vendors')
                                                     <form action="{{ route('purchases.vendors.destroy', $vendor) }}" method="POST"
                                                         class="d-inline"
-                                                        onsubmit="return confirm('{{ __('messages.are_you_sure') }}')"
-                                                        data-turbo="false">
+                                                        onsubmit="return confirm('{{ __('messages.are_you_sure') }}')">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-danger"
@@ -114,6 +113,6 @@
                     </div>
                 </div>
             </div>
-        </turbo-frame>
+        
     </div>
 @endsection

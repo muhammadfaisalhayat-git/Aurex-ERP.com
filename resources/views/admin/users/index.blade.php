@@ -13,7 +13,7 @@
             @endcan
         </div>
 
-        <turbo-frame id="users_frame" data-turbo-action="advance">
+        
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -51,12 +51,12 @@
                                         <td>
                                             <div class="btn-group">
                                                 <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-info"
-                                                    title="{{ __('messages.view') }}" data-turbo-frame="main-frame">
+                                                    title="{{ __('messages.view') }}">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 @can('edit users')
                                                     <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-primary"
-                                                        title="{{ __('messages.edit') }}" data-turbo-frame="main-frame">
+                                                        title="{{ __('messages.edit') }}">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 @endcan
@@ -76,6 +76,6 @@
                     </div>
                 </div>
             </div>
-        </turbo-frame>
+        
     </div>
 @endsection

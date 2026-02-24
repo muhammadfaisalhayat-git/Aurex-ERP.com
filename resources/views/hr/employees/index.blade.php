@@ -11,7 +11,7 @@
             </a>
         </div>
 
-        <turbo-frame id="employees_frame" data-turbo-action="advance">
+        
             <div class="card glassy">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -43,11 +43,11 @@
                                         <td>
                                             <div class="btn-group">
                                                 <a href="{{ route('hr.employees.show', $employee) }}"
-                                                    class="btn btn-sm btn-outline-info" data-turbo-frame="main-frame">
+                                                    class="btn btn-sm btn-outline-info">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 <a href="{{ route('hr.employees.edit', $employee) }}"
-                                                    class="btn btn-sm btn-outline-primary" data-turbo-frame="main-frame">
+                                                    class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                             </div>
@@ -68,6 +68,6 @@
                     </div>
                 </div>
             </div>
-        </turbo-frame>
+        
     </div>
 @endsection

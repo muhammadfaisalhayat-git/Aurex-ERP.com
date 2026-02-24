@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        <turbo-frame id="customers_frame" data-turbo-action="advance">
+        
             <div class="card mb-3">
                 <div class="card-body py-2">
                     <div class="row align-items-center">
@@ -47,7 +47,7 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <form action="{{ route('sales.customers.index') }}" method="GET" data-turbo-frame="customers_frame" id="search-form">
+                            <form action="{{ route('sales.customers.index') }}" method="GET" id="search-form">
                                 @if(request('status'))
                                     <input type="hidden" name="status" value="{{ request('status') }}">
                                 @endif
@@ -87,7 +87,7 @@
                                 @forelse($customers as $customer)
                                     <tr>
                                         <td>
-                                            <a href="{{ route('sales.customers.show', $customer) }}" data-turbo-frame="main-frame">
+                                            <a href="{{ route('sales.customers.show', $customer) }}">
                                                 {{ $customer->code }}
                                             </a>
                                         </td>
@@ -115,19 +115,19 @@
                                             <div class="btn-group">
                                                 @can('view customers')
                                                     <a href="{{ route('sales.customers.show', $customer) }}" class="btn btn-sm btn-info"
-                                                        title="{{ __('messages.view') }}" data-turbo-frame="main-frame">
+                                                        title="{{ __('messages.view') }}">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
                                                 @endcan
                                                 @can('edit customers')
                                                     <a href="{{ route('sales.customers.edit', $customer) }}"
-                                                        class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}" data-turbo-frame="main-frame">
+                                                        class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 @endcan
                                                 @can('view customers')
                                                     <a href="{{ route('sales.customers.statement', $customer) }}"
-                                                        class="btn btn-sm btn-secondary" title="{{ __('messages.view_statement') }}" data-turbo-frame="main-frame">
+                                                        class="btn btn-sm btn-secondary" title="{{ __('messages.view_statement') }}">
                                                         <i class="fas fa-file-invoice-dollar"></i>
                                                     </a>
                                                 @endcan
@@ -147,6 +147,6 @@
                     </div>
                 </div>
             </div>
-        </turbo-frame>
+        
     </div>
 @endsection

@@ -136,7 +136,7 @@
         // ── Global Select2 Auto-Initializer ──────────────────────────────────────
         window.initGlobalSelect2 = function (scope) {
             const isRtl = document.documentElement.dir === 'rtl';
-            const root  = scope ? $(scope) : $('body');
+            const root = scope ? $(scope) : $('body');
 
             // Target all form-select and form-control <select> elements
             // Exclude: theme selectors, elements with data-no-select2, and <template> contents
@@ -148,7 +148,7 @@
                 if ($(this).closest('template').length) return;
 
                 const placeholder = $(this).find('option[value=""]').first().text().trim()
-                                 || '{{ __("messages.select_option") }}';
+                    || '{{ __("messages.select_option") }}';
 
                 $(this).select2({
                     theme: 'bootstrap-5',
@@ -844,7 +844,7 @@
         .select2-container--bootstrap-5 .select2-dropdown {
             border: 1px solid #d1d5db;
             border-radius: 8px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
             font-size: 0.875rem;
             overflow: hidden;
         }

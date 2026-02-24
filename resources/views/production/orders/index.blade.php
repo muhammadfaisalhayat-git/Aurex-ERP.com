@@ -21,7 +21,7 @@
     </div>
 </div>
 
-    <turbo-frame id="production_orders_frame" data-turbo-action="advance">
+    
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">{{ __('messages.active_orders') }}</h5>
@@ -44,7 +44,7 @@
                             @if(count($orders) > 0)
                                 @foreach($orders as $order)
                                     <tr>
-                                        <td><a href="{{ route('production.orders.show', $order) }}" class="fw-bold text-decoration-none" data-turbo-frame="main-frame">{{ $order->document_number }}</a></td>
+                                        <td><a href="{{ route('production.orders.show', $order) }}" class="fw-bold text-decoration-none">{{ $order->document_number }}</a></td>
                                         <td>
                                             <div class="fw-semibold">{{ $order->product->name ?? __('messages.unknown') }}</div>
                                             <div class="text-muted small">{{ $order->product->code ?? '' }}</div>
@@ -71,11 +71,11 @@
                                         </td>
                                         <td class="text-end">
                                             <div class="btn-group">
-                                                <a href="{{ route('production.orders.show', $order) }}" class="btn btn-sm btn-outline-primary" title="{{ __('messages.details') }}" data-turbo-frame="main-frame">
+                                                <a href="{{ route('production.orders.show', $order) }}" class="btn btn-sm btn-outline-primary" title="{{ __('messages.details') }}">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 @if($order->status === 'draft')
-                                                    <a href="#" class="btn btn-sm btn-outline-info" title="{{ __('messages.edit') }}" data-turbo-frame="main-frame">
+                                                    <a href="#" class="btn btn-sm btn-outline-info" title="{{ __('messages.edit') }}">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 @endif
@@ -103,5 +103,5 @@
                 </div>
             @endif
         </div>
-    </turbo-frame>
+    
 @endsection

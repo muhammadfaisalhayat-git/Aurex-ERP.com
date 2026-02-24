@@ -7,13 +7,13 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 mb-0 text-gray-800">{{ __('messages.chart_of_accounts') }}</h1>
             @can('manage chart of accounts')
-                <a href="{{ route('accounting.gl.coa.create') }}" class="btn btn-primary" data-turbo-frame="main-frame">
+                <a href="{{ route('accounting.gl.coa.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus me-1"></i> {{ __('messages.create') }}
                 </a>
             @endcan
         </div>
 
-        <turbo-frame id="coa_frame" data-turbo-action="advance">
+        
             <div class="card shadow mb-4">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -51,17 +51,16 @@
                                             <div class="btn-group btn-group-sm">
                                                 <a href="{{ route('accounting.gl.transactions.jv.create') }}?account_id={{ $account->id }}"
                                                     class="btn btn-outline-info" title="{{ __('messages.journal_voucher') }}"
-                                                    data-turbo-frame="main-frame">
+                                                   >
                                                     <i class="fas fa-book"></i>
                                                 </a>
                                                 <a href="{{ route('accounting.gl.coa.edit', $account->id) }}"
-                                                    class="btn btn-outline-primary" data-turbo-frame="main-frame">
+                                                    class="btn btn-outline-primary">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                                 <form action="{{ route('accounting.gl.coa.destroy', $account->id) }}"
                                                     method="POST" class="d-inline"
-                                                    onsubmit="return confirm('{{ __('messages.are_you_sure') }}')"
-                                                    data-turbo="false">
+                                                    onsubmit="return confirm('{{ __('messages.are_you_sure') }}')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-outline-danger">
@@ -83,6 +82,6 @@
                     </div>
                 </div>
             </div>
-        </turbo-frame>
+        
     </div>
 @endsection

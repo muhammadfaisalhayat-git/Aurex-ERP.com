@@ -21,7 +21,7 @@
     </div>
 </div>
 
-    <turbo-frame id="vehicles_frame" data-turbo-action="advance">
+    
         <div class="row g-4 mb-4">
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm">
@@ -86,7 +86,7 @@
                                                 <a href="{{ route('logistics.vehicles.edit', $vehicle) }}" 
                                                    class="btn btn-sm btn-outline-info" 
                                                    title="{{ __('messages.edit') }}"
-                                                   data-turbo-frame="main-frame">
+                                                  >
                                                    <i class="fas fa-edit"></i>
                                                 </a>
                                             </div>
@@ -113,5 +113,5 @@
                 </div>
             @endif
         </div>
-    </turbo-frame>
+    
 @endsection

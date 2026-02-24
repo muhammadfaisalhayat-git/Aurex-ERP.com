@@ -11,7 +11,7 @@
             </a>
         </div>
 
-        <turbo-frame id="bank_accounts_frame" data-turbo-action="advance">
+        
             <div class="row">
                 @foreach($accounts as $account)
                     <div class="col-xl-3 col-md-6 mb-4">
@@ -31,7 +31,7 @@
                                     </div>
                                 </div>
                                 <div class="mt-3">
-                                    <a href="{{ route('finance.bank-accounts.edit', $account->id) }}" class="btn btn-sm btn-link p-0 text-primary" data-turbo-frame="main-frame">{{ __('messages.edit') }}</a>
+                                    <a href="{{ route('finance.bank-accounts.edit', $account->id) }}" class="btn btn-sm btn-link p-0 text-primary">{{ __('messages.edit') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -73,7 +73,7 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <a href="{{ route('finance.bank-accounts.edit', $account->id) }}" class="btn btn-datatable btn-icon btn-transparent-dark mr-2" data-turbo-frame="main-frame"><i class="fas fa-edit"></i></a>
+                                            <a href="{{ route('finance.bank-accounts.edit', $account->id) }}" class="btn btn-datatable btn-icon btn-transparent-dark mr-2"><i class="fas fa-edit"></i></a>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -82,6 +82,6 @@
                     </div>
                 </div>
             </div>
-        </turbo-frame>
+        
     </div>
 @endsection

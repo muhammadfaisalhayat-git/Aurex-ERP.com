@@ -69,7 +69,8 @@
                                         name="return_type" id="return_type" required>
                                         <option value="credit" {{ old('return_type', 'credit') == 'credit' ? 'selected' : '' }}>{{ __('messages.credit') ?? 'Credit' }}</option>
                                         <option value="cash" {{ old('return_type') == 'cash' ? 'selected' : '' }}>
-                                            {{ __('messages.cash') ?? 'Cash' }}</option>
+                                            {{ __('messages.cash') ?? 'Cash' }}
+                                        </option>
                                     </select>
                                     @error('return_type')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -211,33 +212,32 @@
     </div>
 
     <script type="text/template" id="item-row-template">
-                <tr>
-                    <td>
-                        <select name="items[INDEX][product_id]" class="form-select product-select" required>
-                            <option value="">-- {{ __('messages.select_product') }} --</option>
-                            @foreach($products as $product)
-                                <option value="{{ $product->id }}" data-price="{{ $product->sale_price }}">
-                                    {{ $product->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </td>
-                    <td>
-                        <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
-                    </td>
-                    <td>
-                        <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
-                    </td>
-                    <td class="text-end">
-                        <span class="row-total">0.00</span>
-                    </td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-danger remove-item">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            </script>
+                            <tr>
+                                <td>
+                                    <div class="position-relative product-search-container">
+                                        <input type="text" class="form-control product-search-input"
+                                            placeholder="{{ __('messages.select_product') ?? 'Search product...' }}"
+                                            autocomplete="off" required>
+                                        <input type="hidden" name="items[INDEX][product_id]" class="product-id-input" required>
+                                        <div class="product-results" style="display: none; position: absolute; z-index: 1000; width: 100%; background: white; border: 1px solid #ddd; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
+                                </td>
+                                <td>
+                                    <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
+                                </td>
+                                <td class="text-end">
+                                    <span class="row-total">0.00</span>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-danger remove-item">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </script>
 @endsection
 
 @push('scripts')
@@ -248,40 +248,107 @@
             const template = document.getElementById('item-row-template').innerHTML;
             const invoiceSelect = document.getElementById('sales_invoice_id');
 
+            const productData = [
+                @foreach($products as $product)
+                        {
+                    id: {{ $product->id }},
+                    name: "{{ addslashes($product->name) }}",
+                    code: "{{ $product->product_code ?? '' }}",
+                    price: {{ $product->sale_price ?? 0 }}
+                        },
+                @endforeach
+                    ];
+
+            function initProductSearch(row) {
+                const searchInput = row.querySelector('.product-search-input');
+                const idInput = row.querySelector('.product-id-input');
+                const resultsDiv = row.querySelector('.product-results');
+                let highlightIndex = -1;
+
+                if (!searchInput) return;
+
+                searchInput.addEventListener('input', function () {
+                    idInput.value = '';
+                    highlightIndex = -1;
+                    performSearch(this.value);
+                });
+
+                searchInput.addEventListener('focus', function () {
+                    performSearch(this.value);
+                });
+
+                searchInput.addEventListener('keydown', function (e) {
+                    const items = resultsDiv.querySelectorAll('.search-result-item');
+                    if (!items.length) return;
+                    if (e.key === 'ArrowDown') { e.preventDefault(); highlightIndex = (highlightIndex + 1) % items.length; updateHL(items, highlightIndex); }
+                    else if (e.key === 'ArrowUp') { e.preventDefault(); highlightIndex = (highlightIndex - 1 + items.length) % items.length; updateHL(items, highlightIndex); }
+                    else if (e.key === 'Enter' && highlightIndex > -1) { e.preventDefault(); e.stopImmediatePropagation(); items[highlightIndex].click(); highlightIndex = -1; }
+                });
+
+                function updateHL(items, idx) {
+                    items.forEach((item, i) => {
+                        item.classList.toggle('bg-primary', i === idx);
+                        item.classList.toggle('text-white', i === idx);
+                    });
+                }
+
+                function performSearch(query) {
+                    const results = productData.filter(p =>
+                        p.name.toLowerCase().includes(query.toLowerCase()) ||
+                        p.code.toLowerCase().includes(query.toLowerCase())
+                    ).slice(0, 10);
+
+                    if (results.length > 0) {
+                        resultsDiv.innerHTML = results.map(p => `
+                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" style="cursor:pointer;">
+                                        <div class="fw-bold">${p.name}</div>
+                                        <small class="text-muted">${p.code} | Price: ${parseFloat(p.price).toFixed(2)}</small>
+                                    </div>
+                                `).join('');
+                        resultsDiv.style.display = 'block';
+
+                        resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
+                            item.addEventListener('click', function () {
+                                searchInput.value = this.dataset.name;
+                                idInput.value = this.dataset.id;
+                                const priceInput = row.querySelector('.price-input');
+                                if (priceInput) priceInput.value = this.dataset.price;
+                                resultsDiv.style.display = 'none';
+                                calculateRow(row);
+                            });
+                        });
+                    } else {
+                        resultsDiv.innerHTML = '<div class="p-2 text-muted">No product found</div>';
+                        resultsDiv.style.display = 'block';
+                    }
+                }
+            }
+
             function addItem(data = null) {
                 const html = template.replace(/INDEX/g, itemIndex++);
                 tableBody.insertAdjacentHTML('beforeend', html);
                 const row = tableBody.lastElementChild;
-                initRow(row);
+                initProductSearch(row);
 
                 if (data) {
-                    const productSelect = row.querySelector('.product-select');
+                    const product = productData.find(p => p.id == data.product_id);
+                    const searchInput = row.querySelector('.product-search-input');
+                    const idInput = row.querySelector('.product-id-input');
                     const quantityInput = row.querySelector('.quantity-input');
                     const priceInput = row.querySelector('.price-input');
 
-                    productSelect.value = data.product_id;
+                    if (product) searchInput.value = product.name;
+                    idInput.value = data.product_id;
                     quantityInput.value = data.quantity;
                     priceInput.value = data.unit_price;
                     calculateRow(row);
                 }
-            }
 
-            function initRow(row) {
-                const productSelect = row.querySelector('.product-select');
                 const quantityInput = row.querySelector('.quantity-input');
-                const priceInput = row.querySelector('.price-input');
-                const removeBtn = row.querySelector('.remove-item');
-
-                productSelect.addEventListener('change', function () {
-                    const selected = this.options[this.selectedIndex];
-                    const price = selected.dataset.price || 0;
-                    priceInput.value = price;
-                    calculateRow(row);
-                });
-
+                const priceInputEl = row.querySelector('.price-input');
                 quantityInput.addEventListener('input', () => calculateRow(row));
-                priceInput.addEventListener('input', () => calculateRow(row));
-                removeBtn.addEventListener('click', () => {
+                priceInputEl.addEventListener('input', () => calculateRow(row));
+                row.querySelector('.remove-item').addEventListener('click', () => {
                     row.remove();
                     calculateTotal();
                 });
@@ -328,6 +395,13 @@
                         });
                     })
                     .catch(error => console.error('Error fetching invoice data:', error));
+            });
+
+            // Close dropdowns on outside click
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.product-search-container')) {
+                    document.querySelectorAll('.product-results').forEach(c => c.style.display = 'none');
+                }
             });
 
             // Handle Return Type Change

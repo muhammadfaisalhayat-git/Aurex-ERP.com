@@ -13,7 +13,7 @@
             @endcan
         </div>
 
-        <turbo-frame id="warehouses_frame" data-turbo-action="advance">
+        
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -47,20 +47,19 @@
                                         <td>
                                             <div class="btn-group">
                                                 <a href="{{ route('admin.warehouses.show', $warehouse) }}"
-                                                    class="btn btn-sm btn-info" title="{{ __('messages.view') }}" data-turbo-frame="main-frame">
+                                                    class="btn btn-sm btn-info" title="{{ __('messages.view') }}">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 @can('edit warehouses')
                                                     <a href="{{ route('admin.warehouses.edit', $warehouse) }}"
-                                                        class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}" data-turbo-frame="main-frame">
+                                                        class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 @endcan
                                                 @can('delete warehouses')
                                                     <form action="{{ route('admin.warehouses.destroy', $warehouse) }}" method="POST"
                                                         class="d-inline"
-                                                        onsubmit="return confirm('{{ __('messages.confirm_delete') }}')"
-                                                        data-turbo="false">
+                                                        onsubmit="return confirm('{{ __('messages.confirm_delete') }}')">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-danger"
@@ -85,6 +84,6 @@
                     </div>
                 </div>
             </div>
-        </turbo-frame>
+        
     </div>
 @endsection
