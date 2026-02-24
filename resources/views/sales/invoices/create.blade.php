@@ -483,11 +483,12 @@
             const modalSearchInput = document.getElementById('modal-search-input');
             const modalLoader = document.getElementById('modal-loader');
 
-            importSourceType.addEventListener('change', function () {
-                if (this.value) {
+            // Select2 fires its own 'change' event — use jQuery to listen
+            $('#import_source_type').on('change', function () {
+                const val = $(this).val();
+                if (val) {
                     importSourceContainer.style.display = 'block';
                     importSourceDisplay.value = '';
-                    // Automatically open modal when source is selected
                     openImportModal();
                 } else {
                     importSourceContainer.style.display = 'none';
@@ -497,7 +498,7 @@
             btnShowImportModal.addEventListener('click', openImportModal);
 
             function openImportModal() {
-                const type = importSourceType.value;
+                const type = $('#import_source_type').val();
                 if (!type) return;
 
                 importModal.show();
@@ -505,7 +506,7 @@
             }
 
             modalSearchInput.addEventListener('input', function () {
-                const type = importSourceType.value;
+                const type = $('#import_source_type').val();
                 fetchSourceDocuments(type, this.value);
             });
 
