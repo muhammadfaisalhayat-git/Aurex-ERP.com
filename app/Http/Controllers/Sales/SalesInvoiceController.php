@@ -112,12 +112,16 @@ class SalesInvoiceController extends Controller
 
         switch ($type) {
             case 'quotation':
-                $results = Quotation::where('document_number', 'LIKE', "%$query%")
-                    ->orWhereHas('customer', function ($q) use ($query) {
-                        $q->where('name_en', 'LIKE', "%$query%")
-                            ->orWhere('name_ar', 'LIKE', "%$query%");
-                    })
-                    ->active()
+                $results = Quotation::where(function ($q) use ($query) {
+                    $q->where('document_number', 'LIKE', "%$query%")
+                        ->orWhereHas('customer', function ($cq) use ($query) {
+                            $cq->where('name_en', 'LIKE', "%$query%")
+                                ->orWhere('name_ar', 'LIKE', "%$query%");
+                        });
+                })
+                    ->whereNotIn('status', ['cancelled'])
+                    ->with('customer')
+                    ->latest()
                     ->limit(20)
                     ->get()
                     ->map(function ($item) {
@@ -125,7 +129,7 @@ class SalesInvoiceController extends Controller
                             'id' => $item->id,
                             'text' => $item->document_number,
                             'customer_name' => $item->customer->name_en ?? '',
-                            'date' => ($item->quotation_date instanceof \Carbon\Carbon) ? $item->quotation_date->format('Y-m-d') : ($item->quotation_date ? date('Y-m-d', strtotime($item->quotation_date)) : ''),
+                            'date' => $item->quotation_date ? $item->quotation_date->format('Y-m-d') : '',
                             'total_amount' => $item->total_amount
                         ];
                     });

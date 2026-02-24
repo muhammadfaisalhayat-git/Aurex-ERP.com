@@ -513,12 +513,15 @@
                 modalTableBody.innerHTML = '';
                 modalLoader.style.display = 'block';
 
-                fetch(`{{ route('sales.invoices.import-sources') }}?type=${type}&q=${query}`)
-                    .then(response => response.json())
+                fetch(`{{ route('sales.invoices.import-sources') }}?type=${type}&q=${encodeURIComponent(query)}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Server error: ' + response.status);
+                        return response.json();
+                    })
                     .then(data => {
                         modalLoader.style.display = 'none';
-                        if (data.length === 0) {
-                            modalTableBody.innerHTML = '<tr><td colspan="5" class="text-center">{{ __("common.no_results") }}</td></tr>';
+                        if (!Array.isArray(data) || data.length === 0) {
+                            modalTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">{{ __("common.no_results") }}</td></tr>';
                             return;
                         }
 
@@ -546,6 +549,11 @@
 
                             modalTableBody.appendChild(tr);
                         });
+                    })
+                    .catch(err => {
+                        modalLoader.style.display = 'none';
+                        modalTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading data: ${err.message}</td></tr>`;
+                        console.error('fetchSourceDocuments error:', err);
                     });
             }
 
