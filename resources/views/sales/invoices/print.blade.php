@@ -67,51 +67,43 @@
 
         .header {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             gap: 15px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
         }
 
         .branding-top {
-            text-align: center;
-            width: 100%;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 15px;
-            margin-bottom: 15px;
-            line-height: 1.4;
+            text-align: left;
+            flex: 1;
+            line-height: 1.2;
         }
 
         .branding-top h1 {
-            font-size: 32pt;
+            font-size: 18pt;
             font-weight: 800;
             color: #0f172a;
             margin: 0;
             padding: 0;
-            line-height: 1.2;
-            letter-spacing: -0.01em;
         }
 
         .branding-top h2 {
-            font-size: 24pt;
+            font-size: 14pt;
             color: #1e293b;
-            margin: 5px 0 0 0;
+            margin: 2px 0 0 0;
             padding: 0;
-            line-height: 1.2;
         }
 
         .logo-section {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-            padding: 0;
+            flex: 0 0 auto;
         }
 
         .company-logo-img {
-            max-height: 250px;
-            max-width: 500px;
+            max-height: 80px;
+            max-width: 200px;
         }
 
         .header-lower {
@@ -135,7 +127,7 @@
         }
 
         .doc-meta-title h2 {
-            font-size: 32pt;
+            font-size: 20pt;
             font-weight: 800;
             color: #1e40af;
             margin: 0 0 5px 0;
@@ -327,54 +319,42 @@
     <div class="document-container theme-modern" id="printContainer">
         {{-- Header Section --}}
         <div class="header">
-            <div class="branding-top">
-                <h1>{{ strtoupper($invoice->company?->name_en ?? $invoice->company?->name ?? 'BIN AWF AGRICULTURAL') }}</h1>
-                <h2>{{ $invoice->company?->name_ar ?? 'بن عوف الزراعية' }}</h2>
-            </div>
-
             <div class="logo-section">
                 @if($invoice->company?->logo)
                     <img src="{{ asset('storage/' . $invoice->company->logo) }}" 
                          alt="{{ $invoice->company->name_en }}"
                          class="company-logo-img">
-                @else
-                    <div class="logo-placeholder" style="width: 300px; height: 100px; background: #f8fafc; border: 2px dashed #e2e8f0; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #94a3b8;">
-                        Insert Your Logo
-                    </div>
                 @endif
             </div>
 
-            <div class="header-lower">
-                <div class="company-info-box">
+            <div class="branding-top">
+                <h1>{{ strtoupper($invoice->company?->name_en ?? $invoice->company?->name ?? 'BIN AWF AGRICULTURAL') }}</h1>
+                <h2>{{ $invoice->company?->name_ar ?? 'بن عوف الزراعية' }}</h2>
+                <div class="company-info-box" style="margin-top: 5px; font-size: 9pt;">
                     @if($invoice->company?->vat_number)
                         <div style="font-weight: 600;">VAT Number: {{ $invoice->company->vat_number }}</div>
                     @endif
-                    <div>{{ $invoice->company?->address ?? 'Street Address' }}</div>
-                    <div>{{ $invoice->company?->city ?? 'City' }}, {{ $invoice->company?->state ?? 'ST' }} {{ $invoice->company?->zip_code ?? 'ZIP Code' }}</div>
+                    <div>{{ $invoice->company?->address ?? 'Street Address' }}, {{ $invoice->company?->city ?? 'City' }}</div>
                     <div>{{ $invoice->company?->phone ?? 'Phone' }}</div>
                 </div>
+            </div>
 
-                <div class="doc-meta-title">
-                    <h2>Tax Invoice</h2>
-                    <table class="meta-table" style="margin-left: auto;">
-                        <tr>
-                            <td class="meta-label">Date:</td>
-                            <td>{{ $invoice->invoice_date->format('F d, Y') }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">Invoice #:</td>
-                            <td>{{ $invoice->document_number }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">Customer ID:</td>
-                            <td>{{ $invoice->customer?->code ?? 'N/A' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">Purchase Order #</td>
-                            <td>{{ $invoice->reference_number ?? '-' }}</td>
-                        </tr>
-                    </table>
-                </div>
+            <div class="doc-meta-title">
+                <h2>VAT Invoice</h2>
+                <table class="meta-table" style="margin-left: auto;">
+                    <tr>
+                        <td class="meta-label">Date:</td>
+                        <td>{{ $invoice->invoice_date->format('F d, Y') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Invoice #:</td>
+                        <td>{{ $invoice->document_number }}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Customer ID:</td>
+                        <td>{{ $invoice->customer?->code ?? 'N/A' }}</td>
+                    </tr>
+                </table>
             </div>
         </div>
 
@@ -425,7 +405,7 @@
                     </tr>
                 @endforeach
                 {{-- Fill empty rows to maintain layout if few items --}}
-                @for($i = count($invoice->items); $i < 10; $i++)
+                @for($i = count($invoice->items); $i < 3; $i++)
                     <tr>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
