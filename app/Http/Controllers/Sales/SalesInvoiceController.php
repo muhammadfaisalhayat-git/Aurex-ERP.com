@@ -511,36 +511,46 @@ class SalesInvoiceController extends Controller
 
     public function downloadPdf(SalesInvoice $invoice)
     {
-        $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator', 'company']);
+        try {
+            $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator', 'company']);
 
-        // Base64 logo for PDF
-        $logoBase64 = null;
-        if ($invoice->company?->logo) {
-            $path = public_path('storage/' . $invoice->company->logo);
-            if (file_exists($path)) {
-                $type = pathinfo($path, PATHINFO_EXTENSION);
-                $data = file_get_contents($path);
-                $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+            // Base64 logo for PDF
+            $logoBase64 = null;
+            if ($invoice->company?->logo) {
+                $path = public_path('storage/' . $invoice->company->logo);
+                if (file_exists($path)) {
+                    $type = pathinfo($path, PATHINFO_EXTENSION);
+                    $data = @file_get_contents($path);
+                    if ($data) {
+                        $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                    }
+                }
             }
-        }
 
-        // Reshape Arabic text for PDF
-        if ($invoice->company) {
-            $invoice->company_name_ar = $this->arabicShaper->shape($invoice->company->name_ar ?? $invoice->company->name_en);
-        }
-        $invoice->customer_name_ar = $this->arabicShaper->shape($invoice->customer?->name_ar ?? '');
-        $invoice->notes_ar = $this->arabicShaper->shape($invoice->notes ?? '');
-
-        foreach ($invoice->items as $item) {
-            $item->product_name_ar = $this->arabicShaper->shape($item->product?->name_ar ?? $item->product?->name_en);
-            if ($item->description) {
-                $item->description_ar = $this->arabicShaper->shape($item->description);
+            // Reshape Arabic text for PDF
+            if ($invoice->company) {
+                $invoice->company_name_ar = $this->arabicShaper->shape($invoice->company->name_ar ?? $invoice->company->name_en);
             }
+            $invoice->customer_name_ar = $this->arabicShaper->shape($invoice->customer?->name_ar ?? '');
+            $invoice->notes_ar = $this->arabicShaper->shape($invoice->notes ?? '');
+
+            foreach ($invoice->items as $item) {
+                $item->product_name_ar = $this->arabicShaper->shape($item->product?->name_ar ?? $item->product?->name_en);
+                if ($item->description) {
+                    $item->description_ar = $this->arabicShaper->shape($item->description);
+                }
+            }
+
+            $pdf = PDF::loadView('sales.invoices.pdf', compact('invoice', 'logoBase64'));
+
+            return $pdf->download("invoice_{$invoice->document_number}.pdf");
+        } catch (\Exception $e) {
+            Log::error('PDF Generation Error: ' . $e->getMessage(), [
+                'invoice_id' => $invoice->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
         }
-
-        $pdf = PDF::loadView('sales.invoices.pdf', compact('invoice', 'logoBase64'));
-
-        return $pdf->download("invoice_{$invoice->document_number}.pdf");
     }
 
     public function print(SalesInvoice $invoice)

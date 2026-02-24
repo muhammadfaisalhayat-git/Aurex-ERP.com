@@ -167,7 +167,8 @@
                                                         <i class="fas fa-print"></i>
                                                     </a>
                                                     <a href="{{ route('sales.invoices.pdf', $invoice) }}"
-                                                        class="btn btn-sm btn-outline-danger" title="{{ __('messages.download_pdf') }}">
+                                                        class="btn btn-sm btn-outline-danger" title="{{ __('messages.download_pdf') }}"
+                                                        data-turbo="false">
                                                         <i class="fas fa-file-pdf"></i>
                                                     </a>
                                                 @endcan
@@ -256,11 +257,11 @@
                     }
 
                     container.innerHTML = data.map(item => `
-                                                                                                <div class="search-result-item" data-id="${item.id}">
-                                                                                                    <div class="item-title">${item.name}</div>
-                                                                                                    ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
-                                                                                                </div>
-                                                                                            `).join('');
+                                                                                                        <div class="search-result-item" data-id="${item.id}">
+                                                                                                            <div class="item-title">${item.name}</div>
+                                                                                                            ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
+                                                                                                        </div>
+                                                                                                    `).join('');
 
                     container.style.display = 'block';
 

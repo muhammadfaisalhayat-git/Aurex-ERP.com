@@ -45,7 +45,8 @@
                                 <i class="fas fa-print"></i> {{ __('sales.print') }}
                             </a>
 
-                            <a href="{{ route('sales.invoices.pdf', $invoice) }}" class="btn btn-primary me-2">
+                            <a href="{{ route('sales.invoices.pdf', $invoice) }}" class="btn btn-primary me-2"
+                                data-turbo="false">
                                 <i class="fas fa-file-pdf"></i> {{ __('sales.pdf') }}
                             </a>
 
@@ -138,7 +139,7 @@
                                         <th class="text-end">{{ __('sales.quantity') }}</th>
                                         <th class="text-end">{{ __('sales.unit_price') }}</th>
                                         <th class="text-end">{{ __('sales.discount') }}</th>
-                                        <th class="text-end d-none">{{ __('sales.tax') }}</th>
+                                        <th class="text-end d-none">{{ __('sales.vat') }}</th>
                                         <th class="text-end">{{ __('sales.total') }}</th>
                                     </tr>
                                 </thead>
@@ -173,7 +174,7 @@
                                         <td class="text-end">{{ number_format($invoice->total_amount, 2) }}</td>
                                     </tr>
                                     <tr>
-                                        <td colspan="5" class="text-end fw-bold">{{ __('sales.tax') }}</td>
+                                        <td colspan="5" class="text-end fw-bold">{{ __('sales.vat') }}</td>
                                         <td class="text-end">{{ number_format($invoice->tax_amount, 2) }}</td>
                                     </tr>
                                     @if($invoice->discount_amount > 0)

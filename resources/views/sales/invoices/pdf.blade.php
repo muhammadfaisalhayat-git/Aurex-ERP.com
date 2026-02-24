@@ -93,16 +93,22 @@
         }
 
         [dir="rtl"] .company-name {
-            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
+            text-align:
+                {{ app()->getLocale() === 'ar' ? 'right' : 'left' }}
+            ;
         }
-        
+
         .company-name {
-            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
+            text-align:
+                {{ app()->getLocale() === 'ar' ? 'right' : 'left' }}
+            ;
             font-family: 'DejaVu Sans', sans-serif;
         }
 
         .company-branding {
-            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
+            text-align:
+                {{ app()->getLocale() === 'ar' ? 'right' : 'left' }}
+            ;
         }
 
         [dir="rtl"] .invoice-title {
@@ -194,7 +200,7 @@
                 <th width="45%">{{ __('sales.product') }}</th>
                 <th class="text-right">{{ __('sales.quantity') }}</th>
                 <th class="text-right">{{ __('sales.unit_price') }}</th>
-                <th class="text-right" style="display: none;">{{ __('sales.tax') }}</th>
+                <th class="text-right" style="display: none;">{{ __('sales.vat') }}</th>
                 <th class="text-right">{{ __('sales.total') }}</th>
             </tr>
         </thead>
@@ -222,7 +228,7 @@
             <td class="text-right">{{ number_format($invoice->total_amount, 2) }}</td>
         </tr>
         <tr>
-            <td>{{ __('sales.tax') }}</td>
+            <td>{{ __('sales.vat') }}</td>
             <td class="text-right">{{ number_format($invoice->tax_amount, 2) }}</td>
         </tr>
         @if($invoice->discount_amount > 0)
