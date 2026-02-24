@@ -28,10 +28,23 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="supplier_name" class="form-label">{{ __('local_purchase.supplier_name') }}
+                                    <label for="supplier_id" class="form-label">{{ __('local_purchase.supplier_name') }}
                                         *</label>
-                                    <input type="text" class="form-control @error('supplier_name') is-invalid @enderror"
-                                        id="supplier_name" name="supplier_name" value="{{ old('supplier_name') }}" required>
+                                    <select class="form-select @error('supplier_name') is-invalid @enderror"
+                                        id="supplier_id" name="supplier_id">
+                                        <option value="">{{ __('messages.select_option') }}</option>
+                                        @foreach ($localSuppliers as $supplier)
+                                            <option value="{{ $supplier->id }}"
+                                                data-name="{{ $supplier->name_en }}"
+                                                data-phone="{{ $supplier->whatsapp_number ?? $supplier->phone }}"
+                                                data-email="{{ $supplier->email }}"
+                                                data-address="{{ $supplier->address }}"
+                                                {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                                {{ $supplier->name_en }} / {{ $supplier->name_ar }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <input type="hidden" name="supplier_name" id="supplier_name" value="{{ old('supplier_name') }}">
                                     @error('supplier_name')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -257,6 +270,26 @@
                     calculateRowTotal(row);
                 });
             }
+
+            // Supplier Select2 initialization and auto-fill
+            $('#supplier_id').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: '{{ __("messages.select_option") }}',
+                allowClear: true,
+                tags: true // Allow custom names if not in list
+            }).on('change', function() {
+                const selected = $(this).find(':selected');
+                const name = selected.data('name') || $(this).val();
+                const phone = selected.data('phone') || '';
+                const email = selected.data('email') || '';
+                const address = selected.data('address') || '';
+
+                $('#supplier_name').val(name);
+                $('#supplier_phone').val(phone);
+                $('#supplier_email').val(email);
+                $('#supplier_address').val(address);
+            });
 
             function addItemRow() {
                 const clone = template.content.cloneNode(true);

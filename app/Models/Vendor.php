@@ -20,6 +20,7 @@ class Vendor extends Model
         'contact_person',
         'phone',
         'mobile',
+        'whatsapp_number',
         'email',
         'address',
         'city',
@@ -31,6 +32,7 @@ class Vendor extends Model
         'current_balance',
         'status',
         'notes',
+        'type',
     ];
 
     protected $casts = [
@@ -69,14 +71,19 @@ class Vendor extends Model
         $this->save();
     }
 
-    public static function generateNextCode()
+    public static function generateNextCode($type = 'vendor')
     {
-        $lastVendor = self::orderBy('id', 'desc')->first();
-        if (!$lastVendor || !preg_match('/VND-(\d+)/', $lastVendor->code, $matches)) {
-            return 'VND-001';
+        $prefix = $type === 'local_supplier' ? 'LSP-' : 'VND-';
+        $lastVendor = self::where('type', $type)
+            ->where('code', 'like', $prefix . '%')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (!$lastVendor || !preg_match('/' . $prefix . '(\d+)/', $lastVendor->code, $matches)) {
+            return $prefix . '001';
         }
 
         $nextNumber = intval($matches[1]) + 1;
-        return 'VND-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
 }

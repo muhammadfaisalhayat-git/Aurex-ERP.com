@@ -574,6 +574,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             Route::get('products/search', [ProductController::class, 'ajaxSearch'])->name('products.search');
             Route::get('customers/search', [CustomerController::class, 'ajaxSearch'])->name('customers.search');
             Route::get('vendors/search', [VendorController::class, 'ajaxSearch'])->name('vendors.search');
+            Route::get('vendors/next-code', [VendorController::class, 'getNextCode'])->name('vendors.next-code');
             Route::get('invoices/search', [SalesInvoiceController::class, 'ajaxSearch'])->name('invoices.search');
             Route::get('warehouses/by-branch', [WarehouseController::class, 'ajaxByBranch'])->name('warehouses.by-branch');
             Route::get('products/stock', [ProductController::class, 'ajaxStock'])->name('products.stock');

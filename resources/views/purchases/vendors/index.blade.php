@@ -39,6 +39,7 @@
                                     <th>{{ __('messages.email') }}</th>
                                     <th>{{ __('messages.phone') }}</th>
                                     <th>{{ __('messages.balance') }}</th>
+                                    <th>{{ __('messages.vendor_type') }}</th>
                                     <th>{{ __('messages.status') }}</th>
                                     <th>{{ __('messages.actions') }}</th>
                                 </tr>
@@ -47,7 +48,8 @@
                                 @forelse($vendors as $vendor)
                                     <tr>
                                         <td>
-                                            <a href="{{ route('purchases.vendors.show', $vendor) }}" data-turbo-frame="main-frame">
+                                            <a href="{{ route('purchases.vendors.show', $vendor) }}"
+                                                data-turbo-frame="main-frame">
                                                 {{ $vendor->code }}
                                             </a>
                                         </td>
@@ -55,6 +57,7 @@
                                         <td>{{ $vendor->email }}</td>
                                         <td>{{ $vendor->phone }}</td>
                                         <td>{{ number_format($vendor->current_balance, 2) }}</td>
+                                        <td>{{ __('messages.' . $vendor->type) }}</td>
                                         <td>
                                             @php
                                                 $statusClass = $vendor->status === 'active' ? 'success' : 'danger';
@@ -65,23 +68,28 @@
                                         </td>
                                         <td>
                                             <div class="btn-group">
-                                                <a href="{{ route('purchases.vendors.show', $vendor) }}" class="btn btn-sm btn-info"
-                                                    title="{{ __('messages.view') }}" data-turbo-frame="main-frame">
+                                                <a href="{{ route('purchases.vendors.show', $vendor) }}"
+                                                    class="btn btn-sm btn-info" title="{{ __('messages.view') }}"
+                                                    data-turbo-frame="main-frame">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 @can('edit vendors')
                                                     <a href="{{ route('purchases.vendors.edit', $vendor) }}"
-                                                        class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}" data-turbo-frame="main-frame">
+                                                        class="btn btn-sm btn-primary" title="{{ __('messages.edit') }}"
+                                                        data-turbo-frame="main-frame">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 @endcan
                                                 <a href="{{ route('purchases.vendors.statement', $vendor) }}"
-                                                    class="btn btn-sm btn-secondary" title="{{ __('messages.view_statement') }}" data-turbo-frame="main-frame">
+                                                    class="btn btn-sm btn-secondary" title="{{ __('messages.view_statement') }}"
+                                                    data-turbo-frame="main-frame">
                                                     <i class="fas fa-file-invoice-dollar"></i>
                                                 </a>
                                                 @can('delete vendors')
                                                     <form action="{{ route('purchases.vendors.destroy', $vendor) }}" method="POST"
-                                                        class="d-inline" onsubmit="return confirm('{{ __('messages.are_you_sure') }}')" data-turbo="false">
+                                                        class="d-inline"
+                                                        onsubmit="return confirm('{{ __('messages.are_you_sure') }}')"
+                                                        data-turbo="false">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-danger"
@@ -95,7 +103,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center">{{ __('messages.no_records_found') }}</td>
+                                        <td colspan="8" class="text-center">{{ __('messages.no_records_found') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>

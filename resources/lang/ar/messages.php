@@ -590,6 +590,9 @@ return [
     'financial_summary' => 'الملخص المالي',
     'vendor_updated' => 'تم تحديث المورد بنجاح',
     'vendor_deleted' => 'تم حذف المورد بنجاح',
+    'vendor_type' => 'نوع المورد',
+    'local_supplier' => 'مورد محلي',
+    'whatsapp_number' => 'رقم الواتساب',
     'cannot_delete_vendor_with_transactions' => 'لا يمكن حذف مورد لديه عمليات',
     'select_vendor' => 'اختر المورد',
     'supply_orders' => 'أوامر التوريد',
@@ -821,9 +824,6 @@ return [
     'user_agent' => 'وكيل المستخدم',
 
     // Messages
-    'success' => 'نجاح',
-    'error' => 'خطأ',
-    'warning' => 'تحذير',
     'confirm_post' => 'هل أنت متأكد من ترحيل هذا المستند؟ سيؤدي ذلك لإنهاء العملية.',
     'confirm_unpost' => 'هل أنت متأكد من إلغاء ترحيل هذا المستند؟',
     'record_created' => 'تم إنشاء السجل بنجاح.',

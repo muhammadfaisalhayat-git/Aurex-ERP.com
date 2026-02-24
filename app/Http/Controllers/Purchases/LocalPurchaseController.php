@@ -7,6 +7,7 @@ use App\Models\LocalPurchase;
 use App\Models\LocalPurchaseItem;
 use App\Models\Product;
 use App\Models\Warehouse;
+use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -35,8 +36,9 @@ class LocalPurchaseController extends Controller
     {
         $warehouses = Warehouse::where('is_active', true)->get();
         $products = Product::where('is_active', true)->get();
+        $localSuppliers = Vendor::where('type', 'local_supplier')->where('status', 'active')->get();
 
-        return view('purchases.local.create', compact('warehouses', 'products'));
+        return view('purchases.local.create', compact('warehouses', 'products', 'localSuppliers'));
     }
 
     public function store(Request $request)
@@ -125,8 +127,9 @@ class LocalPurchaseController extends Controller
 
         $warehouses = Warehouse::where('is_active', true)->get();
         $products = Product::where('is_active', true)->get();
+        $localSuppliers = Vendor::where('type', 'local_supplier')->where('status', 'active')->get();
 
-        return view('purchases.local.edit', compact('localPurchase', 'warehouses', 'products'));
+        return view('purchases.local.edit', compact('localPurchase', 'warehouses', 'products', 'localSuppliers'));
     }
 
     public function update(Request $request, LocalPurchase $localPurchase)
@@ -237,7 +240,7 @@ class LocalPurchaseController extends Controller
         DB::beginTransaction();
 
         try {
-            $localPurchase->post(Auth::id());
+            $localPurchase->post();
 
             DB::commit();
 

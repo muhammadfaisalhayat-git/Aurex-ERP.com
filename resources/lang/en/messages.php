@@ -599,6 +599,9 @@ return [
     'financial_summary' => 'Financial Summary',
     'vendor_updated' => 'Vendor updated successfully',
     'vendor_deleted' => 'Vendor deleted successfully',
+    'vendor_type' => 'Vendor Type',
+    'local_supplier' => 'Local Supplier',
+    'whatsapp_number' => 'WhatsApp Number',
     'cannot_delete_vendor_with_transactions' => 'Cannot delete vendor with transactions',
     'select_vendor' => 'Select Vendor',
     'supply_orders' => 'Supply Orders',
@@ -831,9 +834,6 @@ return [
     'user_agent' => 'User Agent',
 
     // Messages
-    'success' => 'Success',
-    'error' => 'Error',
-    'warning' => 'Warning',
     'confirm_post' => 'Are you sure you want to post this document? This will finalize the transaction.',
     'confirm_unpost' => 'Are you sure you want to unpost this document?',
     'record_created' => 'The record has been created successfully.',

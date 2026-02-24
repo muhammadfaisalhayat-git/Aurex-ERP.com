@@ -41,14 +41,14 @@ class VendorController extends Controller
     public function create()
     {
         $branches = Branch::active()->get();
-        $nextCode = Vendor::generateNextCode();
+        $nextCode = Vendor::generateNextCode('vendor');
         return view('purchases.vendors.create', compact('branches', 'nextCode'));
     }
 
     public function store(Request $request)
     {
         if (!$request->filled('code')) {
-            $request->merge(['code' => Vendor::generateNextCode()]);
+            $request->merge(['code' => Vendor::generateNextCode($request->type ?? 'vendor')]);
         }
 
         $validated = $request->validate([
@@ -59,16 +59,17 @@ class VendorController extends Controller
             'contact_person' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'mobile' => 'nullable|string|max:20',
+            'whatsapp_number' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
-            'address' => 'nullable|string|max:500',
+            'address' => 'required_if:type,vendor|nullable|string|max:500',
             'city' => 'nullable|string|max:100',
             'region' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:20',
-            'tax_number' => 'nullable|string|max:50',
+            'tax_number' => 'required_if:type,vendor|nullable|string|max:50',
             'commercial_registration' => 'nullable|string|max:50',
             'opening_balance' => 'nullable|numeric',
-            'status' => 'required|in:active,inactive,blocked',
             'notes' => 'nullable|string',
+            'type' => 'required|in:vendor,local_supplier',
         ]);
 
         $validated['opening_balance'] = $validated['opening_balance'] ?? 0;
@@ -103,16 +104,17 @@ class VendorController extends Controller
             'contact_person' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'mobile' => 'nullable|string|max:20',
+            'whatsapp_number' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
-            'address' => 'nullable|string|max:500',
+            'address' => 'required_if:type,vendor|nullable|string|max:500',
             'city' => 'nullable|string|max:100',
             'region' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:20',
-            'tax_number' => 'nullable|string|max:50',
+            'tax_number' => 'required_if:type,vendor|nullable|string|max:50',
             'commercial_registration' => 'nullable|string|max:50',
             'opening_balance' => 'nullable|numeric',
-            'status' => 'required|in:active,inactive,blocked',
             'notes' => 'nullable|string',
+            'type' => 'required|in:vendor,local_supplier',
         ]);
 
         $oldValues = $vendor->toArray();
@@ -164,5 +166,13 @@ class VendorController extends Controller
                 'name' => $vendor->name . ' (' . $vendor->code . ')',
             ];
         }));
+    }
+
+    public function getNextCode(Request $request)
+    {
+        $type = $request->get('type', 'vendor');
+        return response()->json([
+            'code' => Vendor::generateNextCode($type)
+        ]);
     }
 }

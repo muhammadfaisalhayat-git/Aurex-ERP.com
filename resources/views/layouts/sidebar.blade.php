@@ -226,17 +226,7 @@
                     @endcan
                 @endif
 
-                @if($checkVisibility('sidebar_supplier_registrations'))
-                    @can('view supplier_registration')
-                        <div class="menu-item">
-                            <a href="{{ route('purchases.supplier-registrations.index') }}"
-                                class="menu-link {{ request()->routeIs('purchases.supplier-registrations.*') ? 'active' : '' }}">
-                                <i class="fas fa-user-plus fa-fw"></i>
-                                <span>{{ __('messages.supplier_registrations') }}</span>
-                            </a>
-                        </div>
-                    @endcan
-                @endif
+
             @endcanany
         @endif
 

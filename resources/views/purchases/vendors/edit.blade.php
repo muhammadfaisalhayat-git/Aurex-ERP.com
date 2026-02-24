@@ -23,6 +23,22 @@
                         </div>
 
                         <div class="col-md-3 mb-3">
+                            <label for="type" class="form-label">{{ __('messages.vendor_type') }} <span
+                                    class="text-danger">*</span></label>
+                            <select class="form-control @error('type') is-invalid @enderror" id="type" name="type" required>
+                                <option value="vendor" {{ old('type', $vendor->type) == 'vendor' ? 'selected' : '' }}>
+                                    {{ __('messages.vendor') }}
+                                </option>
+                                <option value="local_supplier" {{ old('type', $vendor->type) == 'local_supplier' ? 'selected' : '' }}>
+                                    {{ __('messages.local_supplier') }}
+                                </option>
+                            </select>
+                            @error('type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-3 mb-3">
                             <label for="code" class="form-label">{{ __('messages.code') }} <span
                                     class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('code') is-invalid @enderror" id="code"
@@ -32,7 +48,7 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label for="name_en" class="form-label">{{ __('messages.name_en') }} <span
                                     class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('name_en') is-invalid @enderror" id="name_en"
@@ -42,7 +58,7 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label for="name_ar" class="form-label">{{ __('messages.name_ar') }} <span
                                     class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('name_ar') is-invalid @enderror" id="name_ar"
@@ -92,7 +108,7 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label for="mobile" class="form-label">{{ __('messages.mobile') }}</label>
                             <input type="text" class="form-control @error('mobile') is-invalid @enderror" id="mobile"
                                 name="mobile" value="{{ old('mobile', $vendor->mobile) }}">
@@ -101,7 +117,19 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
+                            <label for="whatsapp_number" class="form-label">
+                                {{ __('messages.whatsapp_number') }} <span class="text-danger asterisk">*</span>
+                            </label>
+                            <input type="text" class="form-control @error('whatsapp_number') is-invalid @enderror"
+                                id="whatsapp_number" name="whatsapp_number"
+                                value="{{ old('whatsapp_number', $vendor->whatsapp_number) }}" required>
+                            @error('whatsapp_number')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-3 mb-3">
                             <label for="email" class="form-label">{{ __('messages.email') }}</label>
                             <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"
                                 name="email" value="{{ old('email', $vendor->email) }}">
@@ -116,7 +144,10 @@
                         </div>
 
                         <div class="col-md-12 mb-3">
-                            <label for="address" class="form-label">{{ __('messages.address') }}</label>
+                            <label for="address" class="form-label">
+                                {{ __('messages.address') }} <span class="text-danger asterisk"
+                                    id="address-asterisk">*</span>
+                            </label>
                             <input type="text" class="form-control @error('address') is-invalid @enderror" id="address"
                                 name="address" value="{{ old('address', $vendor->address) }}">
                             @error('address')
@@ -157,7 +188,10 @@
                         </div>
 
                         <div class="col-md-4 mb-3">
-                            <label for="tax_number" class="form-label">{{ __('messages.tax_number') }}</label>
+                            <label for="tax_number" class="form-label">
+                                {{ __('messages.tax_number') }} <span class="text-danger asterisk"
+                                    id="tax-asterisk">*</span>
+                            </label>
                             <input type="text" class="form-control @error('tax_number') is-invalid @enderror"
                                 id="tax_number" name="tax_number" value="{{ old('tax_number', $vendor->tax_number) }}">
                             @error('tax_number')
@@ -230,4 +264,30 @@
             </div>
         </div>
     </div>
+    @push('scripts')
+        <script>
+            $(document).ready(function () {
+                function updateMandatoryFields() {
+                    const type = $('#type').val();
+                    if (type === 'vendor') {
+                        $('#tax-asterisk').show();
+                        $('#tax_number').prop('required', true);
+                        $('#address-asterisk').show();
+                        $('#address').prop('required', true);
+                    } else {
+                        $('#tax-asterisk').hide();
+                        $('#tax_number').prop('required', false);
+                        $('#address-asterisk').hide();
+                        $('#address').prop('required', false);
+                    }
+                }
+
+                $('#type').on('change', function () {
+                    updateMandatoryFields();
+                });
+
+                updateMandatoryFields();
+            });
+        </script>
+    @endpush
 @endsection
