@@ -357,11 +357,10 @@
                                                                     <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name_en}" data-price="${p.sale_price || 0}" style="cursor: pointer;">
                                                                         <div class="d-flex justify-content-between align-items-start">
                                                                             <div class="fw-bold">${p.name_en}</div>
-                                                                            <div class="d-flex gap-1 flex-shrink-0 ms-2">
-                                                                                <span class="badge" style="background-color:#dc3545; color:white;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
-                                                                                <span class="badge" style="background-color:#198754; color:white;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
-                                                                            </div>
-                                                                        </div>
+                                                                            <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
+                                                                        <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
+                                                                        <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                                                                    </div>        </div>
                                                                         <small class="text-muted">${p.product_code || ''}</small>
                                                                     </div>
                                                                 `).join('');
