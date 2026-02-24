@@ -214,11 +214,11 @@
 
                     if (results.length > 0) {
                         customerResults.innerHTML = results.map(c => `
-                                            <div class="search-result-item p-2 border-bottom" data-id="${c.id}" style="cursor: pointer;">
-                                                <div class="fw-bold">${c.name}</div>
-                                                <small class="text-muted">${c.code || ''}</small>
-                                            </div>
-                                        `).join('');
+                                                            <div class="search-result-item p-2 border-bottom" data-id="${c.id}" style="cursor: pointer;">
+                                                                <div class="fw-bold">${c.name}</div>
+                                                                <small class="text-muted">${c.code || ''}</small>
+                                                            </div>
+                                                        `).join('');
                         customerResults.style.display = 'block';
                     } else {
                         customerResults.innerHTML = '<div class="p-2 text-muted">No customer found</div>';
@@ -253,38 +253,38 @@
                     const taxRate = taxSetting.tax_enabled ? taxSetting.default_tax_rate : 0;
 
                     tr.innerHTML = `
-                                        <td>
-                                            <div class="position-relative product-search-container">
-                                                <input type="text" class="form-control form-control-sm bg-white product-search-input" 
-                                                    placeholder="{{ __('messages.select_product') }}" autocomplete="off" value="${productName}" required>
-                                                <input type="hidden" name="items[${index}][product_id]" class="product-id-input" value="${productId}" required>
-                                                <div class="product-results search-results-container glassy" style="display: none; position: absolute; z-index: 1000; width: 100%;"></div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <input type="number" step="0.001" class="form-control form-control-sm bg-white quantity-input" name="items[${index}][quantity]" value="${data ? data.quantity : 1}" required min="0.001">
-                                        </td>
-                                        <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm bg-white price-input" name="items[${index}][unit_price]" value="${data ? data.unit_price : 0}" required min="0">
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm bg-light tax-rate-display" value="${taxRate}%" readonly tabindex="-1">
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm bg-light tax-amount-display" value="0.00" readonly tabindex="-1">
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm bg-light total-amount-display" value="0.00" readonly tabindex="-1">
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm bg-white" name="items[${index}][notes]" value="${data ? data.notes || '' : ''}">
-                                        </td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-link text-danger remove-item p-0">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    `;
+                                                        <td>
+                                                            <div class="position-relative product-search-container">
+                                                                <input type="text" class="form-control form-control-sm bg-white product-search-input" 
+                                                                    placeholder="{{ __('messages.select_product') }}" autocomplete="off" value="${productName}" required>
+                                                                <input type="hidden" name="items[${index}][product_id]" class="product-id-input" value="${productId}" required>
+                                                                <div class="product-results search-results-container glassy" style="display: none; position: absolute; z-index: 1000; width: 100%;"></div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" step="0.001" class="form-control form-control-sm bg-white quantity-input" name="items[${index}][quantity]" value="${data ? data.quantity : 1}" required min="0.001">
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" step="0.01" class="form-control form-control-sm bg-white price-input" name="items[${index}][unit_price]" value="${data ? data.unit_price : 0}" required min="0">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" class="form-control form-control-sm bg-light tax-rate-display" value="${taxRate}%" readonly tabindex="-1">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" class="form-control form-control-sm bg-light tax-amount-display" value="0.00" readonly tabindex="-1">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" class="form-control form-control-sm bg-light total-amount-display" value="0.00" readonly tabindex="-1">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" class="form-control form-control-sm bg-white" name="items[${index}][notes]" value="${data ? data.notes || '' : ''}">
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-link text-danger remove-item p-0">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    `;
 
                     itemsBody.appendChild(tr);
                     if (window.initGlobalSelect2) window.initGlobalSelect2(tr);
@@ -350,17 +350,25 @@
 
                     if (results.length > 0) {
                         resultsDiv.innerHTML = results.map(p => `
-                                            <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name_en}" style="cursor: pointer;">
-                                                <div class="fw-bold">${p.name_en}</div>
-                                                <small class="text-muted">${p.code || ''}</small>
-                                            </div>
-                                        `).join('');
+                                                            <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name_en}" data-price="${p.sale_price || 0}" style="cursor: pointer;">
+                                                                <div class="d-flex justify-content-between align-items-start">
+                                                                    <div class="fw-bold">${p.name_en}</div>
+                                                                    <div class="d-flex gap-1 flex-shrink-0 ms-2">
+                                                                        <span class="badge" style="background-color:#dc3545; color:white;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
+                                                                        <span class="badge" style="background-color:#198754; color:white;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <small class="text-muted">${p.product_code || ''}</small>
+                                                            </div>
+                                                        `).join('');
                         resultsDiv.style.display = 'block';
 
                         resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
                             item.addEventListener('click', function () {
                                 searchInput.value = this.dataset.name;
                                 idInput.value = this.dataset.id;
+                                const priceInput = searchInput.closest('td')?.querySelector('.price-input');
+                                if (priceInput && this.dataset.price) priceInput.value = this.dataset.price;
                                 resultsDiv.style.display = 'none';
                                 calculateTotals();
                             });
@@ -384,7 +392,7 @@
                 @else
                     if (itemsBody.children.length === 0) addItem();
                 @endif
-                    });
+                                    });
 
             // Clear dynamic content before Turbo caches the page
             document.addEventListener('turbo:before-cache', function () {
