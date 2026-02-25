@@ -120,11 +120,11 @@ class CustomerController extends Controller
         $query = LedgerEntry::where('customer_id', $customer->id);
 
         if ($request->filled('date_from')) {
-            $query->where('transaction_date', '>=', $request->date_from);
+            $query->where('transaction_date', '>=', \Illuminate\Support\Carbon::parse($request->date_from)->startOfDay());
         }
 
         if ($request->filled('date_to')) {
-            $query->where('transaction_date', '<=', $request->date_to);
+            $query->where('transaction_date', '<=', \Illuminate\Support\Carbon::parse($request->date_to)->endOfDay());
         }
 
         if ($request->filled('item_search')) {
@@ -152,7 +152,7 @@ class CustomerController extends Controller
             });
         }
 
-        $entries = $query->with(['account', 'reference', 'reference.items', 'reference.items.product'])->orderBy('transaction_date', 'asc')->get();
+        $entries = $query->with(['account', 'reference'])->orderBy('transaction_date', 'asc')->get();
 
         $openingBalance = 0;
         if ($request->filled('date_from')) {

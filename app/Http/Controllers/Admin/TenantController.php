@@ -29,7 +29,7 @@ class TenantController extends Controller
         session(['active_company_id' => $request->company_id]);
         session()->forget('active_branch_id'); // Clear branch to force re-selection or default
 
-        return back()->with('success', __('Company switched successfully'));
+        return back()->with('success', __('messages.company_switched'));
     }
 
     /**
@@ -58,6 +58,6 @@ class TenantController extends Controller
 
         session(['active_branch_id' => $request->branch_id]);
 
-        return back()->with('success', __('Branch switched successfully'));
+        return back()->with('success', __('messages.branch_switched'));
     }
 }

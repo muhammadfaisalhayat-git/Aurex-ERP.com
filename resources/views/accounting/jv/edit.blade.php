@@ -306,7 +306,8 @@
                                         <td>
                                             <select name="items[{{ $index }}][chart_of_account_id]"
                                                 class="form-select form-select-sm account-select select2-ajax px-2"
-                                                style="width: 100%;" data-idx="{{ $index }}">
+                                                style="width: 100%;" data-idx="{{ $index }}"
+                                                data-no-select2>
                                                 <option value="{{ $item->chart_of_account_id }}" selected>
                                                     {{ $item->account->code }} -
                                                     {{ app()->getLocale() === 'ar' ? ($item->account->name_ar ?? $item->account->name_en) : ($item->account->name_en ?? $item->account->name_ar) }}
@@ -322,7 +323,9 @@
                                             <div
                                                 class="entity-wrapper {{ ($item->customer_id || $item->vendor_id || $item->employee_id) ? '' : 'd-none' }}">
                                                 <select name="items[{{ $index }}][customer_id]"
-                                                    class="form-select form-select-sm customer-select select2-ajax px-1" {{ $item->customer_id ? '' : 'disabled' }}>
+                                                    class="form-select form-select-sm customer-select {{ $item->customer_id ? 'select2-ajax' : '' }} px-1 {{ $item->customer_id ? '' : 'd-none' }}"
+                                                    data-no-select2
+                                                    {{ $item->customer_id ? '' : 'disabled' }}>
                                                     @if($item->customer_id)
                                                         <option value="{{ $item->customer_id }}" selected>
                                                             {{ $item->customer->name ?? 'Unknown' }}
@@ -330,7 +333,9 @@
                                                     @endif
                                                 </select>
                                                 <select name="items[{{ $index }}][vendor_id]"
-                                                    class="form-select form-select-sm vendor-select select2-ajax px-1" {{ $item->vendor_id ? '' : 'disabled' }}>
+                                                    class="form-select form-select-sm vendor-select {{ $item->vendor_id ? 'select2-ajax' : '' }} px-1 {{ $item->vendor_id ? '' : 'd-none' }}"
+                                                    data-no-select2
+                                                    {{ $item->vendor_id ? '' : 'disabled' }}>
                                                     @if($item->vendor_id)
                                                         <option value="{{ $item->vendor_id }}" selected>
                                                             {{ $item->vendor->name ?? 'Unknown' }}
@@ -338,7 +343,8 @@
                                                     @endif
                                                 </select>
                                                 <select name="items[{{ $index }}][employee_id]"
-                                                    class="form-select form-select-sm employee-ledger-select select2-ajax px-1"
+                                                    class="form-select form-select-sm employee-ledger-select {{ $item->employee_id ? 'select2-ajax' : '' }} px-1 {{ $item->employee_id ? '' : 'd-none' }}"
+                                                    data-no-select2
                                                     {{ $item->employee_id ? '' : 'disabled' }}>
                                                     @if($item->employee_id)
                                                         <option value="{{ $item->employee_id }}" selected>
@@ -366,7 +372,8 @@
                                                 value="{{ $item->currency ?? 'SR' }}"></td>
                                         <td>
                                             <select name="items[{{ $index }}][cost_center_no]"
-                                                class="form-select form-select-sm cost-center-select select2-ajax px-1">
+                                                class="form-select form-select-sm cost-center-select select2-ajax px-1"
+                                                data-no-select2>
                                                 @if($item->cost_center_no)
                                                     <option value="{{ $item->cost_center_no }}" selected>{{ $item->cost_center_no }}
                                                     </option>
@@ -375,7 +382,8 @@
                                         </td>
                                         <td>
                                             <select name="items[{{ $index }}][activity_no]"
-                                                class="form-select form-select-sm activity-select select2-ajax px-1">
+                                                class="form-select form-select-sm activity-select select2-ajax px-1"
+                                                data-no-select2>
                                                 @if($item->activity_no)
                                                     <option value="{{ $item->activity_no }}" selected>{{ $item->activity_no }}
                                                     </option>
@@ -384,7 +392,8 @@
                                         </td>
                                         <td>
                                             <select name="items[{{ $index }}][lc_no]"
-                                                class="form-select form-select-sm lc-select select2-ajax px-1">
+                                                class="form-select form-select-sm lc-select select2-ajax px-1"
+                                                data-no-select2>
                                                 @if($item->lc_no)
                                                     <option value="{{ $item->lc_no }}" selected>{{ $item->lc_no }}</option>
                                                 @endif
@@ -392,7 +401,8 @@
                                         </td>
                                         <td>
                                             <select name="items[{{ $index }}][rep]"
-                                                class="form-select form-select-sm employee-select select2-ajax px-1">
+                                                class="form-select form-select-sm employee-select select2-ajax px-1"
+                                                data-no-select2>
                                                 @if($item->rep)
                                                     <option value="{{ $item->rep }}" selected>{{ $item->rep }}</option>
                                                 @endif
@@ -400,7 +410,8 @@
                                         </td>
                                         <td>
                                             <select name="items[{{ $index }}][collector_no]"
-                                                class="form-select form-select-sm employee-select select2-ajax px-1">
+                                                class="form-select form-select-sm employee-select select2-ajax px-1"
+                                                data-no-select2>
                                                 @if($item->collector_no)
                                                     <option value="{{ $item->collector_no }}" selected>{{ $item->collector_no }}
                                                     </option>
@@ -409,7 +420,8 @@
                                         </td>
                                         <td>
                                             <select name="items[{{ $index }}][promoter_code]"
-                                                class="form-select form-select-sm promoter-select select2-ajax px-1">
+                                                class="form-select form-select-sm promoter-select select2-ajax px-1"
+                                                data-no-select2>
                                                 @if($item->promoter_code)
                                                     <option value="{{ $item->promoter_code }}" selected>{{ $item->promoter_code }}
                                                     </option>
@@ -661,11 +673,23 @@
             background-color: #ebf4ff !important;
             border-left: 4px solid var(--primary-blue) !important;
         }
+
+        /* Hide Select2 container injected next to a hidden (d-none) entity select */
+        .entity-wrapper select.d-none+.select2-container,
+        .entity-wrapper select.d-none~.select2-container {
+            display: none !important;
+        }
     </style>
 
     @push('scripts')
         <script>
             function initJournalVoucherEditPage() {
+                // One-time guard: prevent this function from running more than once per page load.
+                // It is registered on turbo:load AND called via the fallback block below,
+                // so without this guard it runs twice on a normal (non-Turbo) page load.
+                if (window._jvEditInitialized) return;
+                window._jvEditInitialized = true;
+
                 let rowCount = {{ count($jv->items) }};
 
                 // Toggle Explorer
@@ -731,6 +755,8 @@
                 }
 
                 function initAccountSelect(el) {
+                    // Destroy existing Select2 instance to prevent double-container creation
+                    if ($(el).data('select2')) { $(el).select2('destroy'); }
                     $(el).select2({
                         theme: 'bootstrap-5',
                         width: '100%',
@@ -802,6 +828,8 @@
                 }
 
                 function initEntitySelect(el, type) {
+                    // Destroy existing Select2 instance to prevent double-container creation
+                    if ($(el).data('select2')) { $(el).select2('destroy'); }
                     let url = '';
                     if (type === 'customer') url = "{{ route('ajax.customers.search') }}";
                     else if (type === 'vendor') url = "{{ route('ajax.vendors.search') }}";
@@ -839,6 +867,25 @@
                 });
 
                 updateFinancials();
+
+                // Defer cleanup until after global Select2 init finishes (it runs after turbo:load)
+                setTimeout(function () {
+                    // Destroy any accidental Select2 instances on disabled entity selects
+                    $('.entity-wrapper select.d-none').each(function () {
+                        if ($(this).data('select2')) {
+                            $(this).select2('close').select2('destroy');
+                        }
+                        // Hide the Select2 container Select2 injects next to the select
+                        $(this).siblings('.select2-container').hide();
+                        $(this).nextAll('.select2-container').hide();
+                    });
+                    // Force-close any accidentally-opened dropdowns
+                    $('.entity-wrapper .select2-container--open').each(function () {
+                        $(this).removeClass('select2-container--open');
+                    });
+                }, 150);
+
+
 
                 // Toolbar Events
                 document.getElementById('btn-save').addEventListener('click', () => document.getElementById('jv-form').submit());
@@ -914,8 +961,8 @@
                         let html = '';
                         data.forEach(s => {
                             html += `<div class="list-group-item list-group-item-action explorer-item border-0 border-bottom py-1 px-3" onclick="loadExplorerAccountData(${s.id})">
-                                                                                                        <span class="x-small"><code>${s.code}</code> ${ {{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (s.name_ar || s.name_en) : (s.name_en || s.name_ar)}</span>
-                                                                                                    </div>`;
+                                                                                                                        <span class="x-small"><code>${s.code}</code> ${ {{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (s.name_ar || s.name_en) : (s.name_en || s.name_ar)}</span>
+                                                                                                                    </div>`;
                         });
                         document.getElementById('sub-accounts-list').innerHTML = html || 'No subs';
                     });
@@ -929,18 +976,18 @@
 
                         document.getElementById('selected-account-title').innerText = acc.code + ' - ' + ({{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (acc.name_ar || acc.name_en) : (acc.name_en || acc.name_ar));
                         document.getElementById('explorer-data-container').innerHTML = `
-                                                                                                        <div class="p-2 bg-light rounded shadow-none">
-                                                                                                            <div class="mb-2 border-bottom pb-1 d-flex justify-content-between x-small">
-                                                                                                                <span class="text-muted">Type: <span class="fw-bold text-dark">${typeName}</span></span>
-                                                                                                                <span class="text-muted">Link: <span class="fw-bold text-dark text-capitalize">${acc.sub_ledger_type || 'none'}</span></span>
-                                                                                                            </div>
-                                                                                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                                                                <small class="fw-bold text-primary uppercase">Balance: ${res.summary.balance}</small>
-                                                                                                                <button type="button" class="btn btn-xs btn-primary py-0" onclick="addAccountAt(${acc.id})"><i class="fas fa-plus"></i> Add</button>
-                                                                                                            </div>
-                                                                                                            <div class="x-small text-muted italic">Ready to post to journal.</div>
-                                                                                                        </div>
-                                                                                                    `;
+                                                                                                                        <div class="p-2 bg-light rounded shadow-none">
+                                                                                                                            <div class="mb-2 border-bottom pb-1 d-flex justify-content-between x-small">
+                                                                                                                                <span class="text-muted">Type: <span class="fw-bold text-dark">${typeName}</span></span>
+                                                                                                                                <span class="text-muted">Link: <span class="fw-bold text-dark text-capitalize">${acc.sub_ledger_type || 'none'}</span></span>
+                                                                                                                            </div>
+                                                                                                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                                                                                <small class="fw-bold text-primary uppercase">Balance: ${res.summary.balance}</small>
+                                                                                                                                <button type="button" class="btn btn-xs btn-primary py-0" onclick="addAccountAt(${acc.id})"><i class="fas fa-plus"></i> Add</button>
+                                                                                                                            </div>
+                                                                                                                            <div class="x-small text-muted italic">Ready to post to journal.</div>
+                                                                                                                        </div>
+                                                                                                                    `;
                     });
                 };
 
@@ -959,6 +1006,7 @@
             // Initialization and Turbo Support
             document.addEventListener('turbo:load', initJournalVoucherEditPage);
             document.addEventListener('turbo:before-cache', function () {
+                window._jvEditInitialized = false; // Reset so re-init works on back-navigation
                 $('.select2-hidden-accessible').select2('destroy');
             });
 

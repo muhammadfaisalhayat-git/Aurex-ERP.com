@@ -144,18 +144,51 @@
             margin-left: 0;
             margin-right: auto;
         }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25em 0.6em;
+            font-size: 75%;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.25rem;
+        }
+
+        .bg-light {
+            background-color: #f8fafc !important;
+        }
+
+        .text-dark {
+            color: #1e293b !important;
+        }
     </style>
 </head>
 
 <body onload="window.print()">
     <div class="no-print" style="margin-bottom: 20px;">
-        <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">{{ __('messages.print') }}</button>
-        <button onclick="window.close()" style="padding: 10px 20px; cursor: pointer;">{{ __('messages.close') }}</button>
+        <button onclick="window.print()"
+            style="padding: 10px 20px; cursor: pointer;">{{ __('messages.print') }}</button>
+        <button onclick="window.close()"
+            style="padding: 10px 20px; cursor: pointer;">{{ __('messages.close') }}</button>
     </div>
 
     <div class="header">
-        <div class="company-logo">
-            {{ $jv->company->name ?? config('app.name', 'Aurex ERP') }}
+        <div class="company-info" style="display: flex; align-items: center; gap: 20px;">
+            @if(isset($jv->company->logo) && $jv->company->logo)
+                <img src="{{ asset('storage/' . $jv->company->logo) }}" alt="Logo"
+                    style="max-height: 80px; max-width: 200px;">
+            @endif
+            <div class="company-logo">
+                {{ $jv->company->name ?? config('app.name', 'Aurex ERP') }}
+                @if(isset($jv->branch))
+                    <div style="font-size: 14px; color: #64748b; font-weight: normal; margin-top: 5px;">
+                        {{ $jv->branch->name }}
+                    </div>
+                @endif
+            </div>
         </div>
         <div class="document-title">
             <h1>{{ __('messages.journal_voucher') }}</h1>
@@ -184,10 +217,11 @@
     <table class="items-table">
         <thead>
             <tr>
-                <th width="15%">{{ __('messages.account_code') }}</th>
-                <th width="45%">{{ __('messages.account_name') }}</th>
-                <th width="20%" class="text-end">{{ __('messages.debit') }}</th>
-                <th width="20%" class="text-end">{{ __('messages.credit') }}</th>
+                <th width="12%">{{ __('messages.account_code') }}</th>
+                <th width="33%">{{ __('messages.account_name') }}</th>
+                <th width="25%">{{ __('messages.details') }}</th>
+                <th width="15%" class="text-end">{{ __('messages.debit') }}</th>
+                <th width="15%" class="text-end">{{ __('messages.credit') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -199,8 +233,19 @@
                 <tr>
                     <td>{{ $item->account->code }}</td>
                     <td>{{ $item->account->name }}</td>
-                    <td class="text-end">{{ $item->debit > 0 ? number_format($jv->is_posted ? $item->debit : $item->debit, 2) : '-' }}</td>
-                    <td class="text-end">{{ $item->credit > 0 ? number_format($jv->is_posted ? $item->credit : $item->credit, 2) : '-' }}</td>
+                    <td>
+                        @if($item->customer_id)
+                            <span class="badge bg-light text-dark">{{ $item->customer->name ?? '-' }}</span>
+                        @elseif($item->vendor_id)
+                            <span class="badge bg-light text-dark">{{ $item->vendor->name ?? '-' }}</span>
+                        @elseif($item->employee_id)
+                            <span class="badge bg-light text-dark">{{ $item->employee->name ?? '-' }}</span>
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td class="text-end">{{ $item->debit > 0 ? number_format($item->debit, 2) : '-' }}</td>
+                    <td class="text-end">{{ $item->credit > 0 ? number_format($item->credit, 2) : '-' }}</td>
                 </tr>
                 @php
                     $totalDebit += $item->debit;
@@ -210,7 +255,7 @@
         </tbody>
         <tfoot>
             <tr style="font-weight: bold; background-color: #f8fafc;">
-                <td colspan="2" class="text-end">{{ __('messages.total') }}</td>
+                <td colspan="3" class="text-end">{{ __('messages.total') }}</td>
                 <td class="text-end border-top: 2px solid #333;">{{ number_format($totalDebit, 2) }}</td>
                 <td class="text-end border-top: 2px solid #333;">{{ number_format($totalCredit, 2) }}</td>
             </tr>

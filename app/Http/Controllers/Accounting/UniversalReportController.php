@@ -76,8 +76,8 @@ class UniversalReportController extends Controller
 
         $type = $request->entity_type;
         $id = $request->entity_id;
-        $startDate = $request->start_date;
-        $endDate = $request->end_date;
+        $startDate = \Illuminate\Support\Carbon::parse($request->start_date)->startOfDay();
+        $endDate = \Illuminate\Support\Carbon::parse($request->end_date)->endOfDay();
 
         $results = [];
         $openingBalance = 0;

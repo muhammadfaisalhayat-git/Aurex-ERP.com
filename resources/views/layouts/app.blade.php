@@ -47,6 +47,39 @@
 
     <script>
         // Global functions
+        window.transliterateToArabic = function (text) {
+            if (!text) return '';
+            const map = {
+                'a': 'ا', 'b': 'ب', 't': 'ت', 'th': 'ث', 'j': 'ج', 'h': 'ح', 'kh': 'خ',
+                'd': 'د', 'z': 'ذ', 'r': 'ر', 's': 'س', 'sh': 'ش', 'S': 'ص', 'D': 'ض',
+                'T': 'ط', 'Z': 'ظ', 'e': 'ع', 'gh': 'غ', 'f': 'ف', 'q': 'ق', 'k': 'ك',
+                'l': 'ل', 'm': 'م', 'n': 'ن', 'H': 'ه', 'w': 'و', 'y': 'ي', 'aa': 'ا',
+                'ee': 'ي', 'oo': 'و', 'ou': 'و', 'ai': 'ي', ' ': ' ', 'v': 'ف', 'p': 'ب'
+            };
+
+            let result = '';
+            let i = 0;
+            const lowerText = text.toLowerCase();
+            while (i < lowerText.length) {
+                let found = false;
+                // Check 2-char combinations
+                if (i + 1 < lowerText.length) {
+                    const combo = lowerText.substring(i, i + 2);
+                    if (map[combo]) {
+                        result += map[combo];
+                        i += 2;
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    const char = lowerText[i];
+                    result += map[char] || char;
+                    i++;
+                }
+            }
+            return result;
+        };
+
         window.toggleSidebar = function () {
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.querySelector('.main-content');

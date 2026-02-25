@@ -190,7 +190,17 @@
                 const itemsBody = document.getElementById('itemsBody');
                 let itemIndex = 0;
 
-                const products = @json($products);
+                const products = @json($products->map(function ($p) {
+                    return [
+                        'id' => $p->id,
+                        'name_en' => $p->name_en,
+                        'name_ar' => $p->name_ar,
+                        'product_code' => $p->product_code,
+                        'sale_price' => $p->sale_price,
+                        'cost_price' => $p->cost_price,
+                        'tax_rate' => $p->tax_rate
+                    ];
+                }));
                 const taxSetting = @json($taxSetting);
                 const customers = @json($customers->map(function ($c) {
                     return ['id' => $c->id, 'name' => $c->name_en, 'code' => $c->code];
@@ -218,11 +228,11 @@
 
                     if (results.length > 0) {
                         customerResults.innerHTML = results.map(c => `
-                                                                    <div class="search-result-item p-2 border-bottom" data-id="${c.id}" style="cursor: pointer;">
-                                                                        <div class="fw-bold">${c.name}</div>
-                                                                        <small class="text-muted">${c.code || ''}</small>
-                                                                    </div>
-                                                                `).join('');
+                                                                            <div class="search-result-item p-2 border-bottom" data-id="${c.id}" style="cursor: pointer;">
+                                                                                <div class="fw-bold">${c.name}</div>
+                                                                                <small class="text-muted">${c.code || ''}</small>
+                                                                            </div>
+                                                                        `).join('');
                         customerResults.style.display = 'block';
                     } else {
                         customerResults.innerHTML = '<div class="p-2 text-muted">No customer found</div>';
@@ -252,43 +262,43 @@
                     tr.classList.add('item-row');
 
                     const selectedProduct = data ? products.find(p => p.id == data.product_id) : null;
-                    const productName = selectedProduct ? selectedProduct.name_en : '';
+                    const productName = selectedProduct ? ({{ app()->getLocale() === 'ar' ? 'selectedProduct.name_ar || selectedProduct.name_en' : 'selectedProduct.name_en || selectedProduct.name_ar' }}): '';
                     const productId = data ? data.product_id : '';
                     const taxRate = taxSetting.tax_enabled ? taxSetting.default_tax_rate : 0;
 
                     tr.innerHTML = `
-                                                                <td>
-                                                                    <div class="position-relative product-search-container">
-                                                                        <input type="text" class="form-control form-control-sm bg-white product-search-input" 
-                                                                            placeholder="{{ __('messages.select_product') }}" autocomplete="off" value="${productName}" required>
-                                                                        <input type="hidden" name="items[${index}][product_id]" class="product-id-input" value="${productId}" required>
-                                                                        <div class="product-results search-results-container glassy" style="display: none; position: absolute; z-index: 1000; width: 100%;"></div>
-                                                                    </div>
-                                                                </td>
-                                                                <td>
-                                                                    <input type="number" step="0.001" class="form-control form-control-sm bg-white quantity-input" name="items[${index}][quantity]" value="${data ? data.quantity : 1}" required min="0.001">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="number" step="0.01" class="form-control form-control-sm bg-white price-input" name="items[${index}][unit_price]" value="${data ? data.unit_price : 0}" required min="0">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="text" class="form-control form-control-sm bg-light tax-rate-display" value="${taxRate}%" readonly tabindex="-1">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="text" class="form-control form-control-sm bg-light tax-amount-display" value="0.00" readonly tabindex="-1">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="text" class="form-control form-control-sm bg-light total-amount-display" value="0.00" readonly tabindex="-1">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="text" class="form-control form-control-sm bg-white" name="items[${index}][notes]" value="${data ? data.notes || '' : ''}">
-                                                                </td>
-                                                                <td class="text-center">
-                                                                    <button type="button" class="btn btn-sm btn-link text-danger remove-item p-0">
-                                                                        <i class="fas fa-trash"></i>
-                                                                    </button>
-                                                                </td>
-                                                            `;
+                                                                        <td>
+                                                                            <div class="position-relative product-search-container">
+                                                                                <input type="text" class="form-control form-control-sm bg-white product-search-input" 
+                                                                                    placeholder="{{ __('messages.select_product') }}" autocomplete="off" value="${productName}" required>
+                                                                                <input type="hidden" name="items[${index}][product_id]" class="product-id-input" value="${productId}" required>
+                                                                                <div class="product-results search-results-container glassy" style="display: none; position: absolute; z-index: 1000; width: 100%;"></div>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" step="0.001" class="form-control form-control-sm bg-white quantity-input" name="items[${index}][quantity]" value="${data ? data.quantity : 1}" required min="0.001">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" step="0.01" class="form-control form-control-sm bg-white price-input" name="items[${index}][unit_price]" value="${data ? data.unit_price : 0}" required min="0">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="text" class="form-control form-control-sm bg-light tax-rate-display" value="${taxRate}%" readonly tabindex="-1">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="text" class="form-control form-control-sm bg-light tax-amount-display" value="0.00" readonly tabindex="-1">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="text" class="form-control form-control-sm bg-light total-amount-display" value="0.00" readonly tabindex="-1">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="text" class="form-control form-control-sm bg-white" name="items[${index}][notes]" value="${data ? data.notes || '' : ''}">
+                                                                        </td>
+                                                                        <td class="text-center">
+                                                                            <button type="button" class="btn btn-sm btn-link text-danger remove-item p-0">
+                                                                                <i class="fas fa-trash"></i>
+                                                                            </button>
+                                                                        </td>
+                                                                    `;
 
                     itemsBody.appendChild(tr);
                     if (window.initGlobalSelect2) window.initGlobalSelect2(tr);
@@ -347,23 +357,35 @@
                 }
 
                 function performProductSearch(query, resultsDiv, idInput, searchInput) {
+                    const transliterated = window.transliterateToArabic(query);
                     const results = products.filter(p =>
                         p.name_en.toLowerCase().includes(query.toLowerCase()) ||
-                        (p.code && p.code.toLowerCase().includes(query.toLowerCase()))
+                        (p.name_ar && p.name_ar.toLowerCase().includes(query.toLowerCase())) ||
+                        (p.name_ar && p.name_ar.toLowerCase().includes(transliterated)) ||
+                        (p.product_code && p.product_code.toLowerCase().includes(query.toLowerCase()))
                     ).slice(0, 10);
 
                     if (results.length > 0) {
-                        resultsDiv.innerHTML = results.map(p => `
-                                                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name_en}" data-price="${p.sale_price || 0}" style="cursor: pointer;">
-                                                                        <div class="d-flex justify-content-between align-items-start">
-                                                                            <div class="fw-bold">${p.name_en}</div>
-                                                                            <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
-                                                                        <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
-                                                                        <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
-                                                                    </div>        </div>
-                                                                        <small class="text-muted">${p.product_code || ''}</small>
-                                                                    </div>
-                                                                `).join('');
+                        const currentLocale = '{{ app()->getLocale() }}';
+                        resultsDiv.innerHTML = results.map(p => {
+                            const currentName = currentLocale === 'ar' ? p.name_ar || p.name_en : p.name_en || p.name_ar;
+                            const subName = currentLocale === 'ar' ? p.name_en : p.name_ar;
+                            return `
+                                        <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.sale_price || 0}" style="cursor: pointer;">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="result-content">
+                                                    <div class="fw-bold">${currentName}</div>
+                                                    ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                                    <small class="text-muted">${p.product_code || ''}</small>
+                                                </div>
+                                                <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
+                                                    <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
+                                                    <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                        }).join('');
                         resultsDiv.style.display = 'block';
 
                         resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
@@ -402,7 +424,7 @@
                         @endforeach
                     @endif
 
-                                            if (itemsBody.children.length === 0) addItem();
+                                                    if (itemsBody.children.length === 0) addItem();
                 }
             });
 

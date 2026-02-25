@@ -82,6 +82,7 @@
                                     <th style="width: 120px;">{{ __('messages.jv_date') }}</th>
                                     <th>{{ __('messages.description') }}</th>
                                     <th class="text-center" style="width: 100px;">{{ __('messages.status') }}</th>
+                                    <th class="text-end" style="width: 150px;">{{ __('messages.total_amount') }}</th>
                                     <th style="width: 150px;">{{ __('messages.created_by') }}</th>
                                     <th class="pe-4 text-center" style="width: 120px;">{{ __('messages.actions') }}</th>
                                 </tr>
@@ -118,6 +119,16 @@
                                             <span class="badge {{ $statusClass }} rounded-pill px-3 py-1 x-small fw-bold">
                                                 {{ __('messages.' . $jv->status) }}
                                             </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="d-flex flex-column align-items-end">
+                                                <span class="small fw-bold text-danger" title="{{ __('messages.debit') }}">
+                                                    {{ number_format($jv->items_sum_debit, 2) }}
+                                                </span>
+                                                <span class="small fw-bold text-success" title="{{ __('messages.credit') }}">
+                                                    {{ number_format($jv->items_sum_credit, 2) }}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center">

@@ -54,4 +54,6 @@ return [
     'customer_request' => 'Customer Request',
     'return_invoice' => 'Return Invoice',
     'sales_order' => 'Sales Order',
+    'select_customer' => 'Select Customer',
+    'select_salesman' => 'Select Salesman',
 ];

@@ -34,7 +34,11 @@ class JournalVoucherController extends Controller
 
     public function index()
     {
-        $vouchers = JournalVoucher::with('creator')->latest()->paginate(10);
+        $vouchers = JournalVoucher::with('creator')
+            ->withSum('items', 'debit')
+            ->withSum('items', 'credit')
+            ->latest()
+            ->paginate(10);
         return view('accounting.jv.index', compact('vouchers'));
     }
 

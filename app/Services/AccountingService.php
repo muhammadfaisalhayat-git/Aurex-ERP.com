@@ -148,10 +148,10 @@ class AccountingService
     public function postSalesInvoice($invoice)
     {
         return DB::transaction(function () use ($invoice) {
-            // Find or create standard accounts
-            $arAccount = $this->getAccountByCode('103'); // Accounts Receivable (Asset)
-            $salesAccount = $this->getAccountByCode('401'); // Sales Revenue (Revenue)
-            $taxAccount = $this->getAccountByCode('202'); // Taxes Payable (Liability)
+            // Find mapped accounts or defaults
+            $arAccount = $this->getMappedAccount('sales', 'receivable'); // Priority: Mapping -> Code '103' -> sub_ledger_type 'customer'
+            $salesAccount = $this->getMappedAccount('sales', 'revenue'); // Priority: Mapping -> Code '401'
+            $taxAccount = $this->getMappedAccount('tax', 'payable');     // Priority: Mapping -> Code '202'
 
             // Debit AR
             $this->createLedgerEntry([
@@ -203,9 +203,9 @@ class AccountingService
     {
         return DB::transaction(function () use ($invoice) {
             // Find or create standard accounts
-            $apAccount = $this->getMappedAccount('stock', 'ap'); // Accounts Payable (Liability)
-            $inventoryAccount = $this->getAccountByCode('104'); // Inventory (Asset)
-            $taxAccount = $this->getAccountByCode('202'); // Taxes Payable (Liability)
+            $apAccount = $this->getMappedAccount('purchase', 'payable'); // Priority: Mapping -> Code '201' -> sub_ledger_type 'vendor'
+            $inventoryAccount = $this->getMappedAccount('stock', 'inventory'); // Priority: Mapping -> Code '104'
+            $taxAccount = $this->getMappedAccount('tax', 'payable'); // Priority: Mapping -> Code '202'
 
             // Credit AP
             $this->createLedgerEntry([
@@ -616,13 +616,51 @@ class AccountingService
         $defaults = [
             'stock' => [
                 'inventory' => '104',
-                'ap' => '201',
                 'adjustment' => '508',
+            ],
+            'sales' => [
+                'receivable' => '103',
+                'revenue' => '401',
+            ],
+            'purchase' => [
+                'payable' => '201',
+            ],
+            'tax' => [
+                'payable' => '202',
             ],
         ];
 
         $code = $defaults[$module][$key] ?? null;
-        return $code ? $this->getAccountByCode($code) : null;
+
+        if ($code) {
+            // Priority 1: Check if an account with this code already exists (Tenant aware)
+            $companyId = session('active_company_id') ?? auth()->user()?->company_id;
+            $existingByCode = ChartOfAccount::where('code', $code)
+                ->where('company_id', $companyId)
+                ->first();
+
+            if ($existingByCode) {
+                return $existingByCode;
+            }
+
+            // Priority 2: If it's a sub-ledger account, check if ANY account has that sub-ledger type (to avoid duplication like 103 vs 00101)
+            $subLedgerType = $this->getSubLedgerTypeByCode($code);
+            if ($subLedgerType !== 'none') {
+                $existingBySubLedger = ChartOfAccount::where('sub_ledger_type', $subLedgerType)
+                    ->where('company_id', $companyId)
+                    ->orderBy('code', 'asc') // Use the first one (likely the one user/seeder intended)
+                    ->first();
+
+                if ($existingBySubLedger) {
+                    return $existingBySubLedger;
+                }
+            }
+
+            // Priority 3: Create it if it doesn't exist
+            return $this->getAccountByCode($code);
+        }
+
+        return null;
     }
 
     private function getSubLedgerTypeByCode($code)
@@ -775,10 +813,10 @@ class AccountingService
     public function postSalesReturn($return)
     {
         return DB::transaction(function () use ($return) {
-            // Find or create standard accounts
-            $arAccount = $this->getAccountByCode('103'); // Accounts Receivable (Asset)
-            $salesAccount = $this->getAccountByCode('401'); // Sales Revenue (Revenue)
-            $taxAccount = $this->getAccountByCode('202'); // Taxes Payable (Liability)
+            // Find mapped accounts or defaults
+            $arAccount = $this->getMappedAccount('sales', 'receivable');
+            $salesAccount = $this->getMappedAccount('sales', 'revenue');
+            $taxAccount = $this->getMappedAccount('tax', 'payable');
 
             // Credit Target Account (AR or Cash/Bank)
             if ($return->return_type === 'cash' && $return->bank_account_id) {

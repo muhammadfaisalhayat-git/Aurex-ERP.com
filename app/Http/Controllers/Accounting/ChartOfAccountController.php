@@ -52,6 +52,7 @@ class ChartOfAccountController extends Controller
         $data['type'] = $accountType->code;
         $data['code'] = $code;
         $data['is_posting_allowed'] = $request->has('is_posting_allowed');
+        $data['sub_ledger_type'] = $request->get('sub_ledger_type') ?: 'none';
 
         ChartOfAccount::create($data);
 
@@ -79,6 +80,7 @@ class ChartOfAccountController extends Controller
         $data = $request->all();
         $data['is_active'] = $request->has('is_active');
         $data['is_posting_allowed'] = $request->has('is_posting_allowed');
+        $data['sub_ledger_type'] = $request->get('sub_ledger_type') ?: 'none';
 
         $coa->update($data);
 

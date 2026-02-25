@@ -73,4 +73,80 @@ class StockIssueOrder extends Model
     {
         return $this->status === 'posted';
     }
+
+    public function post()
+    {
+        if ($this->isPosted()) {
+            return false;
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $stockService = app(\App\Services\StockManagementService::class);
+            $accountingService = app(\App\Services\AccountingService::class);
+
+            // Record stock movements
+            foreach ($this->items()->with('product')->get() as $item) {
+                $stockService->recordMovement([
+                    'product_id' => $item->product_id,
+                    'warehouse_id' => $this->warehouse_id,
+                    'movement_type' => 'out',
+                    'quantity' => $item->quantity,
+                    'unit_cost' => $item->product->average_cost ?? 0,
+                    'reference_type' => 'stock_issue',
+                    'reference_id' => $this->id,
+                    'reference_number' => $this->document_number,
+                    'notes' => 'Stock Issue: ' . $this->document_number
+                ]);
+            }
+
+            // Accounting integration
+            if (in_array($this->issue_type, ['wastage', 'adjustment'])) {
+                $accountingService->postStockAdjustment($this);
+            }
+
+            $this->update([
+                'status' => 'posted',
+                'posted_by' => auth()->id(),
+                'posted_at' => now(),
+            ]);
+
+            \Illuminate\Support\Facades\DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Stock Issue Order Posting Failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function unpost()
+    {
+        if (!$this->isPosted()) {
+            return false;
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $stockService = app(\App\Services\StockManagementService::class);
+
+            // Reverse stock movements
+            $stockService->reverseMovement('stock_issue', $this->id);
+
+            $this->update([
+                'status' => 'draft',
+                'posted_by' => null,
+                'posted_at' => null,
+            ]);
+
+            \Illuminate\Support\Facades\DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Stock Issue Order Unposting Failed: ' . $e->getMessage());
+            return false;
+        }
+    }
 }

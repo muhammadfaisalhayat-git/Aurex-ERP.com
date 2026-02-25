@@ -226,7 +226,17 @@
             const itemsBody = document.getElementById('itemsBody');
             let itemIndex = 0;
 
-            const products = @json($products);
+            const products = @json($products->map(function($p) {
+                return [
+                    'id' => $p->id,
+                    'name_en' => $p->name_en,
+                    'name_ar' => $p->name_ar,
+                    'product_code' => $p->product_code,
+                    'sale_price' => $p->sale_price,
+                    'cost_price' => $p->cost_price,
+                    'tax_rate' => $p->tax_rate
+                ];
+            }));
             const customers = @json($customers->map(function($c) {
                 return ['id' => $c->id, 'name' => $c->name_en, 'code' => $c->code];
             }));
@@ -421,24 +431,35 @@
             }
 
             function performProductSearch(query, resultsDiv, idInput, searchInput, tr) {
+                const transliterated = window.transliterateToArabic(query);
                 const results = products.filter(p =>
                     p.name_en.toLowerCase().includes(query.toLowerCase()) ||
-                    (p.code && p.code.toLowerCase().includes(query.toLowerCase()))
+                    (p.name_ar && p.name_ar.toLowerCase().includes(query.toLowerCase())) ||
+                    (p.name_ar && p.name_ar.toLowerCase().includes(transliterated)) ||
+                    (p.product_code && p.product_code.toLowerCase().includes(query.toLowerCase()))
                 ).slice(0, 10);
 
                 if (results.length > 0) {
-                    resultsDiv.innerHTML = results.map(p => `
-                        <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name_en}" data-price="${p.sale_price}" style="cursor: pointer;">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="fw-bold">${p.name_en}</div>
-                                <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
-                                    <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
-                                    <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                    const currentLocale = '{{ app()->getLocale() }}';
+                    resultsDiv.innerHTML = results.map(p => {
+                        const currentName = currentLocale === 'ar' ? p.name_ar || p.name_en : p.name_en || p.name_ar;
+                        const subName = currentLocale === 'ar' ? p.name_en : p.name_ar;
+                        return `
+                            <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.sale_price}" style="cursor: pointer;">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="result-content">
+                                        <div class="fw-bold">${currentName}</div>
+                                        ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                        <small class="text-muted">${p.product_code || ''}</small>
+                                    </div>
+                                    <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
+                                        <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
+                                        <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <small class="text-muted">${p.product_code || ''}</small>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                     resultsDiv.style.display = 'block';
 
                     resultsDiv.querySelectorAll('.search-result-item').forEach(item => {

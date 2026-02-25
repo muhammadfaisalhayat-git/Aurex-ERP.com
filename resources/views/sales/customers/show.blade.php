@@ -42,6 +42,13 @@
                                 </a>
                             @endcan
 
+                            @if($customer->mobile || $customer->phone)
+                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $customer->mobile ?? $customer->phone) }}" 
+                                   target="_blank" class="btn btn-success">
+                                    <i class="fab fa-whatsapp"></i> {{ __('messages.send_whatsapp') }}
+                                </a>
+                            @endif
+
                             @can('delete customers')
                                 <form action="{{ route('sales.customers.destroy', $customer) }}" method="POST"
                                     onsubmit="return confirm('{{ __('messages.confirm_delete') }}')">
@@ -256,11 +263,11 @@
                                 <form action="{{ route('sales.customers.show', $customer) }}" method="GET" class="row g-3 mb-4 p-3 bg-light rounded border mx-0">
                                     <input type="hidden" name="tab" value="statement">
                                     <div class="col-md-3">
-                                        <label class="form-label small fw-bold">{{ __('messages.from_date') ?? 'From Date' }}</label>
+                                        <label class="form-label small fw-bold">{{ __('messages.from_date') }}</label>
                                         <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}">
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label small fw-bold">{{ __('messages.to_date') ?? 'To Date' }}</label>
+                                        <label class="form-label small fw-bold">{{ __('messages.to_date') }}</label>
                                         <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}">
                                     </div>
                                     <div class="col-md-4">
@@ -318,8 +325,9 @@
                                                     <td>
                                                         <div class="fw-semibold text-dark">{{ $entry->description }}</div>
                                                         @if($entry->reference instanceof \App\Models\SalesInvoice)
+                                                            @php $refItems = $entry->reference->items()->with('product')->get(); @endphp
                                                             <div class="mt-1 d-flex flex-wrap gap-1">
-                                                                @foreach($entry->reference->items as $item)
+                                                                @foreach($refItems as $item)
                                                                     <span class="badge bg-light text-dark border fw-normal" style="font-size: 0.65rem;">
                                                                         <i class="fas fa-box text-muted me-1"></i>{{ $item->product->name_en ?? $item->description }}
                                                                     </span>

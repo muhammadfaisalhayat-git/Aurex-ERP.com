@@ -835,6 +835,19 @@
 
                 updateFinancials();
 
+                // Live totals: fire whenever any debit or credit field is typed into or changed
+                document.getElementById('items-body').addEventListener('input', function (e) {
+                    if (e.target.classList.contains('debit-input') || e.target.classList.contains('credit-input')) {
+                        updateFinancials();
+                    }
+                });
+                document.getElementById('items-body').addEventListener('change', function (e) {
+                    if (e.target.classList.contains('debit-input') || e.target.classList.contains('credit-input')) {
+                        updateFinancials();
+                    }
+                });
+
+
                 // Handle selected account from Redirect (COA Index)
                 @if(isset($selectedAccount))
                     const firstRowSelect = $('.item-row[data-idx="0"] .account-select');
@@ -871,7 +884,7 @@
                     @else
                         alert('Please save the voucher before printing.');
                     @endif
-                                                                                                                                });
+                                                                                                                                        });
 
                 // Navigation (Mock/Basic for now - usually involves fetching IDs)
                 document.getElementById('btn-first')?.addEventListener('click', function () {
@@ -885,7 +898,7 @@
                     @else
                         alert('Save the voucher first.');
                     @endif
-                                                                                                                                });
+                                                                                                                                        });
 
                 // Calc Totals and Amount Text
 
@@ -938,8 +951,8 @@
                         let html = '';
                         data.forEach(s => {
                             html += `<div class="list-group-item list-group-item-action explorer-item border-0 border-bottom d-flex justify-content-between align-items-center py-1 px-3" onclick="loadExplorerAccountData(${s.id})">
-                                                                                                                                            <span class="x-small"><code>${s.code}</code> ${ {{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (s.name_ar || s.name_en) : (s.name_en || s.name_ar)}</span>
-                                                                                                                                        </div>`;
+                                                                                                                                                    <span class="x-small"><code>${s.code}</code> ${ {{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (s.name_ar || s.name_en) : (s.name_en || s.name_ar)}</span>
+                                                                                                                                                </div>`;
                         });
                         document.getElementById('sub-accounts-list').innerHTML = html || '<div class="p-3 text-center x-small">No subs</div>';
                     });
@@ -953,18 +966,18 @@
 
                         document.getElementById('selected-account-title').innerText = acc.code + ' - ' + ({{ app()->getLocale() === 'ar' ? 'true' : 'false' }} ? (acc.name_ar || acc.name_en) : (acc.name_en || acc.name_ar));
                         document.getElementById('explorer-data-container').innerHTML = `
-                                                                                                                <div class="p-2 bg-light rounded shadow-none">
-                                                                                                                    <div class="mb-2 border-bottom pb-1 d-flex justify-content-between x-small">
-                                                                                                                        <span class="text-muted">Type: <span class="fw-bold text-dark">${typeName}</span></span>
-                                                                                                                        <span class="text-muted">Link: <span class="fw-bold text-dark text-capitalize">${acc.sub_ledger_type || 'none'}</span></span>
-                                                                                                                    </div>
-                                                                                                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                                                                        <small class="fw-bold text-primary uppercase">Balance: ${res.summary.balance}</small>
-                                                                                                                        <button type="button" class="btn btn-xs btn-primary py-0" onclick="addAccountAt(${acc.id})"><i class="fas fa-plus"></i> Add</button>
-                                                                                                                    </div>
-                                                                                                                    <div class="x-small text-muted italic">Ready to post to journal.</div>
-                                                                                                                </div>
-                                                                                                            `;
+                                                                                                                        <div class="p-2 bg-light rounded shadow-none">
+                                                                                                                            <div class="mb-2 border-bottom pb-1 d-flex justify-content-between x-small">
+                                                                                                                                <span class="text-muted">Type: <span class="fw-bold text-dark">${typeName}</span></span>
+                                                                                                                                <span class="text-muted">Link: <span class="fw-bold text-dark text-capitalize">${acc.sub_ledger_type || 'none'}</span></span>
+                                                                                                                            </div>
+                                                                                                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                                                                                <small class="fw-bold text-primary uppercase">Balance: ${res.summary.balance}</small>
+                                                                                                                                <button type="button" class="btn btn-xs btn-primary py-0" onclick="addAccountAt(${acc.id})"><i class="fas fa-plus"></i> Add</button>
+                                                                                                                            </div>
+                                                                                                                            <div class="x-small text-muted italic">Ready to post to journal.</div>
+                                                                                                                        </div>
+                                                                                                                    `;
                     });
                 };
 

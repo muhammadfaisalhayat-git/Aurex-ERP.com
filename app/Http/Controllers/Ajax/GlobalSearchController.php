@@ -233,7 +233,7 @@ class GlobalSearchController extends Controller
                     'type' => __('messages.trailer') ?? 'Trailer',
                     'title' => $tr->plate_number ?: $tr->code,
                     'subtitle' => $tr->trailer_type,
-                    'url' => route('logistics.trailers.show', $tr->id),
+                    'url' => route('transport.trailers.show', $tr->id),
                     'icon' => 'fas fa-trailer'
                 ];
             }
@@ -247,7 +247,7 @@ class GlobalSearchController extends Controller
                     'type' => __('messages.machine') ?? 'Machine',
                     'title' => $m->name,
                     'subtitle' => $m->code,
-                    'url' => route('production.setup.machines.index', ['search' => $m->code]),
+                    'url' => route('production.machines.index', ['search' => $m->code]),
                     'icon' => 'fas fa-cogs'
                 ];
             }

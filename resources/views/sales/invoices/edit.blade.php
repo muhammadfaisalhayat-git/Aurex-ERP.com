@@ -314,16 +314,18 @@
 
             const productData = [
                 @foreach($products as $product)
-                                            {
+                        {
                     id: {{ $product->id }},
+                    name_en: "{{ addslashes($product->name_en) }}",
+                    name_ar: "{{ addslashes($product->name_ar) }}",
                     name: "{{ addslashes($product->name) }}",
                     code: "{{ $product->product_code ?? '' }}",
                     price: {{ $product->unit_price ?? $product->sale_price ?? 0 }},
                     cost: {{ $product->cost_price ?? 0 }},
                     tax: {{ $product->tax_rate ?? $defaultTaxRate }}
-                                            },
+                        },
                 @endforeach
-                                        ];
+                ];
 
             function initProductSearch(row) {
                 const searchInput = row.querySelector('.product-search-input');
@@ -359,24 +361,35 @@
                 }
 
                 function performSearch(query) {
+                    const transliterated = window.transliterateToArabic(query);
                     const results = productData.filter(p =>
-                        p.name.toLowerCase().includes(query.toLowerCase()) ||
-                        p.code.toLowerCase().includes(query.toLowerCase())
+                        p.name_en.toLowerCase().includes(query.toLowerCase()) ||
+                        p.name_ar.toLowerCase().includes(query.toLowerCase()) ||
+                        p.name_ar.toLowerCase().includes(transliterated) ||
+                        (p.code && p.code.toLowerCase().includes(query.toLowerCase()))
                     ).slice(0, 10);
 
                     if (results.length > 0) {
-                        resultsDiv.innerHTML = results.map(p => `
-                                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-tax="${p.tax}" data-cost="${p.cost}" style="cursor:pointer;">
-                                                        <div class="d-flex justify-content-between align-items-start">
-                                                            <div class="fw-bold">${p.name}</div>
-                                                            <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
-                                                                <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
-                                                                <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
-                                                            </div>
-                                                        </div>
-                                                        <small class="text-muted">${p.code}</small>
-                                                    </div>
-                                                `).join('');
+                        const currentLocale = '{{ app()->getLocale() }}';
+                        resultsDiv.innerHTML = results.map(p => {
+                            const currentName = currentLocale === 'ar' ? p.name_ar || p.name_en : p.name_en || p.name_ar;
+                            const subName = currentLocale === 'ar' ? p.name_en : p.name_ar;
+                            return `
+                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.price}" data-tax="${p.tax}" data-cost="${p.cost}" style="cursor:pointer;">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="result-content">
+                                                <div class="fw-bold">${currentName}</div>
+                                                ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                                <small class="text-muted">${p.code}</small>
+                                            </div>
+                                            <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
+                                                <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
+                                                <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                        }).join('');
                         resultsDiv.style.display = 'block';
 
                         resultsDiv.querySelectorAll('.search-result-item').forEach(item => {

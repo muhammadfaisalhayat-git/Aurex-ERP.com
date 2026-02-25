@@ -32,12 +32,15 @@ class AccountingReportController extends Controller
         ]);
 
         $account = ChartOfAccount::findOrFail($request->chart_of_account_id);
-        $customer = $request->customer_id ?\App\Models\Customer::find($request->customer_id) : null;
-        $vendor = $request->vendor_id ?\App\Models\Vendor::find($request->vendor_id) : null;
+        $customer = $request->customer_id ? \App\Models\Customer::find($request->customer_id) : null;
+        $vendor = $request->vendor_id ? \App\Models\Vendor::find($request->vendor_id) : null;
 
         // Calculate Opening Balance
+        $startDate = \Illuminate\Support\Carbon::parse($request->start_date)->startOfDay();
+        $endDate = \Illuminate\Support\Carbon::parse($request->end_date)->endOfDay();
+
         $openingBalanceQuery = LedgerEntry::where('chart_of_account_id', $account->id)
-            ->where('transaction_date', '<', $request->start_date);
+            ->where('transaction_date', '<', $startDate);
 
         if ($customer) {
             $openingBalanceQuery->where('customer_id', $customer->id);
@@ -51,7 +54,7 @@ class AccountingReportController extends Controller
         // Fetch Entries
         $entriesQuery = LedgerEntry::with(['customer', 'vendor']) // Eager load for display
             ->where('chart_of_account_id', $account->id)
-            ->whereBetween('transaction_date', [$request->start_date, $request->end_date]);
+            ->whereBetween('transaction_date', [$startDate, $endDate]);
 
         if ($customer) {
             $entriesQuery->where('customer_id', $customer->id);
@@ -70,12 +73,16 @@ class AccountingReportController extends Controller
         $date = $request->get('date', now()->toDateString());
 
         $accounts = ChartOfAccount::posting()
-            ->withSum(['ledgerEntries as total_debit' => function ($q) use ($date) {
-            $q->where('transaction_date', '<=', $date);
-        }], 'debit')
-            ->withSum(['ledgerEntries as total_credit' => function ($q) use ($date) {
-            $q->where('transaction_date', '<=', $date);
-        }], 'credit')
+            ->withSum([
+                'ledgerEntries as total_debit' => function ($q) use ($date) {
+                    $q->where('transaction_date', '<=', $date);
+                }
+            ], 'debit')
+            ->withSum([
+                'ledgerEntries as total_credit' => function ($q) use ($date) {
+                    $q->where('transaction_date', '<=', $date);
+                }
+            ], 'credit')
             ->orderBy('code')
             ->get();
 
@@ -88,15 +95,19 @@ class AccountingReportController extends Controller
         $endDate = $request->get('end_date', now()->toDateString());
 
         $revenues = ChartOfAccount::where('type', 'revenue')
-            ->withSum(['ledgerEntries as balance' => function ($q) use ($startDate, $endDate) {
-            $q->whereBetween('transaction_date', [$startDate, $endDate]);
-        }], DB::raw('credit - debit'))
+            ->withSum([
+                'ledgerEntries as balance' => function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('transaction_date', [$startDate, $endDate]);
+                }
+            ], DB::raw('credit - debit'))
             ->get();
 
         $expenses = ChartOfAccount::where('type', 'expense')
-            ->withSum(['ledgerEntries as balance' => function ($q) use ($startDate, $endDate) {
-            $q->whereBetween('transaction_date', [$startDate, $endDate]);
-        }], DB::raw('debit - credit'))
+            ->withSum([
+                'ledgerEntries as balance' => function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('transaction_date', [$startDate, $endDate]);
+                }
+            ], DB::raw('debit - credit'))
             ->get();
 
         return view('accounting.reports.profit_loss', compact('revenues', 'expenses', 'startDate', 'endDate'));
@@ -107,21 +118,27 @@ class AccountingReportController extends Controller
         $date = $request->get('date', now()->toDateString());
 
         $assets = ChartOfAccount::where('type', 'asset')
-            ->withSum(['ledgerEntries as balance' => function ($q) use ($date) {
-            $q->where('transaction_date', '<=', $date);
-        }], DB::raw('debit - credit'))
+            ->withSum([
+                'ledgerEntries as balance' => function ($q) use ($date) {
+                    $q->where('transaction_date', '<=', $date);
+                }
+            ], DB::raw('debit - credit'))
             ->get();
 
         $liabilities = ChartOfAccount::where('type', 'liability')
-            ->withSum(['ledgerEntries as balance' => function ($q) use ($date) {
-            $q->where('transaction_date', '<=', $date);
-        }], DB::raw('credit - debit'))
+            ->withSum([
+                'ledgerEntries as balance' => function ($q) use ($date) {
+                    $q->where('transaction_date', '<=', $date);
+                }
+            ], DB::raw('credit - debit'))
             ->get();
 
         $equity = ChartOfAccount::where('type', 'equity')
-            ->withSum(['ledgerEntries as balance' => function ($q) use ($date) {
-            $q->where('transaction_date', '<=', $date);
-        }], DB::raw('credit - debit'))
+            ->withSum([
+                'ledgerEntries as balance' => function ($q) use ($date) {
+                    $q->where('transaction_date', '<=', $date);
+                }
+            ], DB::raw('credit - debit'))
             ->get();
 
         return view('accounting.reports.balance_sheet', compact('assets', 'liabilities', 'equity', 'date'));

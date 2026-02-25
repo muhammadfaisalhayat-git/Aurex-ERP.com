@@ -54,4 +54,6 @@ return [
     'customer_request' => 'طلب عميل',
     'return_invoice' => 'فاتورة مرتجع',
     'sales_order' => 'أمر بيع',
+    'select_customer' => 'اختر العميل',
+    'select_salesman' => 'اختر المندوب',
 ];

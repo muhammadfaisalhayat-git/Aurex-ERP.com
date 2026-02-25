@@ -102,71 +102,24 @@ class StockIssueOrderController extends Controller
 
     public function post($id)
     {
-        $issueOrder = StockIssueOrder::with('items.product')->findOrFail($id);
-        if ($issueOrder->isPosted())
-            return back()->with('error', 'Already posted.');
+        $issueOrder = StockIssueOrder::findOrFail($id);
 
-        try {
-            DB::beginTransaction();
-
-            // Record stock movements
-            foreach ($issueOrder->items as $item) {
-                $this->stockService->recordMovement([
-                    'product_id' => $item->product_id,
-                    'warehouse_id' => $issueOrder->warehouse_id,
-                    'movement_type' => 'out',
-                    'quantity' => $item->quantity,
-                    'unit_cost' => $item->product->average_cost ?? 0,
-                    'reference_type' => 'stock_issue',
-                    'reference_id' => $issueOrder->id,
-                    'reference_number' => $issueOrder->document_number,
-                    'notes' => 'Stock Issue: ' . $issueOrder->document_number
-                ]);
-            }
-
-            // Accounting integration
-            if (in_array($issueOrder->issue_type, ['wastage', 'adjustment'])) {
-                $this->accountingService->postStockAdjustment($issueOrder);
-            }
-
-            $issueOrder->update([
-                'status' => 'posted',
-                'posted_by' => auth()->id(),
-                'posted_at' => now(),
-            ]);
-
-            DB::commit();
+        if ($issueOrder->post()) {
             return back()->with('success', __('messages.stock_issue_posted'));
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Posting failed: ' . $e->getMessage());
         }
+
+        return back()->with('error', 'Posting failed. Check logs for details.');
     }
 
     public function unpost($id)
     {
         $issueOrder = StockIssueOrder::findOrFail($id);
-        if (!$issueOrder->isPosted())
-            return back()->with('error', 'Not posted.');
 
-        try {
-            DB::beginTransaction();
-
-            // Reverse stock movements
-            $this->stockService->reverseMovement('stock_issue', $issueOrder->id);
-
-            $issueOrder->update([
-                'status' => 'draft',
-                'posted_by' => null,
-                'posted_at' => null,
-            ]);
-
-            DB::commit();
+        if ($issueOrder->unpost()) {
             return back()->with('success', __('messages.record_unposted'));
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Unposting failed: ' . $e->getMessage());
         }
+
+        return back()->with('error', 'Unposting failed. Check logs for details.');
     }
 
     public function downloadPdf($id)

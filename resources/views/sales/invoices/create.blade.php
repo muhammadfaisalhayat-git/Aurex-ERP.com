@@ -72,19 +72,16 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-4 mb-3 position-relative" id="customer-container">
-                                    <label for="customer_search" class="form-label">{{ __('sales.customer') }}</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="customer_search" autocomplete="off"
-                                            placeholder="Type to search customer..."
-                                            value="{{ __('sales.cash_customer') }}">
-                                        <input type="hidden" id="customer_id" name="customer_id"
-                                            value="{{ old('customer_id') }}">
-                                        <button class="btn btn-outline-secondary" type="button">
-                                            <i class="fas fa-users"></i>
-                                        </button>
-                                    </div>
-                                    <div id="customer-results" class="search-results-container glassy"></div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="customer_id" class="form-label">{{ __('sales.customer') }} <span class="text-danger">*</span></label>
+                                    <select class="form-select @error('customer_id') is-invalid @enderror" id="customer_id" name="customer_id" required>
+                                        <option value="">{{ __('sales.cash_customer') }}</option>
+                                        @foreach($customers as $customer)
+                                            <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
+                                                {{ $customer->name_en }}{{ $customer->customer_code ? " ($customer->customer_code)" : "" }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     @error('customer_id')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
@@ -95,9 +92,14 @@
                                             class="text-danger">*</span></label>
                                     <select class="form-select @error('branch_id') is-invalid @enderror" id="branch_id"
                                         name="branch_id" required>
-                                        <option value="">{{ __('common.select') }}</option>
+                                        @php 
+                                            $defaultBranchId = old('branch_id', session('active_branch_id') ?? auth()->user()->branch_id ?? ($branches->first()->id ?? null));
+                                        @endphp
+                                        @if(!$defaultBranchId)
+                                            <option value="">{{ __('common.select') }}</option>
+                                        @endif
                                         @foreach($branches as $branch)
-                                            <option value="{{ $branch->id }}" {{ old('branch_id', auth()->user()->branch_id) == $branch->id ? 'selected' : '' }}>
+                                            <option value="{{ $branch->id }}" {{ $defaultBranchId == $branch->id ? 'selected' : '' }}>
                                                 {{ $branch->name_en }}
                                             </option>
                                         @endforeach
@@ -114,7 +116,11 @@
                                         id="warehouse_id" name="warehouse_id" required>
                                         <option value="">{{ __('common.select') }}</option>
                                         @foreach($warehouses as $warehouse)
-                                            <option value="{{ $warehouse->id }}" {{ old('warehouse_id') == $warehouse->id ? 'selected' : '' }}>{{ $warehouse->name_en }}</option>
+                                            <option value="{{ $warehouse->id }}" 
+                                                data-branch-id="{{ $warehouse->branch_id }}"
+                                                {{ old('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
+                                                {{ $warehouse->name_en }}
+                                            </option>
                                         @endforeach
                                     </select>
                                     @error('warehouse_id')
@@ -143,18 +149,17 @@
                                     @enderror
                                 </div>
 
-                                <div class="col-md-4 mb-3 position-relative" id="salesman-container">
-                                    <label for="salesman_search" class="form-label">{{ __('sales.salesman') }}</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="salesman_search" autocomplete="off"
-                                            placeholder="Type to search salesman...">
-                                        <input type="hidden" id="salesman_id" name="salesman_id"
-                                            value="{{ old('salesman_id') }}">
-                                        <button class="btn btn-outline-secondary" type="button">
-                                            <i class="fas fa-user-tie"></i>
-                                        </button>
-                                    </div>
-                                    <div id="salesmen-results" class="search-results-container glassy"></div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="salesman_id" class="form-label">{{ __('sales.salesman') }}</label>
+                                    <select class="form-select @error('salesman_id') is-invalid @enderror"
+                                        id="salesman_id" name="salesman_id">
+                                        <option value="">{{ __('sales.select_salesman') }}</option>
+                                        @foreach($salesmen as $salesman)
+                                            <option value="{{ $salesman->id }}" {{ old('salesman_id') == $salesman->id ? 'selected' : '' }}>
+                                                {{ $salesman->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     @error('salesman_id')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
@@ -237,43 +242,43 @@
     </div>
 
     <script type="text/template" id="item-row-template">
-                                                                                                    <tr>
-                                                                                                        <td class="position-relative product-cell">
-                                                                                                            <div class="input-group">
-                                                                                                                <input type="text" class="form-control product-search-input" 
-                                                                                                                       placeholder="Type to search products..." 
-                                                                                                                       autocomplete="off"
-                                                                                                                       data-product-id="">
-                                                                                                                <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
-                                                                                                                <button class="btn btn-outline-secondary product-search-btn" type="button" title="Search Product (F2)">
-                                                                                                                    <i class="fas fa-search"></i>
+                                                                                                        <tr>
+                                                                                                            <td class="position-relative product-cell">
+                                                                                                                <div class="input-group">
+                                                                                                                    <input type="text" class="form-control product-search-input" 
+                                                                                                                           placeholder="Type to search products..." 
+                                                                                                                           autocomplete="off"
+                                                                                                                           data-product-id="">
+                                                                                                                    <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
+                                                                                                                    <button class="btn btn-outline-secondary product-search-btn" type="button" title="Search Product (F2)">
+                                                                                                                        <i class="fas fa-search"></i>
+                                                                                                                    </button>
+                                                                                                                </div>
+                                                                                                                <div class="search-results-container glassy product-results"></div>
+                                                                                                            </td>
+                                                                                                            <td>
+                                                                                                                <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
+                                                                                                            </td>
+                                                                                                            <td>
+                                                                                                                <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0" required>
+                                                                                                            </td>
+                                                                                                            <td>
+                                                                                                                <input type="number" class="form-control discount-input" name="items[INDEX][discount_percentage]" step="0.01" min="0" max="100" value="0">
+                                                                                                            </td>
+                                                                                                            <td class="d-none">
+                                                                                                                <input type="text" class="form-control tax-display" placeholder="{{ __('sales.vat') }}" readonly>
+                                                                                                                <input type="hidden" class="tax-rate-input">
+                                                                                                            </td>
+                                                                                                            <td>
+                                                                                                                <input type="text" class="form-control total-display" readonly>
+                                                                                                            </td>
+                                                                                                            <td class="text-center">
+                                                                                                                <button type="button" class="btn btn-sm btn-danger remove-item">
+                                                                                                                    <i class="fas fa-trash"></i>
                                                                                                                 </button>
-                                                                                                            </div>
-                                                                                                            <div class="search-results-container glassy product-results"></div>
-                                                                                                        </td>
-                                                                                                        <td>
-                                                                                                            <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
-                                                                                                        </td>
-                                                                                                        <td>
-                                                                                                            <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0" required>
-                                                                                                        </td>
-                                                                                                        <td>
-                                                                                                            <input type="number" class="form-control discount-input" name="items[INDEX][discount_percentage]" step="0.01" min="0" max="100" value="0">
-                                                                                                        </td>
-                                                                                                        <td class="d-none">
-                                                                                                            <input type="text" class="form-control tax-display" placeholder="{{ __('sales.vat') }}" readonly>
-                                                                                                            <input type="hidden" class="tax-rate-input">
-                                                                                                        </td>
-                                                                                                        <td>
-                                                                                                            <input type="text" class="form-control total-display" readonly>
-                                                                                                        </td>
-                                                                                                        <td class="text-center">
-                                                                                                            <button type="button" class="btn btn-sm btn-danger remove-item">
-                                                                                                                <i class="fas fa-trash"></i>
-                                                                                                            </button>
-                                                                                                        </td>
-                                                                                                    </tr>
-                                                                                                </script>
+                                                                                                            </td>
+                                                                                                        </tr>
+                                                                                                    </script>
 
     <!-- Import Source Modal -->
     <div class="modal fade" id="importSourceModal" tabindex="-1" aria-labelledby="importSourceModalLabel"
@@ -332,26 +337,139 @@
                 @foreach($salesmen as $salesman)
                     { id: {{ $salesman->id }}, name: "{{ $salesman->name }}" },
                 @endforeach
-                                                                ];
+                                                                    ];
 
             const customerData = [
                 @foreach($customers as $customer)
                     { id: {{ $customer->id }}, name: "{{ $customer->name_en }}", code: "{{ $customer->customer_code }}" },
                 @endforeach
-                                                                ];
+                                                                    ];
+
+        document.addEventListener('turbo:load', function() {
+            // Check if we are on the create invoice page
+            const branchSelect = document.getElementById('branch_id');
+            if (!branchSelect) return;
+
+            // Initialize Premium Select2
+            function initSelect2() {
+                if (window.jQuery) {
+                    $('#customer_id').select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                        dir: document.documentElement.dir || 'ltr',
+                        placeholder: '{{ __("sales.cash_customer") }}',
+                        allowClear: true
+                    });
+
+                    $('#branch_id').select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                        dir: document.documentElement.dir || 'ltr',
+                        placeholder: '{{ __("common.select") }}'
+                    });
+
+                    $('#warehouse_id').select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                        dir: document.documentElement.dir || 'ltr',
+                        placeholder: '{{ __("common.select") }}',
+                        allowClear: true
+                    });
+
+                    $('#salesman_id').select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                        dir: document.documentElement.dir || 'ltr',
+                        placeholder: '{{ __("sales.select_salesman") }}',
+                        allowClear: true
+                    });
+
+                    $('#import_source_type, #payment_terms').select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                        dir: document.documentElement.dir || 'ltr',
+                        allowClear: true,
+                        placeholder: '--'
+                    });
+                }
+            }
+            initSelect2();
+
+            const warehouseSelect = document.getElementById('warehouse_id');
+            
+            // Embed warehouse data directly to avoid Turbo/DOM-clobbering issues
+            const warehousesJson = [
+                @foreach($warehouses as $warehouse)
+                    {
+                        id: {{ $warehouse->id }},
+                        name: "{{ addslashes($warehouse->name_en) }}",
+                        branch_id: {{ $warehouse->branch_id }}
+                    },
+                @endforeach
+            ];
+
+            function filterWarehouses() {
+                const selectedBranchId = branchSelect.value;
+                const currentWarehouseVal = warehouseSelect.value;
+                
+                const $warehouse = $(warehouseSelect);
+                if ($warehouse.data('select2')) $warehouse.select2('destroy');
+
+                warehouseSelect.innerHTML = '<option value="">{{ __("common.select") }}</option>';
+                
+                let matches = [];
+                let valueStillExists = false;
+                warehousesJson.forEach(w => {
+                    if (w.branch_id.toString() === selectedBranchId) {
+                        const newOpt = new Option(w.name, w.id);
+                        if (w.id.toString() === currentWarehouseVal) {
+                            newOpt.selected = true;
+                            valueStillExists = true;
+                        }
+                        warehouseSelect.add(newOpt);
+                        matches.push(w.id);
+                    }
+                });
+
+                // Clear value if no longer valid for this branch
+                if (!valueStillExists) {
+                    warehouseSelect.value = "";
+                }
+
+                // Auto-select if only one warehouse and nothing is selected (or just became empty)
+                if (matches.length === 1 && (!warehouseSelect.value)) {
+                    warehouseSelect.value = matches[0];
+                }
+
+                $warehouse.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    dir: document.documentElement.dir || 'ltr',
+                    allowClear: true,
+                    placeholder: '{{ __("common.select") }}'
+                });
+            }
+
+            $(branchSelect).on('change', filterWarehouses);
+            
+            // Initial filter on load
+            if (branchSelect.value) filterWarehouses();
+        });
 
             const productData = [
                 @foreach($products as $product)
-                                                                        {
+                        {
                     id: {{ $product->id }},
-                    name: "{{ $product->name }}",
+                    name_en: "{{ addslashes($product->name_en) }}",
+                    name_ar: "{{ addslashes($product->name_ar) }}",
+                    name: "{{ addslashes($product->name) }}",
                     code: "{{ $product->product_code }}",
                     price: {{ $product->sale_price ?? 0 }},
                     cost_price: {{ $product->cost_price ?? 0 }},
                     tax: {{ $product->tax_rate ?? $taxSetting->default_tax_rate ?? 0 }} 
-                                                                        },
+                        },
                 @endforeach
-                                                                ];
+                ];
 
             function addItem() {
                 const html = template.replace(/INDEX/g, itemIndex++);
@@ -368,49 +486,6 @@
             addItemBtn._addItemHandler = () => addItem();
             addItemBtn.addEventListener('click', addItemBtn._addItemHandler);
 
-            // Customer Search
-            const customerInput = document.getElementById('customer_search');
-            const customerResults = document.getElementById('customer-results');
-            const customerHidden = document.getElementById('customer_id');
-
-            customerInput.addEventListener('input', function () {
-                const search = this.value.toLowerCase();
-                if (search.length < 1) {
-                    customerResults.style.display = 'none';
-                    return;
-                }
-
-                const filtered = customerData.filter(c =>
-                    c.name.toLowerCase().includes(search) ||
-                    (c.code && c.code.toLowerCase().includes(search))
-                );
-
-                renderResults(customerResults, filtered, (item) => {
-                    customerInput.value = item.name;
-                    customerHidden.value = item.id;
-                    customerResults.style.display = 'none';
-                });
-            });
-
-            // Salesman Search
-            const salesmanInput = document.getElementById('salesman_search');
-            const salesmanResults = document.getElementById('salesmen-results');
-            const salesmanHidden = document.getElementById('salesman_id');
-
-            salesmanInput.addEventListener('input', function () {
-                const search = this.value.toLowerCase();
-                if (search.length < 1) {
-                    salesmanResults.style.display = 'none';
-                    return;
-                }
-
-                const filtered = salesmanData.filter(s => s.name.toLowerCase().includes(search));
-                renderResults(salesmanResults, filtered, (item) => {
-                    salesmanInput.value = item.name;
-                    salesmanHidden.value = item.id;
-                    salesmanResults.style.display = 'none';
-                });
-            });
 
             function initProductSearch(row) {
                 const input = row.querySelector('.product-search-input');
@@ -424,13 +499,16 @@
                         return;
                     }
 
+                    const transliterated = window.transliterateToArabic(search);
                     const filtered = productData.filter(p =>
-                        p.name.toLowerCase().includes(search) ||
-                        p.code.toLowerCase().includes(search)
+                        p.name_en.toLowerCase().includes(search) ||
+                        p.name_ar.toLowerCase().includes(search) ||
+                        p.name_ar.toLowerCase().includes(transliterated) ||
+                        (p.code && p.code.toLowerCase().includes(search))
                     );
 
                     renderResults(results, filtered, (product) => {
-                        input.value = product.name;
+                        input.value = {{ app()->getLocale() === 'ar' ? 'product.name_ar || product.name_en' : 'product.name_en || product.name_ar' }};
                         hidden.value = product.id;
                         row.querySelector('.price-input').value = product.price;
                         row.querySelector('.tax-rate-input').value = product.tax;
@@ -450,20 +528,26 @@
                 items.slice(0, 10).forEach((item) => {
                     const div = document.createElement('div');
                     div.className = 'search-result-item';
+
+                    const currentName = {{ app()->getLocale() === 'ar' ? 'item.name_ar || item.name_en' : 'item.name_en || item.name_ar' }};
+                    const subName = {{ app()->getLocale() === 'ar' ? 'item.name_en' : 'item.name_ar' }};
+
                     if (isProduct) {
                         div.innerHTML = `
-                                                                                <div class="item-title">${item.name}</div>
-                                                                                <div class="item-subtitle">${item.code}</div>
-                                                                                <div class="item-meta d-flex gap-3">
-                                                                                    <span style="color:#198754; font-weight:600;">{{ __('messages.sale_price') }}: ${parseFloat(item.price).toFixed(2)}</span>
-                                                                                    <span style="color:#dc3545; font-weight:600;">{{ __('messages.cost_price') }}: ${parseFloat(item.cost_price).toFixed(2)}</span>
-                                                                                </div>
-                                                                            `;
+                            <div class="item-title">${currentName}</div>
+                            ${subName && subName !== currentName ? `<div class="item-subtitle text-muted" style="font-size: 0.8rem;">${subName}</div>` : ''}
+                            <div class="item-subtitle">${item.code}</div>
+                            <div class="item-meta d-flex gap-3">
+                                <span style="color:#198754; font-weight:600;">{{ __('messages.sale_price') }}: ${parseFloat(item.price).toFixed(2)}</span>
+                                <span style="color:#dc3545; font-weight:600;">{{ __('messages.cost_price') }}: ${parseFloat(item.cost_price).toFixed(2)}</span>
+                            </div>
+                        `;
                     } else {
                         div.innerHTML = `
-                                                                                <div class="item-title">${item.name}</div>
-                                                                                ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
-                                                                            `;
+                            <div class="item-title">${currentName}</div>
+                            ${subName && subName !== currentName ? `<div class="item-subtitle text-muted" style="font-size: 0.8rem;">${subName}</div>` : ''}
+                            ${item.code ? `<div class="item-subtitle">${item.code}</div>` : ''}
+                        `;
                     }
 
                     div.addEventListener('click', () => onSelect(item));
@@ -529,16 +613,16 @@
                         data.forEach(item => {
                             const tr = document.createElement('tr');
                             tr.innerHTML = `
-                                                            <td>${item.text}</td>
-                                                            <td>${item.customer_name || '-'}</td>
-                                                            <td>${item.date || '-'}</td>
-                                                            <td>${item.total_amount ? parseFloat(item.total_amount).toFixed(2) : '-'}</td>
-                                                            <td class="text-end">
-                                                                <button class="btn btn-sm btn-primary select-document" data-id="${item.id}">
-                                                                    {{ __("common.select") }}
-                                                                </button>
-                                                            </td>
-                                                        `;
+                                                                <td>${item.text}</td>
+                                                                <td>${item.customer_name || '-'}</td>
+                                                                <td>${item.date || '-'}</td>
+                                                                <td>${item.total_amount ? parseFloat(item.total_amount).toFixed(2) : '-'}</td>
+                                                                <td class="text-end">
+                                                                    <button class="btn btn-sm btn-primary select-document" data-id="${item.id}">
+                                                                        {{ __("common.select") }}
+                                                                    </button>
+                                                                </td>
+                                                            `;
 
                             tr.querySelector('.select-document').addEventListener('click', function () {
                                 if (confirm('Importing this document will clear existing items. Continue?')) {
@@ -574,15 +658,17 @@
                     .then(data => {
                         // Populate Main Fields
                         if (data.customer_id) {
-                            document.getElementById('customer_id').value = data.customer_id;
-                            document.getElementById('customer_search').value = data.customer_name;
+                            $(customerSelect).val(data.customer_id).trigger('change');
                         }
-                        if (data.branch_id) document.getElementById('branch_id').value = data.branch_id;
-                        if (data.warehouse_id) document.getElementById('warehouse_id').value = data.warehouse_id;
+                        if (data.branch_id) {
+                            $(branchSelect).val(data.branch_id).trigger('change');
+                            // Wait for branch filtering to complete before setting warehouse
+                            setTimeout(() => {
+                                if (data.warehouse_id) $(warehouseSelect).val(data.warehouse_id).trigger('change');
+                            }, 100);
+                        }
                         if (data.salesman_id) {
-                            document.getElementById('salesman_id').value = data.salesman_id;
-                            const salesman = salesmanData.find(s => s.id == data.salesman_id);
-                            if (salesman) document.getElementById('salesman_search').value = salesman.name;
+                            $(salesmanSelect).val(data.salesman_id).trigger('change');
                         }
 
                         // Clear and Populate Items
@@ -634,9 +720,8 @@
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'F2') {
                     e.preventDefault();
-                    const customerField = document.getElementById('customer_search');
-                    if (customerField && !customerField.value) {
-                        customerField.focus();
+                    if (customerSelect && !customerSelect.value) {
+                        $(customerSelect).select2('open');
                     } else {
                         // Focus first empty or last row product input
                         const productInputs = document.querySelectorAll('.product-search-input');

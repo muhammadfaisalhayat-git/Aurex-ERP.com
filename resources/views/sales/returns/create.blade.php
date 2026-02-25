@@ -43,6 +43,23 @@
                                 </div>
 
                                 <div class="col-md-3 mb-3">
+                                    <label for="customer_id" class="form-label">{{ __('messages.customer') }} <span
+                                            class="text-danger" id="customer_asterisk">*</span></label>
+                                    <select class="form-select @error('customer_id') is-invalid @enderror" id="customer_id"
+                                        name="customer_id">
+                                        <option value="">{{ __('messages.select_customer') }}</option>
+                                        @foreach($customers as $customer)
+                                            <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
+                                                {{ $customer->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('customer_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-md-3 mb-3">
                                     <label for="sales_invoice_id"
                                         class="form-label">{{ __('messages.sales_invoice') ?? 'Sales Invoice' }}</label>
                                     <select class="form-select @error('sales_invoice_id') is-invalid @enderror"
@@ -50,7 +67,9 @@
                                         <option value="">-- {{ __('messages.select_invoice') ?? 'Select Invoice' }} --
                                         </option>
                                         @foreach($invoices as $invoice)
-                                            <option value="{{ $invoice->id }}" {{ old('sales_invoice_id') == $invoice->id ? 'selected' : '' }}>
+                                            <option value="{{ $invoice->id }}" 
+                                                data-customer-id="{{ $invoice->customer_id }}"
+                                                {{ old('sales_invoice_id') == $invoice->id ? 'selected' : '' }}>
                                                 {{ $invoice->invoice_number }}
                                                 ({{ $invoice->customer->name ?? __('messages.unknown_customer') }})
                                             </option>
@@ -100,24 +119,10 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label for="customer_id" class="form-label">{{ __('messages.customer') }} <span
-                                            class="text-danger" id="customer_asterisk">*</span></label>
-                                    <select class="form-select @error('customer_id') is-invalid @enderror" id="customer_id"
-                                        name="customer_id">
-                                        <option value="">{{ __('messages.select_customer') }}</option>
-                                        @foreach($customers as $customer)
-                                            <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
-                                                {{ $customer->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('customer_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
 
-                                <div class="col-md-4 mb-3">
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
                                     <label for="branch_id" class="form-label">{{ __('messages.branch') }} <span
                                             class="text-danger">*</span></label>
                                     <select class="form-select @error('branch_id') is-invalid @enderror" id="branch_id"
@@ -130,7 +135,7 @@
                                     </select>
                                 </div>
 
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="warehouse_id" class="form-label">{{ __('messages.warehouse') }} <span
                                             class="text-danger">*</span></label>
                                     <select class="form-select @error('warehouse_id') is-invalid @enderror"
@@ -143,6 +148,7 @@
                                         @endforeach
                                     </select>
                                 </div>
+                            </div>
                             </div>
 
                             <div class="row">
@@ -212,32 +218,32 @@
     </div>
 
     <script type="text/template" id="item-row-template">
-                                        <tr>
-                                            <td>
-                                                <div class="position-relative product-search-container">
-                                                    <input type="text" class="form-control product-search-input"
-                                                        placeholder="{{ __('messages.select_product') ?? 'Search product...' }}"
-                                                        autocomplete="off" required>
-                                                    <input type="hidden" name="items[INDEX][product_id]" class="product-id-input" required>
-                                                    <div class="product-results" style="display: none; position: absolute; z-index: 1000; width: 100%; background: white; border: 1px solid #ddd; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
-                                            </td>
-                                            <td>
-                                                <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
-                                            </td>
-                                            <td class="text-end">
-                                                <span class="row-total">0.00</span>
-                                            </td>
-                                            <td class="text-center">
-                                                <button type="button" class="btn btn-sm btn-danger remove-item">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </script>
+                                            <tr>
+                                                <td>
+                                                    <div class="position-relative product-search-container">
+                                                        <input type="text" class="form-control product-search-input"
+                                                            placeholder="{{ __('messages.select_product') ?? 'Search product...' }}"
+                                                            autocomplete="off" required>
+                                                        <input type="hidden" name="items[INDEX][product_id]" class="product-id-input" required>
+                                                        <div class="product-results" style="display: none; position: absolute; z-index: 1000; width: 100%; background: white; border: 1px solid #ddd; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
+                                                </td>
+                                                <td>
+                                                    <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="row-total">0.00</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-sm btn-danger remove-item">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </script>
 @endsection
 
 @push('scripts')
@@ -247,18 +253,30 @@
             const tableBody = document.querySelector('#items-table tbody');
             const template = document.getElementById('item-row-template').innerHTML;
             const invoiceSelect = document.getElementById('sales_invoice_id');
+            const customerSelect = document.getElementById('customer_id');
+
+            if (!invoiceSelect || !customerSelect) return;
+
+            // Store original invoice options for filtering immediately on load
+            const allInvoiceOptions = Array.from(invoiceSelect.options).map(opt => ({
+                value: opt.value,
+                text: opt.innerText,
+                customerId: opt.getAttribute('data-customer-id') || ''
+            }));
 
             const productData = [
                 @foreach($products as $product)
-                                    {
+                        {
                     id: {{ $product->id }},
+                    name_en: "{{ addslashes($product->name_en) }}",
+                    name_ar: "{{ addslashes($product->name_ar) }}",
                     name: "{{ addslashes($product->name) }}",
                     code: "{{ $product->product_code ?? '' }}",
                     price: {{ $product->sale_price ?? 0 }},
                     cost: {{ $product->cost_price ?? 0 }}
-                                    },
+                        },
                 @endforeach
-                                ];
+                ];
 
             function initProductSearch(row) {
                 const searchInput = row.querySelector('.product-search-input');
@@ -300,26 +318,34 @@
                     ).slice(0, 10);
 
                     if (results.length > 0) {
-                        resultsDiv.innerHTML = results.map(p => `
-                                            <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" style="cursor:pointer;">
-                                                <div class="d-flex justify-content-between align-items-start">
-                                                    <div class="fw-bold">${p.name}</div>
-                                                    <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
-                                                        <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
-                                                        <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
-                                                    </div>
-                                                </div>
+                        const currentLocale = '{{ app()->getLocale() }}';
+                        resultsDiv.innerHTML = results.map(p => {
+                            const currentName = currentLocale === 'ar' ? p.name_ar || p.name_en : p.name_en || p.name_ar;
+                            const subName = currentLocale === 'ar' ? p.name_en : p.name_ar;
+                            return `
+                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.price}" 
+                                         data-cost="${p.cost}" style="cursor:pointer;">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="result-content">
+                                                <div class="fw-bold">${currentName}</div>
+                                                ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
                                                 <small class="text-muted">${p.code}</small>
                                             </div>
-                                        `).join('');
+                                            <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
+                                                <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
+                                                <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                        }).join('');
                         resultsDiv.style.display = 'block';
 
                         resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
                             item.addEventListener('click', function () {
                                 searchInput.value = this.dataset.name;
                                 idInput.value = this.dataset.id;
-                                const priceInput = row.querySelector('.price-input');
-                                if (priceInput) priceInput.value = this.dataset.price;
+                                row.querySelector('.price-input').value = this.dataset.price;
                                 resultsDiv.style.display = 'none';
                                 calculateRow(row);
                             });
@@ -377,7 +403,7 @@
                 document.getElementById('total_amount_display').textContent = total.toFixed(2);
             }
 
-            invoiceSelect.addEventListener('change', function () {
+            $(invoiceSelect).on('change', function () {
                 const invoiceId = this.value;
                 if (!invoiceId) return;
 
@@ -390,9 +416,13 @@
                         }
 
                         // Populate header
-                        document.getElementById('customer_id').value = data.customer_id;
+                        $(customerSelect).val(data.customer_id).trigger('change');
+
                         document.getElementById('branch_id').value = data.branch_id;
                         document.getElementById('warehouse_id').value = data.warehouse_id;
+                        
+                        // Force update Select2 displays for branch/warehouse too
+                        window.jQuery && $('#branch_id, #warehouse_id').trigger('change.select2');
 
                         // Clear and populate items
                         tableBody.innerHTML = '';
@@ -415,28 +445,83 @@
             const returnTypeSelect = document.getElementById('return_type');
             const bankAccountContainer = document.getElementById('bank_account_container');
             const customerAsterisk = document.getElementById('customer_asterisk');
-            const customerSelect = document.getElementById('customer_id');
 
             function toggleReturnFields() {
                 if (returnTypeSelect.value === 'cash') {
                     // Cash Return
-                    bankAccountContainer.classList.remove('d-none');
-                    document.getElementById('bank_account_id').setAttribute('required', 'required');
+                    if (bankAccountContainer) bankAccountContainer.classList.remove('d-none');
+                    const bankAccIdEl = document.getElementById('bank_account_id');
+                    if (bankAccIdEl) bankAccIdEl.setAttribute('required', 'required');
 
-                    customerAsterisk.classList.add('d-none');
+                    if (customerAsterisk) customerAsterisk.classList.add('d-none');
                     customerSelect.removeAttribute('required');
                 } else {
                     // Credit Return
-                    bankAccountContainer.classList.add('d-none');
-                    document.getElementById('bank_account_id').removeAttribute('required');
+                    if (bankAccountContainer) bankAccountContainer.classList.add('d-none');
+                    const bankAccIdEl = document.getElementById('bank_account_id');
+                    if (bankAccIdEl) bankAccIdEl.removeAttribute('required');
 
-                    customerAsterisk.classList.remove('d-none');
+                    if (customerAsterisk) customerAsterisk.classList.remove('d-none');
                     customerSelect.setAttribute('required', 'required');
                 }
             }
 
-            returnTypeSelect.addEventListener('change', toggleReturnFields);
+            $(returnTypeSelect).on('change', toggleReturnFields);
             toggleReturnFields(); // Initial check
+
+            function filterInvoices() {
+                const selectedCustomerId = String(customerSelect.value || '');
+                const currentInvoiceVal = invoiceSelect.value;
+                
+                // If Select2 is active, we MUST destroy it before modifying options
+                const $invoice = $(invoiceSelect);
+                const isSelect2 = $invoice.data('select2');
+                if (isSelect2) {
+                    $invoice.select2('destroy');
+                }
+
+                // Clear and rebuild options
+                invoiceSelect.innerHTML = '';
+                let foundMatch = false;
+                
+                allInvoiceOptions.forEach(opt => {
+                    const optCustomerId = String(opt.customerId || '');
+                    if (opt.value === "" || !selectedCustomerId || optCustomerId === selectedCustomerId) {
+                        const newOpt = new Option(opt.text, opt.value);
+                        if (opt.customerId) newOpt.setAttribute('data-customer-id', opt.customerId);
+                        if (opt.value === currentInvoiceVal && opt.value !== "") {
+                            newOpt.selected = true;
+                            foundMatch = true;
+                        }
+                        invoiceSelect.add(newOpt);
+                    }
+                });
+
+                if (!foundMatch && currentInvoiceVal !== "") {
+                    invoiceSelect.value = "";
+                }
+
+                // Re-initialize Select2 if it was previously active (or should be)
+                if (isSelect2 || $invoice.hasClass('form-select')) {
+                    const placeholder = $invoice.find('option[value=""]').first().text().trim() || '--';
+                    $invoice.select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                        dir: document.documentElement.dir || 'ltr',
+                        allowClear: true,
+                        placeholder: placeholder
+                    });
+                } else {
+                    invoiceSelect.dispatchEvent(new Event('change'));
+                }
+            }
+
+            $(customerSelect).on('change', filterInvoices);
+            
+            // Initial filter if needed
+            if (customerSelect.value) {
+                setTimeout(filterInvoices, 500);
+            }
 
             const addItemBtn = document.getElementById('add-item-btn');
             addItemBtn.removeEventListener('click', addItemBtn._addItemHandler);

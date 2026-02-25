@@ -24,6 +24,7 @@ return [
     'filter' => 'Filter',
     'filter_by_status' => 'Filter by Status',
     'error' => 'Error',
+    'success' => 'Success',
     'select_option' => 'Select...',
     'select_item' => 'Select Item...',
     'all' => 'All',
@@ -84,6 +85,8 @@ return [
     'grand_total' => 'Grand Total',
     'general' => 'General',
     'settings_updated' => 'Settings updated successfully',
+    'company_switched' => 'Company switched successfully',
+    'branch_switched' => 'Branch switched successfully',
     'tax_enabled' => 'Tax Enabled',
     'default_tax_rate' => 'Default Tax Rate',
     'tax_name' => 'Tax Name',
@@ -127,6 +130,7 @@ return [
     'unknown' => 'Unknown',
     'info' => 'Information',
     'record' => 'Record',
+    'unknown_customer' => 'Unknown Customer',
     'reset_to_defaults' => 'Reset to Defaults',
     'thank_you_for_business' => 'Thank you for your business!',
 
@@ -411,6 +415,8 @@ return [
     'statement' => 'Statement',
     'balance_statement' => 'Balance Statement',
     'item_search' => 'Item Search',
+    'from_date' => 'From Date',
+    'to_date' => 'To Date',
 
     // Form Sections
     'basic_information' => 'Basic Information',
@@ -502,8 +508,8 @@ return [
     'invoice_not_deletable' => 'Invoice cannot be deleted in current status',
     'invoice_post_failed' => 'Failed to post invoice',
     'invoice_unpost_failed' => 'Failed to unpost invoice',
-    'no_permission_to_post' => 'You do not have permission to post invoices',
-    'no_permission_to_unpost' => 'You do not have permission to unpost invoices',
+    'no_permission_to_post' => 'You do not have permission to post documents',
+    'no_permission_to_unpost' => 'You do not have permission to unpost documents',
     'confirm_post_invoice' => 'Are you sure you want to post this invoice? This will update stock and vendor balances.',
     'invoice_already_posted' => 'This invoice has already been posted.',
 
@@ -565,6 +571,8 @@ return [
     'return_info' => 'Return Information',
     'select_invoice' => 'Select Invoice',
     'return_created' => 'Sales return created successfully.',
+    'return_posted' => 'Sales return posted successfully.',
+    'return_post_failed' => 'Failed to post sales return.',
     'defective' => 'Defective',
     'wrong_item' => 'Wrong Item',
     'customer_return' => 'Customer Return',
