@@ -15,7 +15,10 @@ class ChartOfAccountController extends Controller
     public function __construct(AccountingService $accountingService)
     {
         $this->accountingService = $accountingService;
-        $this->middleware('can:manage chart of accounts');
+        $this->middleware('can:view chart_of_accounts')->only(['index', 'getBeneficiaries']);
+        $this->middleware('can:create chart_of_accounts')->only(['create', 'store']);
+        $this->middleware('can:edit chart_of_accounts')->only(['edit', 'update']);
+        $this->middleware('can:delete chart_of_accounts')->only(['destroy']);
     }
 
     public function index()

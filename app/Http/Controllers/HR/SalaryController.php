@@ -19,7 +19,14 @@ class SalaryController extends Controller
             ->where('status', 'active')
             ->get();
 
-        return view('hr.salaries.index', compact('employees'));
+        $employeeIds = $employees->pluck('id');
+        $recentTransactions = \App\Models\LedgerEntry::with(['chartOfAccount', 'employee'])
+            ->whereIn('employee_id', $employeeIds)
+            ->orderBy('transaction_date', 'desc')
+            ->limit(50)
+            ->get();
+
+        return view('hr.salaries.index', compact('employees', 'recentTransactions'));
     }
 
     public function show(Employee $employee)

@@ -93,6 +93,15 @@
                             </a>
                         </div>
                     @endcan
+                    @can('view audit logs')
+                        <div class="menu-item">
+                            <a href="{{ route('admin.audit-logs.index') }}"
+                                class="menu-link {{ request()->routeIs('admin.audit-logs.*') ? 'active' : '' }}">
+                                <i class="fas fa-history fa-fw"></i>
+                                <span>{{ __('messages.audit_logs') }}</span>
+                            </a>
+                        </div>
+                    @endcan
                 @endif
             @endcanany
         @endif

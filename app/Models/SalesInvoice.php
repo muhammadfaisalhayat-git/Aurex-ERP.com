@@ -137,11 +137,11 @@ class SalesInvoice extends Model
             $netAmount += $item->net_amount;
         }
 
-        $this->subtotal = $subtotal;
+        $this->subtotal = $netAmount;
         $this->discount_amount = $discountAmount;
         $this->tax_amount = $taxAmount;
-        $this->total_amount = $netAmount;
-        $this->balance_amount = $netAmount - $this->paid_amount;
+        $this->total_amount = $subtotal;
+        $this->balance_amount = $subtotal - $this->paid_amount;
         $this->save();
     }
 

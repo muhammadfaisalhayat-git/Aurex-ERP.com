@@ -60,6 +60,11 @@ class Employee extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function ledgerEntries()
+    {
+        return $this->hasMany(LedgerEntry::class);
+    }
+
     public function department()
     {
         return $this->belongsTo(Department::class);

@@ -67,6 +67,13 @@ class UniversalReportController extends Controller
 
     public function generate(Request $request)
     {
+        $data = $this->getStatementData($request);
+
+        return view('accounting.reports.universal_statement_result', $data);
+    }
+
+    private function getStatementData(Request $request)
+    {
         $request->validate([
             'entity_type' => 'required|string',
             'entity_id' => 'required',
@@ -159,8 +166,6 @@ class UniversalReportController extends Controller
             case 'employee':
                 $entity = Employee::findOrFail($id);
                 $entityName = __('messages.employee') . ": " . $entity->first_name_en . ' ' . $entity->last_name_en;
-                // Employees might be tracked via customer_id or vendor_id or specific ledger entries
-                // Here we assume employee_id field in LedgerEntry if exists, otherwise filter by their name/code as notes
                 $openingBalance = LedgerEntry::where('description', 'like', "%$entity->employee_code%")
                     ->where('transaction_date', '<', $startDate)
                     ->sum(DB::raw('debit - credit'));
@@ -217,8 +222,6 @@ class UniversalReportController extends Controller
                     ->get();
                 break;
 
-            // Document-based entities often don't have an "opening balance" in the same way, 
-            // but we can show all entries related to a specific document.
             case 'stock_supply':
                 $entity = StockSupply::findOrFail($id);
                 $entityName = __('messages.stock_supply') . ": " . $entity->document_number;
@@ -293,14 +296,98 @@ class UniversalReportController extends Controller
                 break;
         }
 
-        return view('accounting.reports.universal_statement_result', compact(
-            'results',
-            'openingBalance',
-            'entityName',
-            'type',
-            'startDate',
-            'endDate'
-        ));
+        $typeLabels = [
+            'account' => __('messages.account'),
+            'customer' => __('messages.customer'),
+            'vendor' => __('messages.vendor'),
+            'employee' => __('messages.employee'),
+            'cost_center' => __('messages.cost_center'),
+            'activity' => __('messages.activity'),
+            'product' => __('messages.product'),
+            'warehouse' => __('messages.warehouse'),
+            'category' => __('messages.product_category'),
+            'lc' => __('messages.letter_of_credit'),
+            'promoter' => __('messages.promoter'),
+            'stock_supply' => __('messages.stock_supply'),
+            'stock_receiving' => __('messages.stock_receiving'),
+            'stock_transfer' => __('messages.stock_transfer'),
+            'transfer_request' => __('messages.stock_transfer_request'),
+            'issue_order' => __('messages.stock_issue_order'),
+            'composite_assembly' => __('messages.composite_assembly'),
+            'machine' => __('messages.machine'),
+            'work_center' => __('messages.work_center'),
+            'production_order' => __('messages.production_order'),
+            'vehicle' => __('messages.delivery_vehicle'),
+        ];
+
+        return [
+            'results' => $results,
+            'openingBalance' => $openingBalance,
+            'entityName' => $entityName,
+            'type' => $type,
+            'typeLabel' => $typeLabels[$type] ?? ucfirst(str_replace('_', ' ', $type)),
+            'entity_id' => $id,
+            'startDate' => $request->start_date,
+            'endDate' => $request->end_date,
+            'company' => \App\Models\Company::find(session('active_company_id')) ?? \App\Models\Company::first(),
+            'branch' => \App\Models\Branch::find(session('active_branch_id')) ?? \App\Models\Branch::first()
+        ];
+    }
+
+    public function exportPdf(Request $request)
+    {
+        \Illuminate\Support\Facades\Log::info('Universal Statement PDF Export:', $request->all());
+        $data = $this->getStatementData($request);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('accounting.reports.pdf.universal_statement', $data);
+
+        $filename = \Illuminate\Support\Str::slug($data['entityName']) ?: 'statement';
+        return $pdf->download($filename . '_statement-report.pdf');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        \Illuminate\Support\Facades\Log::info('Universal Statement Excel Export:', $request->all());
+        $data = $this->getStatementData($request);
+
+        $filename = \Illuminate\Support\Str::slug($data['entityName']) ?: 'statement';
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\UniversalStatementExport($data), $filename . '_statement-report.xlsx');
+    }
+
+    public function sendWhatsApp(Request $request)
+    {
+        $data = $this->getStatementData($request);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('accounting.reports.pdf.universal_statement', $data);
+        $fileName = 'statement_' . time() . '.pdf';
+        $filePath = storage_path('app/public/temp/' . $fileName);
+
+        if (!file_exists(storage_path('app/public/temp'))) {
+            mkdir(storage_path('app/public/temp'), 0755, true);
+        }
+
+        $pdf->save($filePath);
+
+        $whatsappService = app(\App\Services\WhatsAppService::class);
+        // We need a phone number. If entity type is customer/vendor, we check their mobile.
+        $entityId = $request->entity_id;
+        $entityType = $request->entity_type;
+        $phone = '';
+
+        if ($entityType === 'customer') {
+            $phone = Customer::find($entityId)?->mobile;
+        } elseif ($entityType === 'vendor') {
+            $phone = Vendor::find($entityId)?->mobile;
+        } elseif ($entityType === 'employee') {
+            $phone = Employee::find($entityId)?->mobile;
+        }
+
+        if (!$phone) {
+            return back()->with('error', __('messages.phone_number_not_found'));
+        }
+
+        $message = __('messages.universal_statement_report') . ': ' . $data['entityName'];
+        $whatsappService->sendDocument($phone, $filePath, $fileName, $message);
+
+        return back()->with('success', __('messages.whatsapp_sent_successfully'));
     }
 
     public function searchEntities(Request $request)
