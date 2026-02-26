@@ -231,7 +231,7 @@ class SalesInvoiceController extends Controller
 
         return response()->json([
             'customer_id' => $data->customer_id,
-            'customer_name' => $data->customer->name_en ?? '',
+            'customer_name' => app()->getLocale() === 'ar' ? ($data->customer->name_ar ?? $data->customer->name_en) : ($data->customer->name_en ?? $data->customer->name_ar),
             'branch_id' => $data->branch_id,
             'warehouse_id' => $data->warehouse_id,
             'salesman_id' => $data->salesman_id ?? null,
@@ -792,10 +792,37 @@ class SalesInvoiceController extends Controller
     public function ajaxSearch(Request $request)
     {
         $search = $request->get('q');
-        $invoices = SalesInvoice::where('document_number', 'like', "%$search%")
-            ->limit(10)
-            ->get(['id', 'document_number']);
+        $customerId = $request->get('customer_id');
 
-        return response()->json($invoices);
+        $query = SalesInvoice::query();
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                  ->orWhere('document_number', 'like', "%{$search}%");
+            });
+        }
+
+        if ($customerId) {
+            $query->where('customer_id', $customerId);
+        }
+
+        $invoices = $query->with('customer')
+            ->whereIn('status', ['posted', 'paid', 'partial', 'overdue'])
+            ->limit(15)
+            ->get();
+
+        $results = $invoices->map(function($invoice) {
+            $customerName = app()->getLocale() === 'ar' 
+                ? ($invoice->customer->name_ar ?? $invoice->customer->name_en) 
+                : ($invoice->customer->name_en ?? $invoice->customer->name_ar);
+            
+            return [
+                'id' => $invoice->id,
+                'text' => $invoice->invoice_number . ' (' . ($customerName ?? __('messages.unknown_customer')) . ')'
+            ];
+        });
+
+        return response()->json($results);
     }
 }

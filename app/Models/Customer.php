@@ -53,6 +53,8 @@ class Customer extends Model
         'business_type',
     ];
 
+    protected $appends = ['name'];
+
     protected $casts = [
         'credit_limit' => 'decimal:2',
         'opening_balance' => 'decimal:2',

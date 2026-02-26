@@ -35,6 +35,8 @@ class Vendor extends Model
         'type',
     ];
 
+    protected $appends = ['name'];
+
     protected $casts = [
         'opening_balance' => 'decimal:2',
         'current_balance' => 'decimal:2',

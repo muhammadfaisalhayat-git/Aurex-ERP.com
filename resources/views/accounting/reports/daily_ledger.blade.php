@@ -166,7 +166,7 @@
                             }
 
                             response.entries.forEach(entry => {
-                                const subAccount = entry.customer ? entry.customer.name : (entry.vendor ? entry.vendor.name : '-');
+                                const subAccount = entry.customer ? entry.customer.name : (entry.vendor ? entry.vendor.name : (entry.employee ? entry.employee.name : '-'));
                                 const row = `
                                 <tr>
                                     <td class="ps-4">${entry.transaction_date}</td>
@@ -194,6 +194,16 @@
                 $('#filter-form').on('submit', function (e) {
                     e.preventDefault();
                     fetchLedger();
+                });
+
+                $('#btn-excel').on('click', function () {
+                    const formData = $('#filter-form').serialize();
+                    window.location.href = "{{ route('accounting.gl.reports.daily-ledger.excel') }}?" + formData;
+                });
+
+                $('#btn-pdf').on('click', function () {
+                    const formData = $('#filter-form').serialize();
+                    window.location.href = "{{ route('accounting.gl.reports.daily-ledger.pdf') }}?" + formData;
                 });
 
                 // Initial fetch

@@ -11,8 +11,10 @@ use App\Models\Vendor;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\DailyLedgerExport;
 
 class DailyLedgerController extends Controller
 {
@@ -28,10 +30,23 @@ class DailyLedgerController extends Controller
 
     public function fetch(Request $request)
     {
+        $data = $this->getLedgerData($request);
+
+        return response()->json([
+            'entries' => $data['entries'],
+            'opening_balance' => $data['opening_balance'],
+            'total_debit' => $data['total_debit'],
+            'total_credit' => $data['total_credit'],
+            'net_movement' => $data['net_movement']
+        ]);
+    }
+
+    private function getLedgerData(Request $request)
+    {
         $startDate = $request->start_date ?? Carbon::today()->format('Y-m-d');
         $endDate = $request->end_date ?? Carbon::today()->format('Y-m-d');
 
-        $query = LedgerEntry::with(['chartOfAccount', 'customer', 'vendor', 'branch'])
+        $query = LedgerEntry::with(['chartOfAccount', 'customer', 'vendor', 'branch', 'employee'])
             ->whereBetween('transaction_date', [$startDate, $endDate]);
 
         if ($request->branch_id) {
@@ -78,24 +93,41 @@ class DailyLedgerController extends Controller
             $entry->running_balance = $runningBalance;
         }
 
-        return response()->json([
+        // Fetch Company and Branch for header
+        $company = \App\Models\Company::find(Session::get('active_company_id'))
+            ?? \App\Models\Company::first();
+
+        $branch = null;
+        if ($request->branch_id) {
+            $branch = \App\Models\Branch::find($request->branch_id);
+        }
+        elseif (Session::has('active_branch_id')) {
+            $branch = \App\Models\Branch::find(Session::get('active_branch_id'));
+        }
+
+        return [
             'entries' => $entries,
             'opening_balance' => $openingBalance,
             'total_debit' => $entries->sum('debit'),
             'total_credit' => $entries->sum('credit'),
-            'net_movement' => $entries->sum('debit') - $entries->sum('credit')
-        ]);
+            'net_movement' => $entries->sum('debit') - $entries->sum('credit'),
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'company' => $company,
+            'branch' => $branch
+        ];
     }
 
     public function exportPdf(Request $request)
     {
-        // Similar logic to fetch but returning PDF
-        // Placeholder for now, will implement if specified view is ready
+        $data = $this->getLedgerData($request);
+        $pdf = Pdf::loadView('accounting.reports.pdf.daily_ledger', $data);
+        return $pdf->download('daily_ledger_' . now()->format('Y-m-d') . '.pdf');
     }
 
     public function exportExcel(Request $request)
     {
-        // Similar logic to fetch but returning Excel
-        // Placeholder for now
+        $data = $this->getLedgerData($request);
+        return Excel::download(new DailyLedgerExport($data), 'daily_ledger_' . now()->format('Y-m-d') . '.xlsx');
     }
 }

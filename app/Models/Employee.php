@@ -41,6 +41,8 @@ class Employee extends Model
         'status',
     ];
 
+    protected $appends = ['name'];
+
     protected $casts = [
         'date_of_birth' => 'date',
         'joining_date' => 'date',

@@ -1,7 +1,5 @@
 @extends('layouts.app')
-
-@section('title', __('messages.sales_returns') ?? 'Sales Returns')
-
+@section('title', 'Sales Returns Debug')
 @section('content')
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -110,7 +108,7 @@
                                             <br>
                                             <small class="text-muted">{{ $return->document_number }}</small>
                                         </td>
-                                        <td>{{ $return->return_date->format('Y-m-d') }}</td>
+                                        <td>{{ $return->return_date ? $return->return_date->format('Y-m-d') : '-' }}</td>
                                         <td>{{ $return->customer->name ?? '-' }}</td>
                                         <td>{{ number_format($return->total_amount, 2) }}</td>
                                         <td>
@@ -130,7 +128,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center">{{ __('messages.no_records_found') }}</td>
+                                        <td colspan="6" class="text-center">{{ __('messages.no_records_found') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>

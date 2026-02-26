@@ -63,17 +63,9 @@
                                     <label for="sales_invoice_id"
                                         class="form-label">{{ __('messages.sales_invoice') ?? 'Sales Invoice' }}</label>
                                     <select class="form-select @error('sales_invoice_id') is-invalid @enderror"
-                                        name="sales_invoice_id" id="sales_invoice_id">
-                                        <option value="">-- {{ __('messages.select_invoice') ?? 'Select Invoice' }} --
-                                        </option>
-                                        @foreach($invoices as $invoice)
-                                            <option value="{{ $invoice->id }}" 
-                                                data-customer-id="{{ $invoice->customer_id }}"
-                                                {{ old('sales_invoice_id') == $invoice->id ? 'selected' : '' }}>
-                                                {{ $invoice->invoice_number }}
-                                                ({{ $invoice->customer->name ?? __('messages.unknown_customer') }})
-                                            </option>
-                                        @endforeach
+                                        name="sales_invoice_id" id="sales_invoice_id"
+                                        data-placeholder="-- {{ __('messages.select_invoice') ?? 'Select Invoice' }} --">
+                                        <option value=""></option>
                                     </select>
                                     @error('sales_invoice_id')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -403,21 +395,60 @@
                 document.getElementById('total_amount_display').textContent = total.toFixed(2);
             }
 
+            // Initialize Invoice Select2 with AJAX
+            function initInvoiceSelect2() {
+                $(invoiceSelect).select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: $(invoiceSelect).data('placeholder'),
+                    allowClear: true,
+                    ajax: {
+                        url: "{{ route('sales.invoices.ajax-search') }}",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term,
+                                customer_id: $('#customer_id').val()
+                            };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: data
+                            };
+                        },
+                        cache: true
+                    }
+                });
+            }
+
+            initInvoiceSelect2();
+
+            // Clear invoice when customer changes
+            $('#customer_id').on('change', function() {
+                $(invoiceSelect).val(null).trigger('change');
+            });
+
             $(invoiceSelect).on('change', function () {
-                const invoiceId = this.value;
+                const invoiceId = $(this).val();
                 if (!invoiceId) return;
 
                 fetch(`/sales/invoices/source-data/sales_invoice/${invoiceId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.error) {
-                            alert(data.error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.error
+                            });
                             return;
                         }
 
                         // Populate header
-                        $(customerSelect).val(data.customer_id).trigger('change');
-
+                        document.getElementById('customer_id').value = data.customer_id;
+                        // Trigger change but don't clear invoice again
+                        $('#customer_id').trigger('change.select2'); 
                         document.getElementById('branch_id').value = data.branch_id;
                         document.getElementById('warehouse_id').value = data.warehouse_id;
                         
