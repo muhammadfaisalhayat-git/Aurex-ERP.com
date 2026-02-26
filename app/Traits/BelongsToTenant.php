@@ -48,7 +48,10 @@ trait BelongsToTenant
                     // Branch Filter
                     if (\Schema::hasColumn($table, 'branch_id')) {
                         if (Session::has('active_branch_id')) {
-                            $builder->where($table . '.branch_id', Session::get('active_branch_id'));
+                            $builder->where(function ($q) use ($table) {
+                                $q->where($table . '.branch_id', Session::get('active_branch_id'))
+                                    ->orWhereNull($table . '.branch_id');
+                            });
                         } else {
                             // If no branch selected, show nothing for models that belong to branches
                             $builder->where($table . '.branch_id', 0);
@@ -78,9 +81,15 @@ trait BelongsToTenant
                         }
                     } elseif ($hasBranchColumn) {
                         if (($user->hasRole('Branch Manager') || $user->hasRole('Salesman')) && !Session::has('view_all_branches')) {
-                            $builder->where($table . '.branch_id', $user->branch_id);
+                            $builder->where(function ($q) use ($table, $user) {
+                                $q->where($table . '.branch_id', $user->branch_id)
+                                    ->orWhereNull($table . '.branch_id');
+                            });
                         } elseif (Session::has('active_branch_id')) {
-                            $builder->where($table . '.branch_id', Session::get('active_branch_id'));
+                            $builder->where(function ($q) use ($table) {
+                                $q->where($table . '.branch_id', Session::get('active_branch_id'))
+                                    ->orWhereNull($table . '.branch_id');
+                            });
                         } else {
                             // No branch selected? Show nothing.
                             $builder->where($table . '.branch_id', 0);

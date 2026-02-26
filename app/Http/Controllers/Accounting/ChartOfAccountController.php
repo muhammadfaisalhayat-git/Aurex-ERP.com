@@ -46,10 +46,11 @@ class ChartOfAccountController extends Controller
         ]);
 
         $accountType = AccountType::find($request->account_type_id);
+        $baseType = $this->accountingService->getBaseType($accountType->code);
         $code = $this->accountingService->generateAccountCode($accountType->code, $request->parent_id);
 
         $data = $request->all();
-        $data['type'] = $accountType->code;
+        $data['type'] = $baseType;
         $data['code'] = $code;
         $data['is_posting_allowed'] = $request->has('is_posting_allowed');
         $data['sub_ledger_type'] = $request->get('sub_ledger_type') ?: 'none';

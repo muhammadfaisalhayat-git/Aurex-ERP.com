@@ -389,12 +389,26 @@ class JournalVoucherController extends Controller
         $accounts = $query->where(function ($query) use ($q) {
             $query->where('code', 'like', "%$q%")
                 ->orWhere('name_en', 'like', "%$q%")
-                ->orWhere('name_ar', 'like', "%$q%");
+                ->orWhere('name_ar', 'like', "%$q%")
+                ->orWhereHas('parent', function ($query) use ($q) {
+                    $query->where('name_en', 'like', "%$q%")
+                        ->orWhere('name_ar', 'like', "%$q%");
+                });
         })
+            ->with('parent')
             ->limit(30)
             ->get();
 
-        return response()->json($accounts);
+        return response()->json($accounts->map(function ($account) {
+            return [
+                'id' => $account->id,
+                'code' => $account->code,
+                'name_en' => $account->name_en . ($account->parent ? ' (' . $account->parent->name_en . ')' : ''),
+                'name_ar' => $account->name_ar,
+                'type' => $account->type,
+                'sub_ledger_type' => $account->sub_ledger_type,
+            ];
+        }));
     }
 
     public function ajaxAmountToWords(Request $request)

@@ -10,12 +10,10 @@ use Illuminate\Support\Facades\Session;
 
 class AccountingService
 {
-    /**
-     * Generate a new account code based on parent and type.
-     */
     public function generateAccountCode($type, $parentId = null)
     {
-        $prefix = match ($type) {
+        $baseType = $this->getBaseType($type);
+        $prefix = match ($baseType) {
             'asset' => '1',
             'liability' => '2',
             'equity' => '3',
@@ -30,7 +28,7 @@ class AccountingService
         }
 
         $lastAccount = ChartOfAccount::where('parent_id', $parentId)
-            ->where('type', $type)
+            ->where('type', $baseType)
             ->orderBy('code', 'desc')
             ->first();
 
@@ -42,6 +40,37 @@ class AccountingService
         $newSeq = str_pad((int) $lastSeq + 1, 2, '0', STR_PAD_LEFT);
 
         return $prefix . $newSeq;
+    }
+
+    /**
+     * Map an account type code or prefix to the base enum types.
+     */
+    public function getBaseType($code)
+    {
+        $code = strtolower($code);
+
+        // Direct matches
+        if (in_array($code, ['asset', 'liability', 'equity', 'revenue', 'expense'])) {
+            return $code;
+        }
+
+        // Prefix based matches
+        if (str_starts_with($code, '1'))
+            return 'asset';
+        if (str_starts_with($code, '2'))
+            return 'liability';
+        if (str_starts_with($code, '3'))
+            return 'equity';
+        if (str_starts_with($code, '4'))
+            return 'revenue';
+        if (str_starts_with($code, '5'))
+            return 'expense';
+
+        // Known legacy/custom codes
+        if ($code === 'supp_cust')
+            return 'asset';
+
+        return 'asset'; // Fallback
     }
 
     /**
