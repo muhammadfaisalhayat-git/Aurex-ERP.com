@@ -332,11 +332,25 @@
         .menu-link {
             display: flex;
             align-items: center;
+            width: 100%;
             padding: 12px 20px;
             color: #cbd5e1;
             text-decoration: none;
-            transition: all 0.2s ease;
+            background: none;
+            border: none;
             border-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: 3px solid transparent;
+            transition: all 0.2s ease;
+            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            white-space: nowrap;
+        }
+
+        .menu-link span {
+            flex: 1;
+            text-align: inherit;
         }
 
         .menu-link:hover,
@@ -354,7 +368,6 @@
         }
 
         .menu-arrow {
-            margin-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: auto;
             transition: transform 0.2s ease;
         }
 
@@ -1055,9 +1068,9 @@
                         <i class="fas fa-chevron-down ms-2" style="font-size: 0.75rem; color: #64748b;"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i
+                        <li><a class="dropdown-item" href="javascript:void(0)"><i
                                     class="fas fa-user me-2"></i>{{ __('messages.profile') }}</a></li>
-                        <li><a class="dropdown-item" href="#"><i
+                        <li><a class="dropdown-item" href="javascript:void(0)"><i
                                     class="fas fa-cog me-2"></i>{{ __('messages.settings') }}</a></li>
                         <li>
                             <hr class="dropdown-divider">

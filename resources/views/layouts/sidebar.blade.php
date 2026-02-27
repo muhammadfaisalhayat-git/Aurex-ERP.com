@@ -1,4 +1,4 @@
-<aside class="sidebar">
+<aside class="sidebar" id="main-sidebar" data-turbo-permanent>
     <div class="sidebar-header">
         <a href="{{ route('dashboard') }}" class="sidebar-brand">
             <i class="fas fa-cube"></i>
@@ -31,22 +31,22 @@
                     @canany(['view users', 'manage roles'])
                         <div
                             class="menu-item {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*') ? 'open' : '' }}">
-                            <a href="#" class="menu-link" data-submenu>
+                            <button type="button" class="menu-link" data-submenu data-turbo="false">
                                 <i class="fas fa-users-cog fa-fw"></i>
                                 <span>{{ __('messages.user_management') }}</span>
                                 <i class="fas fa-chevron-down menu-arrow"></i>
-                            </a>
+                            </button>
                             <div class="submenu">
                                 @can('view users')
                                     <a href="{{ route('admin.users.index') }}"
                                         class="menu-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                                        {{ __('messages.users') }}
+                                        <i class="fas fa-user fa-fw me-2"></i> {{ __('messages.users') }}
                                     </a>
                                 @endcan
                                 @can('manage roles')
                                     <a href="{{ route('admin.roles.index') }}"
                                         class="menu-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
-                                        {{ __('messages.roles') }}
+                                        <i class="fas fa-user-tag fa-fw me-2"></i> {{ __('messages.roles') }}
                                     </a>
                                 @endcan
                             </div>
@@ -58,25 +58,25 @@
                     @canany(['view users'])
                         <div
                             class="menu-item {{ request()->routeIs('admin.companies.*') || request()->routeIs('admin.branches.*') || request()->routeIs('admin.warehouses.*') ? 'open' : '' }}">
-                            <a href="#" class="menu-link" data-submenu>
+                            <button type="button" class="menu-link" data-submenu data-turbo="false">
                                 <i class="fas fa-building fa-fw"></i>
                                 <span>{{ __('messages.organization') }}</span>
                                 <i class="fas fa-chevron-down menu-arrow"></i>
-                            </a>
+                            </button>
                             <div class="submenu">
                                 @if(auth()->user()->hasRole('Super Admin'))
                                     <a href="{{ route('admin.companies.index') }}"
                                         class="menu-link {{ request()->routeIs('admin.companies.*') ? 'active' : '' }}">
-                                        {{ __('messages.companies') }}
+                                        <i class="fas fa-building fa-fw me-2"></i> {{ __('messages.companies') }}
                                     </a>
                                 @endif
                                 <a href="{{ route('admin.branches.index') }}"
                                     class="menu-link {{ request()->routeIs('admin.branches.*') ? 'active' : '' }}">
-                                    {{ __('messages.branches') }}
+                                    <i class="fas fa-code-branch fa-fw me-2"></i> {{ __('messages.branches') }}
                                 </a>
                                 <a href="{{ route('admin.warehouses.index') }}"
                                     class="menu-link {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">
-                                    {{ __('messages.warehouses') }}
+                                    <i class="fas fa-warehouse fa-fw me-2"></i> {{ __('messages.warehouses') }}
                                 </a>
                             </div>
                         </div>
@@ -91,7 +91,6 @@
                                 <i class="fas fa-cog fa-fw"></i>
                                 <span>{{ __('messages.settings') }}</span>
                             </a>
-                        </div>
                     @endcan
                     @can('view audit logs')
                         <div class="menu-item">
@@ -99,8 +98,7 @@
                                 class="menu-link {{ request()->routeIs('admin.audit-logs.*') ? 'active' : '' }}">
                                 <i class="fas fa-history fa-fw"></i>
                                 <span>{{ __('messages.audit_logs') }}</span>
-                            </a>
-                        </div>
+                            </button>
                     @endcan
                 @endif
             @endcanany
@@ -115,45 +113,45 @@
                     @canany(['view customers', 'view quotations', 'view customer_registration', 'view customer_requests', 'view sales_orders', 'view sales_contracts', 'view invoices', 'view returns', 'view commissions'])
                         <div
                             class="menu-item {{ request()->routeIs('sales.customers.*') || request()->routeIs('sales.invoices.*') || request()->routeIs('sales.returns.*') || request()->routeIs('sales.commissions.*') || request()->routeIs('sales.customer-registrations.*') || request()->routeIs('sales.customer-requests.*') || request()->routeIs('sales.quotations.*') || request()->routeIs('sales.contracts.*') || request()->routeIs('sales.sales-orders.*') ? 'open' : '' }}">
-                            <a href="#" class="menu-link" data-submenu>
+                            <button type="button" class="menu-link" data-submenu data-turbo="false">
                                 <i class="fas fa-file-invoice fa-fw"></i>
                                 <span>{{ __('messages.sales_documents') }}</span>
                                 <i class="fas fa-chevron-down menu-arrow"></i>
-                            </a>
+                            </button>
                             <div class="submenu">
                                 @if($checkVisibility('sidebar_customers'))
                                     @can('view customers')
                                         <a href="{{ route('sales.customers.index') }}"
                                             class="menu-link {{ request()->routeIs('sales.customers.*') ? 'active' : '' }}">
-                                            {{ __('messages.customers') }}
+                                            <i class="fas fa-users fa-fw me-2"></i> {{ __('messages.customers') }}
                                         </a>
                                     @endcan
                                 @endif
 
                                 <a href="{{ route('sales.customer-requests.index') }}"
                                     class="menu-link {{ request()->routeIs('sales.customer-requests.*') ? 'active' : '' }}">
-                                    {{ __('messages.customer_requests') }}
+                                    <i class="fas fa-file-medical fa-fw me-2"></i> {{ __('messages.customer_requests') }}
                                 </a>
                                 @can('view quotations')
                                     <a href="{{ route('sales.quotations.index') }}"
                                         class="menu-link {{ request()->routeIs('sales.quotations.*') ? 'active' : '' }}">
-                                        {{ __('messages.quotations') }}
+                                        <i class="fas fa-file-alt fa-fw me-2"></i> {{ __('messages.quotations') }}
                                     </a>
                                 @endcan
                                 <a href="{{ route('sales.sales-orders.index') }}"
                                     class="menu-link {{ request()->routeIs('sales.sales-orders.*') ? 'active' : '' }}">
-                                    {{ __('messages.sales_orders') }}
+                                    <i class="fas fa-shopping-cart fa-fw me-2"></i> {{ __('messages.sales_orders') }}
                                 </a>
                                 <a href="{{ route('sales.contracts.index') }}"
                                     class="menu-link {{ request()->routeIs('sales.contracts.*') ? 'active' : '' }}">
-                                    {{ __('messages.sales_contracts') }}
+                                    <i class="fas fa-file-contract fa-fw me-2"></i> {{ __('messages.sales_contracts') }}
                                 </a>
 
                                 @if($checkVisibility('sidebar_sales_invoices'))
                                     @can('view invoices')
                                         <a href="{{ route('sales.invoices.index') }}"
                                             class="menu-link {{ request()->routeIs('sales.invoices.*') ? 'active' : '' }}">
-                                            {{ __('messages.sales_invoices') }}
+                                            <i class="fas fa-file-invoice-dollar fa-fw me-2"></i> {{ __('messages.sales_invoices') }}
                                         </a>
                                     @endcan
                                 @endif
@@ -162,7 +160,7 @@
                                     @can('view returns')
                                         <a href="{{ route('sales.returns.index') }}"
                                             class="menu-link {{ request()->routeIs('sales.returns.*') ? 'active' : '' }}">
-                                            {{ __('messages.sales_returns') }}
+                                            <i class="fas fa-undo fa-fw me-2"></i> {{ __('messages.sales_returns') }}
                                         </a>
                                     @endcan
                                 @endif
@@ -171,7 +169,7 @@
                                     @can('view commissions')
                                         <a href="{{ route('sales.commissions.rules') }}"
                                             class="menu-link {{ request()->routeIs('sales.commissions.*') ? 'active' : '' }}">
-                                            {{ __('messages.commissions') }}
+                                            <i class="fas fa-percentage fa-fw me-2"></i> {{ __('messages.commissions') }}
                                         </a>
                                     @endcan
                                 @endif
@@ -195,7 +193,6 @@
                                 <i class="fas fa-truck fa-fw"></i>
                                 <span>{{ __('messages.vendors') }}</span>
                             </a>
-                        </div>
                     @endcan
                 @endif
 
@@ -207,15 +204,13 @@
                                 <i class="fas fa-clipboard-list fa-fw"></i>
                                 <span>{{ __('messages.supply_orders') }}</span>
                             </a>
-                        </div>
 
                         @if($checkVisibility('sidebar_purchase_invoices'))
                             @can('view purchase_invoices')
                                 <div class="menu-item">
                                     <a href="{{ route('purchases.invoices.index') }}"
                                         class="menu-link {{ request()->routeIs('purchases.invoices.*') ? 'active' : '' }}">
-                                        <i class="fas fa-shopping-cart fa-fw"></i>
-                                        <span>{{ __('messages.purchase_invoices') }}</span>
+                                        <i class="fas fa-shopping-cart fa-fw me-2"></i> {{ __('messages.purchase_invoices') }}
                                     </a>
                                 </div>
                             @endcan
@@ -231,7 +226,6 @@
                                 <i class="fas fa-store fa-fw"></i>
                                 <span>{{ __('messages.local_purchases') }}</span>
                             </a>
-                        </div>
                     @endcan
                 @endif
 
@@ -248,23 +242,23 @@
                     @can('view products')
                         <div
                             class="menu-item {{ request()->routeIs('inventory.products.*') || request()->routeIs('inventory.categories.*') || request()->routeIs('inventory.barcodes.*') ? 'open' : '' }}">
-                            <a href="#" class="menu-link" data-submenu>
+                            <button type="button" class="menu-link" data-submenu data-turbo="false">
                                 <i class="fas fa-boxes fa-fw"></i>
                                 <span>{{ __('messages.products') }}</span>
                                 <i class="fas fa-chevron-down menu-arrow"></i>
-                            </a>
+                            </button>
                             <div class="submenu">
                                 <a href="{{ route('inventory.products.index') }}"
                                     class="menu-link {{ request()->routeIs('inventory.products.*') ? 'active' : '' }}">
-                                    {{ __('messages.products') }}
+                                    <i class="fas fa-box fa-fw me-2"></i> {{ __('messages.products') }}
                                 </a>
                                 <a href="{{ route('inventory.categories.index') }}"
                                     class="menu-link {{ request()->routeIs('inventory.categories.*') ? 'active' : '' }}">
-                                    {{ __('messages.categories') }}
+                                    <i class="fas fa-tags fa-fw me-2"></i> {{ __('messages.categories') }}
                                 </a>
                                 <a href="{{ route('inventory.barcodes.index') }}"
                                     class="menu-link {{ request()->routeIs('inventory.barcodes.*') ? 'active' : '' }}">
-                                    {{ __('messages.barcode_generator') }}
+                                    <i class="fas fa-barcode fa-fw me-2"></i> {{ __('messages.barcode_generator') }}
                                 </a>
                             </div>
                         </div>
@@ -275,35 +269,35 @@
                     @can('view inventory')
                         <div
                             class="menu-item {{ request()->routeIs('inventory.stock-supply.*') || request()->routeIs('inventory.stock-receiving.*') || request()->routeIs('inventory.stock-transfers.*') || request()->routeIs('inventory.transfer-requests.*') || request()->routeIs('inventory.issue-orders.*') || request()->routeIs('inventory.composite-assemblies.*') ? 'open' : '' }}">
-                            <a href="#" class="menu-link" data-submenu>
+                            <button type="button" class="menu-link" data-submenu data-turbo="false">
                                 <i class="fas fa-warehouse fa-fw"></i>
                                 <span>{{ __('messages.stock_management') }}</span>
                                 <i class="fas fa-chevron-down menu-arrow"></i>
-                            </a>
+                            </button>
                             <div class="submenu">
                                 <a href="{{ route('inventory.stock-supply.index') }}"
                                     class="menu-link {{ request()->routeIs('inventory.stock-supply.*') ? 'active' : '' }}">
-                                    {{ __('messages.stock_supply') }}
+                                    <i class="fas fa-truck-loading fa-fw me-2"></i> {{ __('messages.stock_supply') }}
                                 </a>
                                 <a href="{{ route('inventory.stock-receiving.index') }}"
                                     class="menu-link {{ request()->routeIs('inventory.stock-receiving.*') ? 'active' : '' }}">
-                                    {{ __('messages.stock_receiving') }}
+                                    <i class="fas fa-box-open fa-fw me-2"></i> {{ __('messages.stock_receiving') }}
                                 </a>
                                 <a href="{{ route('inventory.stock-transfers.index') }}"
                                     class="menu-link {{ request()->routeIs('inventory.stock-transfers.*') ? 'active' : '' }}">
-                                    {{ __('messages.stock_transfers') }}
+                                    <i class="fas fa-exchange-alt fa-fw me-2"></i> {{ __('messages.stock_transfers') }}
                                 </a>
                                 <a href="{{ route('inventory.transfer-requests.index') }}"
                                     class="menu-link {{ request()->routeIs('inventory.transfer-requests.*') ? 'active' : '' }}">
-                                    {{ __('messages.transfer_requests') }}
+                                    <i class="fas fa-clipboard-check fa-fw me-2"></i> {{ __('messages.transfer_requests') }}
                                 </a>
                                 <a href="{{ route('inventory.issue-orders.index') }}"
                                     class="menu-link {{ request()->routeIs('inventory.issue-orders.*') ? 'active' : '' }}">
-                                    {{ __('messages.issue_orders') }}
+                                    <i class="fas fa-sign-out-alt fa-fw me-2"></i> {{ __('messages.issue_orders') }}
                                 </a>
                                 <a href="{{ route('inventory.composite-assemblies.index') }}"
                                     class="menu-link {{ request()->routeIs('inventory.composite-assemblies.*') ? 'active' : '' }}">
-                                    {{ __('messages.composite_assemblies') }}
+                                    <i class="fas fa-cubes fa-fw me-2"></i> {{ __('messages.composite_assemblies') }}
                                 </a>
                             </div>
                         </div>
@@ -325,23 +319,23 @@
         <!-- Production Section -->
         <div class="menu-section">{{ __('messages.production') }}</div>
         <div class="menu-item {{ request()->routeIs('production.*') ? 'open' : '' }}">
-            <a href="#" class="menu-link" data-submenu>
+            <button type="button" class="menu-link" data-submenu data-turbo="false">
                 <i class="fas fa-industry fa-fw"></i>
                 <span>{{ __('messages.production') }}</span>
                 <i class="fas fa-chevron-down menu-arrow"></i>
-            </a>
+            </button>
             <div class="submenu">
                 <a href="{{ route('production.work-centers.index') }}"
                     class="menu-link {{ request()->routeIs('production.work-centers.*') ? 'active' : '' }}">
-                    {{ __('messages.work_centers') }}
+                    <i class="fas fa-map-marker-alt fa-fw me-2"></i> {{ __('messages.work_centers') }}
                 </a>
                 <a href="{{ route('production.machines.index') }}"
                     class="menu-link {{ request()->routeIs('production.machines.*') ? 'active' : '' }}">
-                    {{ __('messages.machines') }}
+                    <i class="fas fa-cog fa-fw me-2"></i> {{ __('messages.machines') }}
                 </a>
                 <a href="{{ route('production.orders.index') }}"
                     class="menu-link {{ request()->routeIs('production.orders.*') ? 'active' : '' }}">
-                    {{ __('messages.production_orders') }}
+                    <i class="fas fa-list-ol fa-fw me-2"></i> {{ __('messages.production_orders') }}
                 </a>
             </div>
         </div>
@@ -353,17 +347,17 @@
 
                 <div
                     class="menu-item {{ request()->routeIs('hr.*') || request()->routeIs('hr.employees.*') || request()->routeIs('hr.departments.*') || request()->routeIs('hr.designations.*') || request()->routeIs('hr.salaries.*') || request()->routeIs('hr.experience.*') ? 'open' : '' }}">
-                    <a href="#" class="menu-link" data-submenu>
+                    <button type="button" class="menu-link" data-submenu data-turbo="false">
                         <i class="fas fa-users fa-fw"></i>
                         <span>{{ __('messages.human_resources') }}</span>
                         <i class="fas fa-chevron-down menu-arrow"></i>
-                    </a>
+                    </button>
                     <div class="submenu">
                         @if($checkVisibility('sidebar_employees'))
                             @can('view employees')
                                 <a href="{{ route('hr.employees.index') }}"
                                     class="menu-link {{ request()->routeIs('hr.employees.*') ? 'active' : '' }}">
-                                    {{ __('messages.employees') }}
+                                    <i class="fas fa-id-badge fa-fw me-2"></i> {{ __('messages.employees') }}
                                 </a>
                             @endcan
                         @endif
@@ -371,7 +365,7 @@
                             @can('view departments')
                                 <a href="{{ route('hr.departments.index') }}"
                                     class="menu-link {{ request()->routeIs('hr.departments.*') ? 'active' : '' }}">
-                                    {{ __('messages.departments') }}
+                                    <i class="fas fa-sitemap fa-fw me-2"></i> {{ __('messages.departments') }}
                                 </a>
                             @endcan
                         @endif
@@ -379,7 +373,7 @@
                             @can('view designations')
                                 <a href="{{ route('hr.designations.index') }}"
                                     class="menu-link {{ request()->routeIs('hr.designations.*') ? 'active' : '' }}">
-                                    {{ __('messages.designations') }}
+                                    <i class="fas fa-briefcase fa-fw me-2"></i> {{ __('messages.designations') }}
                                 </a>
                             @endcan
                         @endif
@@ -387,7 +381,7 @@
                             @can('view employees')
                                 <a href="{{ route('hr.salaries.index') }}"
                                     class="menu-link {{ request()->routeIs('hr.salaries.*') ? 'active' : '' }}">
-                                    {{ __('messages.salaries') }}
+                                    <i class="fas fa-money-bill-wave fa-fw me-2"></i> {{ __('messages.salaries') }}
                                 </a>
                             @endcan
                         @endif
@@ -395,7 +389,7 @@
                             @can('view employees')
                                 <a href="{{ route('hr.experience.index') }}"
                                     class="menu-link {{ request()->routeIs('hr.experience.*') ? 'active' : '' }}">
-                                    {{ __('messages.experience_letters') }}
+                                    <i class="fas fa-envelope-open-text fa-fw me-2"></i> {{ __('messages.experience_letters') }}
                                 </a>
                             @endcan
                         @endif
@@ -411,31 +405,31 @@
 
                 <div
                     class="menu-item {{ request()->routeIs('logistics.*') || request()->routeIs('transport.*') ? 'open' : '' }}">
-                    <a href="#" class="menu-link" data-submenu>
+                    <button type="button" class="menu-link" data-submenu data-turbo="false">
                         <i class="fas fa-truck-loading fa-fw"></i>
                         <span>{{ __('messages.logistics') }}</span>
                         <i class="fas fa-chevron-down menu-arrow"></i>
-                    </a>
+                    </button>
                     <div class="submenu">
                         <a href="{{ route('logistics.vehicles.index') }}"
                             class="menu-link {{ request()->routeIs('logistics.vehicles.*') ? 'active' : '' }}">
-                            {{ __('messages.delivery_vehicles') }}
+                            <i class="fas fa-truck fa-fw me-2"></i> {{ __('messages.delivery_vehicles') }}
                         </a>
                         <a href="{{ route('logistics.fuel-logs.index') }}"
                             class="menu-link {{ request()->routeIs('logistics.fuel-logs.*') ? 'active' : '' }}">
-                            {{ __('messages.fuel_logs') }}
+                            <i class="fas fa-gas-pump fa-fw me-2"></i> {{ __('messages.fuel_logs') }}
                         </a>
                         <a href="{{ route('transport.trailers.index') }}"
                             class="menu-link {{ request()->routeIs('transport.trailers.*') ? 'active' : '' }}">
-                            {{ __('messages.trailers') }}
+                            <i class="fas fa-trailer fa-fw me-2"></i> {{ __('messages.trailers') }}
                         </a>
                         <a href="{{ route('transport.orders.index') }}"
                             class="menu-link {{ request()->routeIs('transport.orders.*') ? 'active' : '' }}">
-                            {{ __('messages.transport_orders') }}
+                            <i class="fas fa-route fa-fw me-2"></i> {{ __('messages.transport_orders') }}
                         </a>
                         <a href="{{ route('transport.contracts.index') }}"
                             class="menu-link {{ request()->routeIs('transport.contracts.*') ? 'active' : '' }}">
-                            {{ __('messages.contracts') }}
+                            <i class="fas fa-file-signature fa-fw me-2"></i> {{ __('messages.contracts') }}
                         </a>
                     </div>
                 </div>
@@ -451,8 +445,7 @@
                     <div class="menu-item">
                         <a href="{{ route('maintenance.workshops.index') }}"
                             class="menu-link {{ request()->routeIs('maintenance.workshops.*') ? 'active' : '' }}">
-                            <i class="fas fa-tools fa-fw"></i>
-                            <span>{{ __('messages.workshops') }}</span>
+                            <i class="fas fa-tools fa-fw me-2"></i> {{ __('messages.workshops') }}
                         </a>
                     </div>
                 @endif
@@ -461,8 +454,7 @@
                     <div class="menu-item">
                         <a href="{{ route('maintenance.vouchers.index') }}"
                             class="menu-link {{ request()->routeIs('maintenance.vouchers.*') ? 'active' : '' }}">
-                            <i class="fas fa-wrench fa-fw"></i>
-                            <span>{{ __('messages.maintenance_vouchers') }}</span>
+                            <i class="fas fa-wrench fa-fw me-2"></i> {{ __('messages.maintenance_vouchers') }}
                         </a>
                     </div>
                 @endif
@@ -476,27 +468,27 @@
 
                 @if($checkVisibility('sidebar_sales_reports'))
                     <div class="menu-item {{ request()->routeIs('reports.sales.*') ? 'open' : '' }}">
-                        <a href="#" class="menu-link" data-submenu>
+                        <button type="button" class="menu-link" data-submenu data-turbo="false">
                             <i class="fas fa-chart-line fa-fw"></i>
                             <span>{{ __('messages.sales_reports') }}</span>
                             <i class="fas fa-chevron-down menu-arrow"></i>
-                        </a>
+                        </button>
                         <div class="submenu">
                             <a href="{{ route('reports.sales.index') }}"
                                 class="menu-link {{ request()->routeIs('reports.sales.index') ? 'active' : '' }}">
-                                {{ __('messages.overview') }}
+                                <i class="fas fa-tachometer-alt fa-fw me-2"></i> {{ __('messages.overview') }}
                             </a>
                             <a href="{{ route('reports.sales.by-customer') }}"
                                 class="menu-link {{ request()->routeIs('reports.sales.by-customer') ? 'active' : '' }}">
-                                {{ __('messages.reports_by_customer') }}
+                                <i class="fas fa-user-chart fa-fw me-2"></i> {{ __('messages.reports_by_customer') }}
                             </a>
                             <a href="{{ route('reports.sales.by-item') }}"
                                 class="menu-link {{ request()->routeIs('reports.sales.by-item') ? 'active' : '' }}">
-                                {{ __('messages.reports_by_item') }}
+                                <i class="fas fa-box-open fa-fw me-2"></i> {{ __('messages.reports_by_item') }}
                             </a>
                             <a href="{{ route('reports.sales.date-wise') }}"
                                 class="menu-link {{ request()->routeIs('reports.sales.date-wise') ? 'active' : '' }}">
-                                {{ __('messages.reports_date_wise') }}
+                                <i class="fas fa-calendar-alt fa-fw me-2"></i> {{ __('messages.reports_date_wise') }}
                             </a>
                         </div>
                     </div>
@@ -504,27 +496,27 @@
 
                 @if($checkVisibility('sidebar_supplier_reports'))
                     <div class="menu-item {{ request()->routeIs('reports.suppliers.*') ? 'open' : '' }}">
-                        <a href="#" class="menu-link" data-submenu>
+                        <button type="button" class="menu-link" data-submenu data-turbo="false">
                             <i class="fas fa-truck fa-fw"></i>
                             <span>{{ __('messages.supplier_reports') }}</span>
                             <i class="fas fa-chevron-down menu-arrow"></i>
-                        </a>
+                        </button>
                         <div class="submenu">
                             <a href="{{ route('reports.suppliers.index') }}"
                                 class="menu-link {{ request()->routeIs('reports.suppliers.index') ? 'active' : '' }}">
-                                {{ __('messages.overview') }}
+                                <i class="fas fa-tachometer-alt fa-fw me-2"></i> {{ __('messages.overview') }}
                             </a>
                             <a href="{{ route('reports.suppliers.by-code-name') }}"
                                 class="menu-link {{ request()->routeIs('reports.suppliers.by-code-name') ? 'active' : '' }}">
-                                {{ __('messages.reports_by_code_name') }}
+                                <i class="fas fa-address-card fa-fw me-2"></i> {{ __('messages.reports_by_code_name') }}
                             </a>
                             <a href="{{ route('reports.suppliers.local-purchases') }}"
                                 class="menu-link {{ request()->routeIs('reports.suppliers.local-purchases') ? 'active' : '' }}">
-                                {{ __('messages.local_purchases') }}
+                                <i class="fas fa-store fa-fw me-2"></i> {{ __('messages.local_purchases') }}
                             </a>
                             <a href="{{ route('reports.suppliers.purchase-summary') }}"
                                 class="menu-link {{ request()->routeIs('reports.suppliers.purchase-summary') ? 'active' : '' }}">
-                                {{ __('messages.reports_purchase_summary') }}
+                                <i class="fas fa-file-alt fa-fw me-2"></i> {{ __('messages.reports_purchase_summary') }}
                             </a>
                         </div>
                     </div>
@@ -556,23 +548,31 @@
             <!-- Finance & Banking Section -->
             <div class="menu-section">{{ __('messages.finance_banking') }}</div>
             <div class="menu-item {{ request()->is('finance*') ? 'open' : '' }}">
-                <a href="#" class="menu-link" data-submenu>
+                <button type="button" class="menu-link" data-submenu data-turbo="false">
                     <i class="fas fa-university fa-fw"></i>
                     <span>{{ __('messages.finance_banking') }}</span>
                     <i class="fas fa-chevron-down menu-arrow"></i>
-                </a>
+                </button>
                 <div class="submenu">
                     <a href="{{ route('finance.bank-accounts.index') }}"
                         class="menu-link {{ request()->routeIs('finance.bank-accounts.*') ? 'active' : '' }}">
-                        {{ __('messages.bank_cash_accounts') }}
+                        <i class="fas fa-university fa-fw me-2"></i> {{ __('messages.bank_cash_accounts') }}
                     </a>
                     <a href="{{ route('finance.vouchers.payment.index') }}"
                         class="menu-link {{ request()->routeIs('finance.vouchers.payment.*') ? 'active' : '' }}">
-                        {{ __('messages.payment_vouchers') }}
+                        <i class="fas fa-money-check fa-fw me-2"></i> {{ __('messages.payment_vouchers') }}
                     </a>
                     <a href="{{ route('finance.vouchers.receipt.index') }}"
                         class="menu-link {{ request()->routeIs('finance.vouchers.receipt.*') ? 'active' : '' }}">
-                        {{ __('messages.receipt_vouchers') }}
+                        <i class="fas fa-receipt fa-fw me-2"></i> {{ __('messages.receipt_vouchers') }}
+                    </a>
+                    <a href="{{ route('finance.budgets.index') }}"
+                        class="menu-link {{ request()->routeIs('finance.budgets.*') ? 'active' : '' }}">
+                        <i class="fas fa-chart-pie fa-fw me-2"></i> {{ __('messages.budget_management') }}
+                    </a>
+                    <a href="{{ route('finance.fixed-assets.index') }}"
+                        class="menu-link {{ request()->routeIs('finance.fixed-assets.*') ? 'active' : '' }}">
+                        <i class="fas fa-hard-hat fa-fw me-2"></i> {{ __('messages.fixed_assets') }}
                     </a>
                 </div>
             </div>
@@ -584,44 +584,44 @@
 
                 <!-- General Ledger System -->
                 <div class="menu-item {{ request()->routeIs('accounting.gl.*') ? 'open' : '' }}">
-                    <a href="#" class="menu-link" data-submenu>
+                    <button type="button" class="menu-link" data-submenu data-turbo="false">
                         <i class="fas fa-book fa-fw"></i>
                         <span>{{ __('messages.general_ledger_system') }}</span>
                         <i class="fas fa-chevron-down menu-arrow"></i>
-                    </a>
+                    </button>
                     <div class="submenu">
                         @can('manage chart of accounts')
                             <a href="{{ route('accounting.gl.coa.index') }}"
                                 class="menu-link {{ request()->routeIs('accounting.gl.coa.*') ? 'active' : '' }}">
-                                {{ __('messages.chart_of_accounts') }}
+                                <i class="fas fa-sitemap fa-fw me-2"></i> {{ __('messages.chart_of_accounts') }}
                             </a>
                         @endcan
 
                         <!-- Setup Submenu -->
                         <div class="menu-item {{ request()->routeIs('accounting.setup.*') ? 'open' : '' }}"
                             style="margin-left: 10px;">
-                            <a href="#" class="menu-link" data-submenu>
+                            <button type="button" class="menu-link" data-submenu data-turbo="false">
                                 <i class="fas fa-tools fa-fw"></i>
                                 <span>{{ __('messages.setup') }}</span>
                                 <i class="fas fa-chevron-down menu-arrow"></i>
-                            </a>
+                            </button>
                             <div class="submenu">
                                 @can('view cost_centers')
                                     <a href="{{ route('accounting.gl.setup.cost-centers.index') }}"
                                         class="menu-link {{ request()->routeIs('accounting.gl.setup.cost-centers.*') ? 'active' : '' }}">
-                                        {{ __('messages.cost_centers') }}
+                                        <i class="fas fa-bullseye fa-fw me-2"></i> {{ __('messages.cost_centers') }}
                                     </a>
                                 @endcan
                                 @can('view activities')
                                     <a href="{{ route('accounting.gl.setup.activities.index') }}"
                                         class="menu-link {{ request()->routeIs('accounting.gl.setup.activities.*') ? 'active' : '' }}">
-                                        {{ __('messages.activities') }}
+                                        <i class="fas fa-tasks fa-fw me-2"></i> {{ __('messages.activities') }}
                                     </a>
                                 @endcan
                                 @can('view lcs')
                                     <a href="{{ route('accounting.gl.setup.lcs.index') }}"
                                         class="menu-link {{ request()->routeIs('accounting.gl.setup.lcs.*') ? 'active' : '' }}">
-                                        {{ __('messages.lcs') }}
+                                        <i class="fas fa-file-import fa-fw me-2"></i> {{ __('messages.lcs') }}
                                     </a>
                                 @endcan
                             </div>
@@ -630,15 +630,15 @@
                         <!-- Transactions Submenu -->
                         <div class="menu-item {{ request()->routeIs('accounting.gl.transactions.*') ? 'open' : '' }}"
                             style="margin-left: 10px;">
-                            <a href="#" class="menu-link" data-submenu>
+                            <button type="button" class="menu-link" data-submenu data-turbo="false">
                                 <i class="fas fa-exchange-alt fa-fw"></i>
                                 <span>{{ __('messages.transactions') }}</span>
                                 <i class="fas fa-chevron-down menu-arrow"></i>
-                            </a>
+                            </button>
                             <div class="submenu">
                                 <a href="{{ route('accounting.gl.transactions.jv.index') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.transactions.jv.*') ? 'active' : '' }}">
-                                    {{ __('messages.journal_vouchers') }}
+                                    <i class="fas fa-file-invoice fa-fw me-2"></i> {{ __('messages.journal_vouchers') }}
                                 </a>
                             </div>
                         </div>
@@ -646,43 +646,43 @@
                         <!-- Reports Submenu -->
                         <div class="menu-item {{ request()->routeIs('accounting.gl.reports.*') ? 'open' : '' }}"
                             style="margin-left: 10px;">
-                            <a href="#" class="menu-link" data-submenu>
+                            <button type="button" class="menu-link" data-submenu data-turbo="false">
                                 <i class="fas fa-file-invoice-dollar fa-fw"></i>
                                 <span>{{ __('messages.reports') }}</span>
                                 <i class="fas fa-chevron-down menu-arrow"></i>
-                            </a>
+                            </button>
                             <div class="submenu">
                                 <a href="{{ route('accounting.gl.dashboard') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.dashboard') ? 'active' : '' }}">
-                                    {{ __('messages.dashboard') }}
+                                    <i class="fas fa-th-large fa-fw me-2"></i> {{ __('messages.dashboard') }}
                                 </a>
                                 <a href="{{ route('accounting.gl.reports.account-statement') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.reports.account-statement') ? 'active' : '' }}">
-                                    {{ __('messages.account_statement_report') }}
+                                    <i class="fas fa-file-invoice fa-fw me-2"></i> {{ __('messages.account_statement_report') }}
                                 </a>
                                 <a href="{{ route('accounting.gl.reports.universal-statement') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.reports.universal-statement') ? 'active' : '' }}">
-                                    {{ __('messages.universal_statement_report') }}
+                                    <i class="fas fa-globe fa-fw me-2"></i> {{ __('messages.universal_statement_report') }}
                                 </a>
                                 <a href="{{ route('accounting.gl.reports.daily-ledger') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.reports.daily-ledger') ? 'active' : '' }}">
-                                    {{ __('messages.daily_ledger') }}
+                                    <i class="fas fa-calendar-day fa-fw me-2"></i> {{ __('messages.daily_ledger') }}
                                 </a>
                                 <a href="{{ route('accounting.gl.reports.trial-balance') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.reports.trial-balance') ? 'active' : '' }}">
-                                    {{ __('messages.trial_balance') }}
+                                    <i class="fas fa-balance-scale fa-fw me-2"></i> {{ __('messages.trial_balance') }}
                                 </a>
                                 <a href="{{ route('accounting.gl.reports.profit-loss') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.reports.profit-loss') ? 'active' : '' }}">
-                                    {{ __('messages.profit_loss') }}
+                                    <i class="fas fa-chart-line fa-fw me-2"></i> {{ __('messages.profit_loss') }}
                                 </a>
                                 <a href="{{ route('accounting.gl.reports.balance-sheet') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.reports.balance-sheet') ? 'active' : '' }}">
-                                    {{ __('messages.balance_sheet') }}
+                                    <i class="fas fa-university fa-fw me-2"></i> {{ __('messages.balance_sheet') }}
                                 </a>
                                 <a href="{{ route('accounting.gl.explorer.index') }}"
                                     class="menu-link {{ request()->routeIs('accounting.gl.explorer.*') ? 'active' : '' }}">
-                                    {{ __('messages.account_explorer') }}
+                                    <i class="fas fa-search-plus fa-fw me-2"></i> {{ __('messages.account_explorer') }}
                                 </a>
                             </div>
                         </div>
@@ -691,5 +691,33 @@
             @endcan
         @endif
 
+        @if($checkVisibility('module_healthcare'))
+            <div class="menu-section">{{ __('messages.healthcare_management') }}</div>
+            <div class="menu-item {{ request()->is('healthcare*') ? 'open' : '' }}">
+                <button type="button" class="menu-link" data-submenu data-turbo="false">
+                    <i class="fas fa-hospital fa-fw text-danger"></i>
+                    <span>{{ __('messages.healthcare_management') }}</span>
+                    <i class="fas fa-chevron-down menu-arrow"></i>
+                </button>
+                <div class="submenu">
+                    <a href="{{ route('healthcare.patients.index') }}"
+                        class="menu-link {{ request()->routeIs('healthcare.patients.*') ? 'active' : '' }}">
+                        <i class="fas fa-user-injured fa-fw me-2"></i> {{ __('messages.patients') }}
+                    </a>
+                    <a href="{{ route('healthcare.doctors.index') }}"
+                        class="menu-link {{ request()->routeIs('healthcare.doctors.*') ? 'active' : '' }}">
+                        <i class="fas fa-user-md fa-fw me-2"></i> {{ __('messages.doctors') }}
+                    </a>
+                    <a href="{{ route('healthcare.appointments.index') }}"
+                        class="menu-link {{ request()->routeIs('healthcare.appointments.*') ? 'active' : '' }}">
+                        <i class="fas fa-calendar-check fa-fw me-2"></i> {{ __('messages.appointments') }}
+                    </a>
+                    <a href="{{ route('healthcare.medical-services.index') }}"
+                        class="menu-link {{ request()->routeIs('healthcare.medical-services.*') ? 'active' : '' }}">
+                        <i class="fas fa-stethoscope fa-fw me-2"></i> {{ __('messages.medical_services') }}
+                    </a>
+                </div>
+            </div>
+        @endif
     </nav>
 </aside>
