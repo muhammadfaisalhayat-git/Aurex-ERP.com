@@ -73,8 +73,8 @@
 
                             <div class="row">
                                 <div class="col-md-4 mb-3">
-                                    <label for="customer_id" class="form-label">{{ __('sales.customer') }} <span class="text-danger">*</span></label>
-                                    <select class="form-select @error('customer_id') is-invalid @enderror" id="customer_id" name="customer_id" required>
+                                    <label for="customer_id" class="form-label">{{ __('sales.customer') }}</label>
+                                    <select class="form-select @error('customer_id') is-invalid @enderror" id="customer_id" name="customer_id">
                                         <option value="">{{ __('sales.cash_customer') }}</option>
                                         @foreach($customers as $customer)
                                             <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
@@ -328,29 +328,45 @@
 @push('scripts')
     <script>
         document.addEventListener('turbo:load', function () {
+            // 1. Initialize Variables & DOM Elements
             let itemIndex = 0;
             const defaultTaxRate = {{ $taxSetting->default_tax_rate ?? 0 }};
             const tableBody = document.querySelector('#items-table tbody');
             const template = document.getElementById('item-row-template').innerHTML;
-
-            const salesmanData = [
-                @foreach($salesmen as $salesman)
-                    { id: {{ $salesman->id }}, name: "{{ $salesman->name }}" },
-                @endforeach
-                                                                    ];
-
-            const customerData = [
-                @foreach($customers as $customer)
-                    { id: {{ $customer->id }}, name: "{{ $customer->name_en }}", code: "{{ $customer->customer_code }}" },
-                @endforeach
-                                                                    ];
-
-        document.addEventListener('turbo:load', function() {
-            // Check if we are on the create invoice page
             const branchSelect = document.getElementById('branch_id');
+            const warehouseSelect = document.getElementById('warehouse_id');
+            const customerSelect = document.getElementById('customer_id');
+            const salesmanSelect = document.getElementById('salesman_id');
+
             if (!branchSelect) return;
 
-            // Initialize Premium Select2
+            // 2. Data Initialization
+            const products = [
+                @foreach($products as $product)
+                {
+                    id: {{ $product->id }},
+                    name_en: "{{ addslashes($product->name_en) }}",
+                    name_ar: "{{ addslashes($product->name_ar) }}",
+                    name: "{{ addslashes($product->name) }}",
+                    code: "{{ $product->product_code }}",
+                    price: {{ $product->sale_price ?? 0 }},
+                    cost_price: {{ $product->cost_price ?? 0 }},
+                    tax: {{ $product->tax_rate ?? $taxSetting->default_tax_rate ?? 0 }} 
+                },
+                @endforeach
+            ];
+
+            const warehousesJson = [
+                @foreach($warehouses as $warehouse)
+                {
+                    id: {{ $warehouse->id }},
+                    name: "{{ addslashes($warehouse->name_en) }}",
+                    branch_id: {{ $warehouse->branch_id }}
+                },
+                @endforeach
+            ];
+
+            // 3. Helper Functions
             function initSelect2() {
                 if (window.jQuery) {
                     $('#customer_id').select2({
@@ -393,26 +409,12 @@
                     });
                 }
             }
-            initSelect2();
-
-            const warehouseSelect = document.getElementById('warehouse_id');
-            
-            // Embed warehouse data directly to avoid Turbo/DOM-clobbering issues
-            const warehousesJson = [
-                @foreach($warehouses as $warehouse)
-                    {
-                        id: {{ $warehouse->id }},
-                        name: "{{ addslashes($warehouse->name_en) }}",
-                        branch_id: {{ $warehouse->branch_id }}
-                    },
-                @endforeach
-            ];
 
             function filterWarehouses() {
                 const selectedBranchId = branchSelect.value;
                 const currentWarehouseVal = warehouseSelect.value;
-                
                 const $warehouse = $(warehouseSelect);
+                
                 if ($warehouse.data('select2')) $warehouse.select2('destroy');
 
                 warehouseSelect.innerHTML = '<option value="">{{ __("common.select") }}</option>';
@@ -431,15 +433,8 @@
                     }
                 });
 
-                // Clear value if no longer valid for this branch
-                if (!valueStillExists) {
-                    warehouseSelect.value = "";
-                }
-
-                // Auto-select if only one warehouse and nothing is selected (or just became empty)
-                if (matches.length === 1 && (!warehouseSelect.value)) {
-                    warehouseSelect.value = matches[0];
-                }
+                if (!valueStillExists) warehouseSelect.value = "";
+                if (matches.length === 1 && !warehouseSelect.value) warehouseSelect.value = matches[0];
 
                 $warehouse.select2({
                     theme: 'bootstrap-5',
@@ -450,42 +445,12 @@
                 });
             }
 
-            $(branchSelect).on('change', filterWarehouses);
-            
-            // Initial filter on load
-            if (branchSelect.value) filterWarehouses();
-        });
-
-            const productData = [
-                @foreach($products as $product)
-                        {
-                    id: {{ $product->id }},
-                    name_en: "{{ addslashes($product->name_en) }}",
-                    name_ar: "{{ addslashes($product->name_ar) }}",
-                    name: "{{ addslashes($product->name) }}",
-                    code: "{{ $product->product_code }}",
-                    price: {{ $product->sale_price ?? 0 }},
-                    cost_price: {{ $product->cost_price ?? 0 }},
-                    tax: {{ $product->tax_rate ?? $taxSetting->default_tax_rate ?? 0 }} 
-                        },
-                @endforeach
-                ];
-
             function addItem() {
                 const html = template.replace(/INDEX/g, itemIndex++);
                 tableBody.insertAdjacentHTML('beforeend', html);
                 const newRow = tableBody.lastElementChild;
                 initProductSearch(newRow);
             }
-
-            // Add initial item only if table is empty
-            if (tableBody.children.length === 0) addItem();
-
-            const addItemBtn = document.getElementById('add-item-btn');
-            addItemBtn.removeEventListener('click', addItemBtn._addItemHandler);
-            addItemBtn._addItemHandler = () => addItem();
-            addItemBtn.addEventListener('click', addItemBtn._addItemHandler);
-
 
             function initProductSearch(row) {
                 const input = row.querySelector('.product-search-input');
@@ -500,7 +465,7 @@
                     }
 
                     const transliterated = window.transliterateToArabic(search);
-                    const filtered = productData.filter(p =>
+                    const filtered = products.filter(p =>
                         p.name_en.toLowerCase().includes(search) ||
                         p.name_ar.toLowerCase().includes(search) ||
                         p.name_ar.toLowerCase().includes(transliterated) ||
@@ -508,13 +473,17 @@
                     );
 
                     renderResults(results, filtered, (product) => {
-                        input.value = {{ app()->getLocale() === 'ar' ? 'product.name_ar || product.name_en' : 'product.name_en || product.name_ar' }};
+                        input.value = '{{ app()->getLocale() === 'ar' }}' === '1' ? (product.name_ar || product.name_en) : (product.name_en || product.name_ar);
                         hidden.value = product.id;
                         row.querySelector('.price-input').value = product.price;
                         row.querySelector('.tax-rate-input').value = product.tax;
                         results.style.display = 'none';
                         calculateRow(row);
                     }, true);
+                });
+
+                input.addEventListener('focus', function() {
+                    if (this.value.length > 0) this.dispatchEvent(new Event('input'));
                 });
             }
 
@@ -529,14 +498,15 @@
                     const div = document.createElement('div');
                     div.className = 'search-result-item';
 
-                    const currentName = {{ app()->getLocale() === 'ar' ? 'item.name_ar || item.name_en' : 'item.name_en || item.name_ar' }};
-                    const subName = {{ app()->getLocale() === 'ar' ? 'item.name_en' : 'item.name_ar' }};
+                    const currentLocale = '{{ app()->getLocale() }}';
+                    const currentName = currentLocale === 'ar' ? (item.name_ar || item.name_en) : (item.name_en || item.name_ar);
+                    const subName = currentLocale === 'ar' ? item.name_en : item.name_ar;
 
                     if (isProduct) {
                         div.innerHTML = `
                             <div class="item-title">${currentName}</div>
                             ${subName && subName !== currentName ? `<div class="item-subtitle text-muted" style="font-size: 0.8rem;">${subName}</div>` : ''}
-                            <div class="item-subtitle">${item.code}</div>
+                            <div class="item-subtitle">${item.code || ''}</div>
                             <div class="item-meta d-flex gap-3">
                                 <span style="color:#198754; font-weight:600;">{{ __('messages.sale_price') }}: ${parseFloat(item.price).toFixed(2)}</span>
                                 <span style="color:#dc3545; font-weight:600;">{{ __('messages.cost_price') }}: ${parseFloat(item.cost_price).toFixed(2)}</span>
@@ -557,219 +527,6 @@
                 container.style.display = 'block';
             }
 
-            // Import Data Logic
-            const importSourceType = document.getElementById('import_source_type');
-            const importSourceContainer = document.getElementById('import-source-container');
-            const importSourceDisplay = document.getElementById('import_source_display');
-            const btnShowImportModal = document.getElementById('btn-show-import-modal');
-            const importModal = new bootstrap.Modal(document.getElementById('importSourceModal'));
-            const modalTableBody = document.querySelector('#modal-results-table tbody');
-            const modalSearchInput = document.getElementById('modal-search-input');
-            const modalLoader = document.getElementById('modal-loader');
-
-            // Select2 fires its own 'change' event — use jQuery to listen
-            $('#import_source_type').on('change', function () {
-                const val = $(this).val();
-                if (val) {
-                    importSourceContainer.style.display = 'block';
-                    importSourceDisplay.value = '';
-                    openImportModal();
-                } else {
-                    importSourceContainer.style.display = 'none';
-                }
-            });
-
-            btnShowImportModal.addEventListener('click', openImportModal);
-
-            function openImportModal() {
-                const type = $('#import_source_type').val();
-                if (!type) return;
-
-                importModal.show();
-                fetchSourceDocuments(type, '');
-            }
-
-            modalSearchInput.addEventListener('input', function () {
-                const type = $('#import_source_type').val();
-                fetchSourceDocuments(type, this.value);
-            });
-
-            function fetchSourceDocuments(type, query) {
-                modalTableBody.innerHTML = '';
-                modalLoader.style.display = 'block';
-
-                fetch(`{{ route('sales.invoices.import-sources') }}?type=${type}&q=${encodeURIComponent(query)}`)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Server error: ' + response.status);
-                        return response.json();
-                    })
-                    .then(data => {
-                        modalLoader.style.display = 'none';
-                        if (!Array.isArray(data) || data.length === 0) {
-                            modalTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">{{ __("common.no_results") }}</td></tr>';
-                            return;
-                        }
-
-                        data.forEach(item => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                                                <td>${item.text}</td>
-                                                                <td>${item.customer_name || '-'}</td>
-                                                                <td>${item.date || '-'}</td>
-                                                                <td>${item.total_amount ? parseFloat(item.total_amount).toFixed(2) : '-'}</td>
-                                                                <td class="text-end">
-                                                                    <button class="btn btn-sm btn-primary select-document" data-id="${item.id}">
-                                                                        {{ __("common.select") }}
-                                                                    </button>
-                                                                </td>
-                                                            `;
-
-                            tr.querySelector('.select-document').addEventListener('click', function () {
-                                if (confirm('Importing this document will clear existing items. Continue?')) {
-                                    // Hide modal first
-                                    importModal.hide();
-
-                                    // Force removal of backdrop after a short delay to ensure screen isn't 'dim'
-                                    setTimeout(() => {
-                                        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-                                        document.body.classList.remove('modal-open');
-                                        document.body.style.overflow = '';
-                                        document.body.style.paddingRight = '';
-                                    }, 500);
-
-                                    loadSourceData(type, item.id);
-                                    importSourceDisplay.value = item.text;
-                                }
-                            });
-
-                            modalTableBody.appendChild(tr);
-                        });
-                    })
-                    .catch(err => {
-                        modalLoader.style.display = 'none';
-                        modalTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading data: ${err.message}</td></tr>`;
-                        console.error('fetchSourceDocuments error:', err);
-                    });
-            }
-
-            function loadSourceData(type, id) {
-                fetch(`{{ route('sales.invoices.source-data', ['type' => '__TYPE__', 'id' => '__ID__']) }}`.replace('__TYPE__', type).replace('__ID__', id))
-                    .then(response => response.json())
-                    .then(data => {
-                        // Populate Main Fields
-                        if (data.customer_id) {
-                            $(customerSelect).val(data.customer_id).trigger('change');
-                        }
-                        if (data.branch_id) {
-                            $(branchSelect).val(data.branch_id).trigger('change');
-                            // Wait for branch filtering to complete before setting warehouse
-                            setTimeout(() => {
-                                if (data.warehouse_id) $(warehouseSelect).val(data.warehouse_id).trigger('change');
-                            }, 100);
-                        }
-                        if (data.salesman_id) {
-                            $(salesmanSelect).val(data.salesman_id).trigger('change');
-                        }
-
-                        // Clear and Populate Items
-                        tableBody.innerHTML = '';
-                        itemIndex = 0;
-
-                        data.items.forEach(item => {
-                            addItem();
-                            const row = tableBody.lastElementChild;
-                            const prInput = row.querySelector('.product-search-input');
-                            const prHidden = row.querySelector('.product-id-input');
-
-                            prInput.value = item.product_name;
-                            prHidden.value = item.product_id;
-                            row.querySelector('.quantity-input').value = item.quantity;
-                            row.querySelector('.price-input').value = item.unit_price;
-                            row.querySelector('.discount-input').value = item.discount_percentage;
-                            row.querySelector('.tax-rate-input').value = item.tax_rate;
-
-                            calculateRow(row);
-                        });
-                    });
-            }
-
-            // Global click to close dropdowns
-            document.addEventListener('click', function (e) {
-                if (!e.target.closest('.position-relative')) {
-                    document.querySelectorAll('.search-results-container').forEach(c => c.style.display = 'none');
-                }
-            });
-
-            tableBody.addEventListener('click', function (e) {
-                if (e.target.closest('.remove-item')) {
-                    const rows = tableBody.querySelectorAll('tr');
-                    if (rows.length > 1) {
-                        e.target.closest('tr').remove();
-                        calculateTotals();
-                    }
-                    return;
-                }
-
-                const searchBtn = e.target.closest('.product-search-btn');
-                if (searchBtn) {
-                    e.preventDefault();
-                    searchBtn.closest('tr').querySelector('.product-search-input').focus();
-                }
-            });
-
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'F2') {
-                    e.preventDefault();
-                    if (customerSelect && !customerSelect.value) {
-                        $(customerSelect).select2('open');
-                    } else {
-                        // Focus first empty or last row product input
-                        const productInputs = document.querySelectorAll('.product-search-input');
-                        const targetInput = Array.from(productInputs).find(i => !i.value) || productInputs[productInputs.length - 1];
-                        if (targetInput) { targetInput.focus(); targetInput.select(); }
-                    }
-                }
-
-                if (e.key === 'Enter' && !e.target.matches('textarea')) {
-                    if (e.target.classList.contains('search-result-item')) return;
-
-                    const form = e.target.form;
-                    if (!form) return;
-
-                    const index = Array.from(form.elements).indexOf(e.target);
-                    if (index > -1) {
-                        // Special case: if in discount field of last row, add new row
-                        if (e.target.classList.contains('discount-input')) {
-                            const row = e.target.closest('tr');
-                            if (row === tableBody.lastElementChild) {
-                                e.preventDefault();
-                                addItem();
-                                setTimeout(() => {
-                                    tableBody.lastElementChild.querySelector('.product-search-input').focus();
-                                }, 10);
-                                return;
-                            }
-                        }
-
-                        // Normal behavior: focus next element
-                        let next = form.elements[index + 1];
-                        while (next && (next.readOnly || next.type === 'hidden' || next.disabled)) {
-                            next = form.elements[Array.from(form.elements).indexOf(next) + 1];
-                        }
-                        if (next && next.type !== 'submit') {
-                            e.preventDefault();
-                            next.focus();
-                        }
-                    }
-                }
-            });
-
-            tableBody.addEventListener('input', function (e) {
-                if (e.target.matches('.quantity-input, .price-input, .discount-input')) {
-                    calculateRow(e.target.closest('tr'));
-                }
-            });
-
             function calculateRow(row) {
                 const qEl = row.querySelector('.quantity-input');
                 const pEl = row.querySelector('.price-input');
@@ -783,7 +540,6 @@
                 const discountPercent = parseFloat(dEl ? dEl.value : 0) || 0;
                 const taxRate = parseFloat(trEl ? trEl.value : 0) || 0;
 
-                // Tax-inclusive: price already contains tax
                 const gross = quantity * price * (1 - discountPercent / 100);
                 const net = taxRate > 0 ? gross / (1 + taxRate / 100) : gross;
                 const tax = gross - net;
@@ -792,7 +548,7 @@
                 const totEl = row.querySelector('.total-display');
 
                 if (tdEl) tdEl.value = tax.toFixed(2);
-                if (totEl) totEl.value = gross.toFixed(2);  // Total shown = the inclusive price
+                if (totEl) totEl.value = gross.toFixed(2);
 
                 calculateTotals();
             }
@@ -813,7 +569,6 @@
                         const discountPercent = parseFloat(dEl ? dEl.value : 0) || 0;
                         const taxRate = parseFloat(trEl ? trEl.value : 0) || 0;
 
-                        // Tax-inclusive extraction
                         const gross = quantity * price * (1 - discountPercent / 100);
                         const net = taxRate > 0 ? gross / (1 + taxRate / 100) : gross;
                         const tax = gross - net;
@@ -824,16 +579,149 @@
                 });
 
                 const grandTotal = subtotal + taxAmount;
-
-                const subEl = document.getElementById('subtotal');
-                const taxEl = document.getElementById('tax_amount');
-                const grandEl = document.getElementById('grand_total');
-
-                if (subEl) subEl.textContent = subtotal.toFixed(2);
-                if (taxEl) taxEl.textContent = taxAmount.toFixed(2);
-                if (grandEl) grandEl.textContent = grandTotal.toFixed(2);
+                document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+                document.getElementById('tax_amount').textContent = taxAmount.toFixed(2);
+                document.getElementById('grand_total').textContent = grandTotal.toFixed(2);
             }
+
+            // 4. Import Data Logic
+            const importModal = new bootstrap.Modal(document.getElementById('importSourceModal'));
+            const modalTableBody = document.querySelector('#modal-results-table tbody');
+            const modalSearchInput = document.getElementById('modal-search-input');
+            const modalLoader = document.getElementById('modal-loader');
+
+            $('#import_source_type').on('change', function () {
+                if ($(this).val()) {
+                    document.getElementById('import-source-container').style.display = 'block';
+                    document.getElementById('import_source_display').value = '';
+                    importModal.show();
+                    fetchSourceDocuments($(this).val(), '');
+                } else {
+                    document.getElementById('import-source-container').style.display = 'none';
+                }
+            });
+
+            document.getElementById('btn-show-import-modal').addEventListener('click', () => importModal.show());
+
+            modalSearchInput.addEventListener('input', function () {
+                fetchSourceDocuments($('#import_source_type').val(), this.value);
+            });
+
+            function fetchSourceDocuments(type, query) {
+                modalTableBody.innerHTML = '';
+                modalLoader.style.display = 'block';
+
+                fetch(`{{ route('sales.invoices.import-sources') }}?type=${type}&q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        modalLoader.style.display = 'none';
+                        if (data.length === 0) {
+                            modalTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">{{ __("common.no_results") }}</td></tr>';
+                            return;
+                        }
+
+                        data.forEach(item => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${item.text}</td>
+                                <td>${item.customer_name || '-'}</td>
+                                <td>${item.date || '-'}</td>
+                                <td>${item.total_amount ? parseFloat(item.total_amount).toFixed(2) : '-'}</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-primary select-document" data-id="${item.id}">{{ __("common.select") }}</button>
+                                </td>
+                            `;
+
+                            tr.querySelector('.select-document').addEventListener('click', function () {
+                                if (confirm('Importing this document will clear existing items. Continue?')) {
+                                    importModal.hide();
+                                    loadSourceData(type, item.id);
+                                    document.getElementById('import_source_display').value = item.text;
+                                }
+                            });
+                            modalTableBody.appendChild(tr);
+                        });
+                    });
+            }
+
+            function loadSourceData(type, id) {
+                fetch(`{{ route('sales.invoices.source-data', ['type' => '__TYPE__', 'id' => '__ID__']) }}`.replace('__TYPE__', type).replace('__ID__', id))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.customer_id) $(customerSelect).val(data.customer_id).trigger('change');
+                        if (data.branch_id) {
+                            $(branchSelect).val(data.branch_id).trigger('change');
+                            setTimeout(() => { if (data.warehouse_id) $(warehouseSelect).val(data.warehouse_id).trigger('change'); }, 100);
+                        }
+                        if (data.salesman_id) $(salesmanSelect).val(data.salesman_id).trigger('change');
+
+                        tableBody.innerHTML = '';
+                        itemIndex = 0;
+                        data.items.forEach(item => {
+                            addItem();
+                            const row = tableBody.lastElementChild;
+                            row.querySelector('.product-search-input').value = item.product_name;
+                            row.querySelector('.product-id-input').value = item.product_id;
+                            row.querySelector('.quantity-input').value = item.quantity;
+                            row.querySelector('.price-input').value = item.unit_price;
+                            row.querySelector('.discount-input').value = item.discount_percentage;
+                            row.querySelector('.tax-rate-input').value = item.tax_rate;
+                            calculateRow(row);
+                        });
+                    });
+            }
+
+            // 5. Event Listeners Initialization
+            initSelect2();
+            $(branchSelect).on('change', filterWarehouses);
+            if (branchSelect.value) filterWarehouses();
+
+            document.getElementById('add-item-btn').addEventListener('click', addItem);
+            if (tableBody.children.length === 0) addItem();
+
+            tableBody.addEventListener('click', function (e) {
+                if (e.target.closest('.remove-item')) {
+                    if (tableBody.querySelectorAll('tr').length > 1) {
+                        e.target.closest('tr').remove();
+                        calculateTotals();
+                    }
+                }
+            });
+
+            tableBody.addEventListener('input', function (e) {
+                if (e.target.matches('.quantity-input, .price-input, .discount-input')) {
+                    calculateRow(e.target.closest('tr'));
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.position-relative')) {
+                    document.querySelectorAll('.search-results-container').forEach(c => c.style.display = 'none');
+                }
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'F2') {
+                    e.preventDefault();
+                    const productInputs = document.querySelectorAll('.product-search-input');
+                    const targetInput = Array.from(productInputs).find(i => !i.value) || productInputs[productInputs.length - 1];
+                    if (targetInput) { targetInput.focus(); targetInput.select(); }
+                }
+            });
+
+            tableBody.addEventListener('click', function (e) {
+                const searchBtn = e.target.closest('.product-search-btn');
+                if (searchBtn) {
+                    e.preventDefault();
+                    const input = searchBtn.closest('tr').querySelector('.product-search-input');
+                    if (input) {
+                        input.focus();
+                        if (input.value.length > 0) input.dispatchEvent(new Event('input'));
+                    }
+                }
+            });
         });
+
     </script>
 
     {{-- Clear dynamic content before Turbo caches the page --}}

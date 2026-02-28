@@ -387,7 +387,7 @@ class SalesInvoiceController extends Controller
         $validated = $request->validate([
             'invoice_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:invoice_date',
-            'customer_id' => 'required|exists:customers,id',
+            'customer_id' => 'nullable|exists:customers,id',
             'branch_id' => 'required|exists:branches,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'salesman_id' => 'nullable|exists:users,id',
@@ -797,9 +797,9 @@ class SalesInvoiceController extends Controller
         $query = SalesInvoice::query();
 
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhere('document_number', 'like', "%{$search}%");
+                    ->orWhere('document_number', 'like', "%{$search}%");
             });
         }
 
@@ -812,11 +812,11 @@ class SalesInvoiceController extends Controller
             ->limit(15)
             ->get();
 
-        $results = $invoices->map(function($invoice) {
-            $customerName = app()->getLocale() === 'ar' 
-                ? ($invoice->customer->name_ar ?? $invoice->customer->name_en) 
+        $results = $invoices->map(function ($invoice) {
+            $customerName = app()->getLocale() === 'ar'
+                ? ($invoice->customer->name_ar ?? $invoice->customer->name_en)
                 : ($invoice->customer->name_en ?? $invoice->customer->name_ar);
-            
+
             return [
                 'id' => $invoice->id,
                 'text' => $invoice->invoice_number . ' (' . ($customerName ?? __('messages.unknown_customer')) . ')'

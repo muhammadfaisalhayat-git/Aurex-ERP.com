@@ -54,10 +54,9 @@
 
                             <div class="row">
                                 <div class="col-md-4 mb-3">
-                                    <label for="customer_id" class="form-label">{{ __('sales.customer') }} <span
-                                            class="text-danger">*</span></label>
+                                    <label for="customer_id" class="form-label">{{ __('sales.customer') }}</label>
                                     <select class="form-select select2 @error('customer_id') is-invalid @enderror"
-                                        id="customer_id" name="customer_id" required>
+                                        id="customer_id" name="customer_id">
                                         <option value="">{{ __('common.select') }}</option>
                                         @foreach($customers as $customer)
                                             <option value="{{ $customer->id }}" {{ old('customer_id', $invoice->customer_id) == $customer->id ? 'selected' : '' }}>
@@ -314,7 +313,7 @@
 
             const productData = [
                 @foreach($products as $product)
-                        {
+                            {
                     id: {{ $product->id }},
                     name_en: "{{ addslashes($product->name_en) }}",
                     name_ar: "{{ addslashes($product->name_ar) }}",
@@ -323,9 +322,9 @@
                     price: {{ $product->unit_price ?? $product->sale_price ?? 0 }},
                     cost: {{ $product->cost_price ?? 0 }},
                     tax: {{ $product->tax_rate ?? $defaultTaxRate }}
-                        },
+                            },
                 @endforeach
-                ];
+                    ];
 
             function initProductSearch(row) {
                 const searchInput = row.querySelector('.product-search-input');
@@ -375,20 +374,20 @@
                             const currentName = currentLocale === 'ar' ? p.name_ar || p.name_en : p.name_en || p.name_ar;
                             const subName = currentLocale === 'ar' ? p.name_en : p.name_ar;
                             return `
-                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.price}" data-tax="${p.tax}" data-cost="${p.cost}" style="cursor:pointer;">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="result-content">
-                                                <div class="fw-bold">${currentName}</div>
-                                                ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
-                                                <small class="text-muted">${p.code}</small>
-                                            </div>
-                                            <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
-                                                <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
-                                                <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
+                                        <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.price}" data-tax="${p.tax}" data-cost="${p.cost}" style="cursor:pointer;">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="result-content">
+                                                    <div class="fw-bold">${currentName}</div>
+                                                    ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                                    <small class="text-muted">${p.code}</small>
+                                                </div>
+                                                <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
+                                                    <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
+                                                    <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                `;
+                                    `;
                         }).join('');
                         resultsDiv.style.display = 'block';
 
