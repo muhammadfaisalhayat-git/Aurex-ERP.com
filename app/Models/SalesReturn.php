@@ -57,6 +57,11 @@ class SalesReturn extends Model
         return $this->status === 'posted';
     }
 
+    public function isEditable()
+    {
+        return $this->status === 'draft';
+    }
+
     public function post()
     {
         if ($this->isPosted()) {

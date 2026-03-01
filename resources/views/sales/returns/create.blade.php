@@ -113,34 +113,34 @@
                             <div class="row">
 
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="branch_id" class="form-label">{{ __('messages.branch') }} <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-select @error('branch_id') is-invalid @enderror" id="branch_id"
-                                        name="branch_id" required>
-                                        @foreach($branches as $branch)
-                                            <option value="{{ $branch->id }}" {{ old('branch_id', auth()->user()->branch_id) == $branch->id ? 'selected' : '' }}>
-                                                {{ $branch->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="branch_id" class="form-label">{{ __('messages.branch') }} <span
+                                                class="text-danger">*</span></label>
+                                        <select class="form-select @error('branch_id') is-invalid @enderror" id="branch_id"
+                                            name="branch_id" required>
+                                            @foreach($branches as $branch)
+                                                <option value="{{ $branch->id }}" {{ old('branch_id', auth()->user()->branch_id) == $branch->id ? 'selected' : '' }}>
+                                                    {{ $branch->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
 
-                                <div class="col-md-6 mb-3">
-                                    <label for="warehouse_id" class="form-label">{{ __('messages.warehouse') }} <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-select @error('warehouse_id') is-invalid @enderror"
-                                        id="warehouse_id" name="warehouse_id" required>
-                                        <option value="">{{ __('messages.select_warehouse') }}</option>
-                                        @foreach($warehouses as $warehouse)
-                                            <option value="{{ $warehouse->id }}" {{ old('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
-                                                {{ $warehouse->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="warehouse_id" class="form-label">{{ __('messages.warehouse') }} <span
+                                                class="text-danger">*</span></label>
+                                        <select class="form-select @error('warehouse_id') is-invalid @enderror"
+                                            id="warehouse_id" name="warehouse_id" required>
+                                            <option value="">{{ __('messages.select_warehouse') }}</option>
+                                            @foreach($warehouses as $warehouse)
+                                                <option value="{{ $warehouse->id }}" {{ old('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
+                                                    {{ $warehouse->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
                             </div>
 
                             <div class="row">
@@ -210,32 +210,32 @@
     </div>
 
     <script type="text/template" id="item-row-template">
-                                            <tr>
-                                                <td>
-                                                    <div class="position-relative product-search-container">
-                                                        <input type="text" class="form-control product-search-input"
-                                                            placeholder="{{ __('messages.select_product') ?? 'Search product...' }}"
-                                                            autocomplete="off" required>
-                                                        <input type="hidden" name="items[INDEX][product_id]" class="product-id-input" required>
-                                                        <div class="product-results" style="display: none; position: absolute; z-index: 1000; width: 100%; background: white; border: 1px solid #ddd; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
-                                                </td>
-                                                <td>
-                                                    <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
-                                                </td>
-                                                <td class="text-end">
-                                                    <span class="row-total">0.00</span>
-                                                </td>
-                                                <td class="text-center">
-                                                    <button type="button" class="btn btn-sm btn-danger remove-item">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </script>
+                                                <tr>
+                                                    <td>
+                                                        <div class="position-relative product-search-container">
+                                                            <input type="text" class="form-control product-search-input"
+                                                                placeholder="{{ __('messages.select_product') ?? 'Search product...' }}"
+                                                                autocomplete="off" required>
+                                                            <input type="hidden" name="items[INDEX][product_id]" class="product-id-input" required>
+                                                            <div class="product-results" style="display: none; position: absolute; z-index: 1000; width: 100%; background: white; border: 1px solid #ddd; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <span class="row-total">0.00</span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-sm btn-danger remove-item">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </script>
 @endsection
 
 @push('scripts')
@@ -258,7 +258,7 @@
 
             const productData = [
                 @foreach($products as $product)
-                        {
+                            {
                     id: {{ $product->id }},
                     name_en: "{{ addslashes($product->name_en) }}",
                     name_ar: "{{ addslashes($product->name_ar) }}",
@@ -266,9 +266,9 @@
                     code: "{{ $product->product_code ?? '' }}",
                     price: {{ $product->sale_price ?? 0 }},
                     cost: {{ $product->cost_price ?? 0 }}
-                        },
+                            },
                 @endforeach
-                ];
+                    ];
 
             function initProductSearch(row) {
                 const searchInput = row.querySelector('.product-search-input');
@@ -315,21 +315,21 @@
                             const currentName = currentLocale === 'ar' ? p.name_ar || p.name_en : p.name_en || p.name_ar;
                             const subName = currentLocale === 'ar' ? p.name_en : p.name_ar;
                             return `
-                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.price}" 
-                                         data-cost="${p.cost}" style="cursor:pointer;">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="result-content">
-                                                <div class="fw-bold">${currentName}</div>
-                                                ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
-                                                <small class="text-muted">${p.code}</small>
-                                            </div>
-                                            <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
-                                                <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
-                                                <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
+                                        <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.price}" 
+                                             data-cost="${p.cost}" style="cursor:pointer;">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="result-content">
+                                                    <div class="fw-bold">${currentName}</div>
+                                                    ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                                    <small class="text-muted">${p.code}</small>
+                                                </div>
+                                                <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
+                                                    <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
+                                                    <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                `;
+                                    `;
                         }).join('');
                         resultsDiv.style.display = 'block';
 
@@ -403,7 +403,7 @@
                     placeholder: $(invoiceSelect).data('placeholder'),
                     allowClear: true,
                     ajax: {
-                        url: "{{ route('sales.invoices.ajax-search') }}",
+                        url: "{{ route('ajax.invoices.search') }}",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
@@ -425,7 +425,7 @@
             initInvoiceSelect2();
 
             // Clear invoice when customer changes
-            $('#customer_id').on('change', function() {
+            $('#customer_id').on('change', function () {
                 $(invoiceSelect).val(null).trigger('change');
             });
 
@@ -448,10 +448,10 @@
                         // Populate header
                         document.getElementById('customer_id').value = data.customer_id;
                         // Trigger change but don't clear invoice again
-                        $('#customer_id').trigger('change.select2'); 
+                        $('#customer_id').trigger('change.select2');
                         document.getElementById('branch_id').value = data.branch_id;
                         document.getElementById('warehouse_id').value = data.warehouse_id;
-                        
+
                         // Force update Select2 displays for branch/warehouse too
                         window.jQuery && $('#branch_id, #warehouse_id').trigger('change.select2');
 
@@ -503,7 +503,7 @@
             function filterInvoices() {
                 const selectedCustomerId = String(customerSelect.value || '');
                 const currentInvoiceVal = invoiceSelect.value;
-                
+
                 // If Select2 is active, we MUST destroy it before modifying options
                 const $invoice = $(invoiceSelect);
                 const isSelect2 = $invoice.data('select2');
@@ -514,7 +514,7 @@
                 // Clear and rebuild options
                 invoiceSelect.innerHTML = '';
                 let foundMatch = false;
-                
+
                 allInvoiceOptions.forEach(opt => {
                     const optCustomerId = String(opt.customerId || '');
                     if (opt.value === "" || !selectedCustomerId || optCustomerId === selectedCustomerId) {
@@ -548,7 +548,7 @@
             }
 
             $(customerSelect).on('change', filterInvoices);
-            
+
             // Initial filter if needed
             if (customerSelect.value) {
                 setTimeout(filterInvoices, 500);

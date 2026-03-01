@@ -16,6 +16,16 @@
             method="POST" enctype="multipart/form-data">
             @csrf
             @if(isset($product)) @method('PUT') @endif
+            
+            @if ($errors->any())
+                <div class="alert alert-danger mb-4 shadow-sm border-0">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <!-- Top Header Info -->
             <div class="card glassy mb-4 border-0 shadow-sm">
@@ -622,6 +632,29 @@
             </div>
         </form>
     </div>
+
+    <!-- Validation Error Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (form) {
+                // Handle HTML5 validation errors on hidden tabs
+                form.addEventListener('invalid', function(e) {
+                    const field = e.target;
+                    const tabPane = field.closest('.tab-pane');
+                    if (tabPane && !tabPane.classList.contains('active')) {
+                        const tabId = tabPane.id;
+                        const tabTrigger = document.querySelector(`[href="#${tabId}"]`);
+                        if (tabTrigger) {
+                            bootstrap.Tab.getInstance(tabTrigger).show() || new bootstrap.Tab(tabTrigger).show();
+                            // Optional: Scroll to the field after a short delay
+                            setTimeout(() => field.focus(), 200);
+                        }
+                    }
+                }, true);
+            }
+        });
+    </script>
 
     <style>
         .glassy {

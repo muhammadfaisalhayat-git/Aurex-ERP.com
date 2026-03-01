@@ -29,17 +29,34 @@ class AccountingService
 
         $lastAccount = ChartOfAccount::where('parent_id', $parentId)
             ->where('type', $baseType)
+            ->where('company_id', session('active_company_id'))
             ->orderBy('code', 'desc')
             ->first();
 
-        if (!$lastAccount) {
-            return $prefix . '01';
+        $nextSeq = 1;
+        if ($lastAccount) {
+            // Get the part of the code after the prefix
+            $lastSeqStr = substr($lastAccount->code, strlen($prefix));
+            if (is_numeric($lastSeqStr)) {
+                $nextSeq = (int) $lastSeqStr + 1;
+            }
         }
 
-        $lastSeq = substr($lastAccount->code, strlen($prefix));
-        $newSeq = str_pad((int) $lastSeq + 1, 2, '0', STR_PAD_LEFT);
+        // Loop until we find a code that isn't taken globally by this company
+        // Increase limit to 1000 to handle 3-digit sequences (common in 4-digit codes)
+        $limit = 1000;
+        do {
+            $code = $prefix . str_pad($nextSeq, 2, '0', STR_PAD_LEFT);
+            $exists = ChartOfAccount::where('code', $code)
+                ->where('company_id', session('active_company_id'))
+                ->exists();
+            if (!$exists) {
+                break;
+            }
+            $nextSeq++;
+        } while ($nextSeq < $limit);
 
-        return $prefix . $newSeq;
+        return $code;
     }
 
     /**

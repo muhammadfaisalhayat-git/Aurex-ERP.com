@@ -696,18 +696,19 @@ class SalesInvoiceController extends Controller
             ->with('success', __('messages.invoice_created_from_quotation'));
     }
 
-    public function sendWhatsApp(SalesInvoice $invoice)
+    public function sendWhatsApp(\Illuminate\Http\Request $request, SalesInvoice $invoice)
     {
         $customer = $invoice->customer;
 
-        if (!$customer) {
-            return back()->with('error', 'Invoice does not have a linked customer.');
+        // Use the phone from the request (if provided via prompt), otherwise fallback to customer
+        $phone = $request->input('phone');
+
+        if (!$phone && $customer) {
+            $phone = $customer->mobile ?? $customer->phone;
         }
 
-        $phone = $customer->mobile ?? $customer->phone;
-
         if (!$phone) {
-            return back()->with('error', 'Customer does not have a mobile or phone number.');
+            return back()->with('error', __('messages.whatsapp_number_required') ?? 'A valid mobile or phone number is required to send WhatsApp messages.');
         }
 
         $message = $this->whatsappService->formatDocumentMessage($invoice, 'invoice');
@@ -736,6 +737,19 @@ class SalesInvoiceController extends Controller
                 $invoice->customer_name_ar = $this->arabicShaper->shape($invoice->customer->name_ar ?? '');
                 $invoice->notes_ar = $this->arabicShaper->shape($invoice->notes ?? '');
 
+                // Base64 logo for PDF
+                $logoBase64 = null;
+                if ($invoice->company?->logo) {
+                    $path = public_path('storage/' . $invoice->company->logo);
+                    if (file_exists($path)) {
+                        $type = pathinfo($path, PATHINFO_EXTENSION);
+                        $data = @file_get_contents($path);
+                        if ($data) {
+                            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                        }
+                    }
+                }
+
                 foreach ($invoice->items as $item) {
                     $item->product_name_ar = $this->arabicShaper->shape($item->product->name_ar ?? $item->product->name_en);
                     if ($item->description) {
@@ -743,7 +757,7 @@ class SalesInvoiceController extends Controller
                     }
                 }
 
-                $pdf = PDF::loadView('sales.invoices.pdf', compact('invoice'));
+                $pdf = PDF::loadView('sales.invoices.pdf', compact('invoice', 'logoBase64'));
                 $pdfContent = $pdf->output();
 
                 if (empty($pdfContent)) {

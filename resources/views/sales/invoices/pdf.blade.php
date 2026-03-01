@@ -1,276 +1,341 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="UTF-8">
-    <title>{{ __('sales.invoice') }} #{{ $invoice->invoice_number }}</title>
+    <title>{{ __('sales.invoice') }} #{{ $invoice->document_number }}</title>
     <style>
-        @page {
-            margin: 20px;
+        @font-face {
+            font-family: 'DejaVu Sans';
+            src: url('{{ storage_path('fonts/DejaVuSans.ttf') }}') format('truetype');
         }
 
-        body {
-            font-family: 'DejaVu Sans', sans-serif;
-            font-size: 10px;
-            color: #334155;
-            line-height: 1.4;
+        @page {
             margin: 0;
             padding: 0;
         }
 
-        .header-table {
+        body {
+            font-family: 'DejaVu Sans', sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #334155;
+            background: #fff;
+            margin: 0;
+            padding: 20pt 30pt;
+        }
+
+        /* ---------- HEADER TABLE ---------- */
+        .hdr {
             width: 100%;
-            border-bottom: 2px solid #e2e8f0;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            border-collapse: collapse;
+            padding-bottom: 12px;
+            border-bottom: 1.5pt solid #e2e8f0;
+            margin-bottom: 16px;
         }
 
-        .logo-cell {
-            width: 20%;
-            vertical-align: middle;
+        .hdr-left {
+            width: 30%;
+            vertical-align: top;
+            text-align: left;
         }
 
-        .branding-cell {
-            width: 45%;
-            vertical-align: middle;
-            padding-left: 10px;
+        .hdr-mid {
+            width: 38%;
+            vertical-align: top;
+            text-align: center;
         }
 
-        .meta-cell {
-            width: 35%;
+        .hdr-right {
+            width: 32%;
             vertical-align: top;
             text-align: right;
         }
 
-        .company-name-en {
-            font-size: 16px;
-            font-weight: bold;
-            color: #0f172a;
-            margin: 0;
+        .logo-img {
+            max-height: 65px;
+            max-width: 140px;
+            margin-bottom: 6px;
+            display: block;
         }
 
-        .company-name-ar {
-            font-size: 14px;
+        .co-vat {
+            font-weight: 700;
+            font-size: 10.5pt;
             color: #1e293b;
-            margin-top: 2px;
+            margin-top: 6px;
         }
 
-        .company-info {
-            font-size: 9px;
-            color: #64748b;
-            margin-top: 5px;
+        .co-vat-num {
+            font-weight: 700;
+            font-size: 10.5pt;
+            color: #1e293b;
         }
 
-        .invoice-title {
-            font-size: 20px;
-            font-weight: bold;
+        .co-addr {
+            font-size: 9.5pt;
+            color: #475569;
+            margin-top: 1px;
+        }
+
+        .brand-en {
+            font-size: 22pt;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1.05;
+        }
+
+        .brand-ar {
+            font-size: 16pt;
+            color: #1e293b;
+            margin-top: 4px;
+        }
+
+        .doc-title {
+            font-size: 22pt;
+            font-weight: 800;
             color: #1e40af;
-            margin: 0 0 5px 0;
+            margin: 0 0 6px 0;
         }
 
-        .meta-table {
-            width: 100%;
+        .meta {
             border-collapse: collapse;
-            font-size: 9px;
-        }
-
-        .meta-table td {
-            padding: 2px 5px;
-            border: 1px solid #cbd5e1;
-        }
-
-        .meta-label {
-            background-color: #f8fafc;
-            color: #64748b;
-            font-weight: bold;
-            width: 40%;
-            text-align: left;
-        }
-
-        .customer-section {
-            margin-bottom: 15px;
-        }
-
-        .customer-title {
-            font-weight: bold;
-            color: #1e40af;
-            border-bottom: 2px solid #1e40af;
-            padding-bottom: 2px;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            font-size: 10px;
-        }
-
-        .customer-details {
-            line-height: 1.3;
-        }
-
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
-
-        .items-table th {
-            background-color: #f8fafc;
-            border: 2px solid #1e40af;
-            padding: 5px 10px;
-            text-align: left;
-            font-weight: bold;
-            color: #1e40af;
-            font-size: 9px;
-        }
-
-        .items-table td {
-            padding: 5px 10px;
-            border: 1px solid #cbd5e1;
-            font-size: 9px;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .totals-container {
-            width: 100%;
-        }
-
-        .totals-table {
-            width: 200px;
+            width: 220px;
             margin-left: auto;
-            border-collapse: collapse;
         }
 
-        .totals-table td {
-            padding: 4px 10px;
-            font-size: 10px;
+        .meta td {
+            border: 1pt solid #cbd5e1;
+            padding: 4px 9px;
+            font-size: 10pt;
         }
 
-        .total-label {
+        .meta-lbl {
+            background: #f8fafc;
+            color: #64748b;
+            width: 45%;
+            text-align: left;
+        }
+
+        .meta-val {
             text-align: right;
-            font-weight: bold;
+        }
+
+        /* ---------- CUSTOMER ---------- */
+        .cust-title {
+            font-weight: 700;
+            color: #1e40af;
+            font-size: 11pt;
+            border-bottom: 2pt solid #1e40af;
+            padding-bottom: 2px;
+            margin-bottom: 6px;
+            display: block;
+            width: 100%;
+        }
+
+        .cust-name {
+            font-weight: 700;
+            font-size: 12pt;
+            color: #0f172a;
+            margin-bottom: 1px;
+        }
+
+        .cust-vat {
+            font-weight: 600;
+            color: #1e40af;
+            font-size: 10.5pt;
+            margin-bottom: 2px;
+        }
+
+        .cust-addr {
+            font-size: 10pt;
+            color: #334155;
+        }
+
+        /* ---------- ITEMS TABLE ---------- */
+        .items {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 10px;
+        }
+
+        .items th {
+            border: 2pt solid #1e40af;
+            background: #f8fafc;
+            padding: 5px 11px;
+            font-size: 10pt;
+            font-weight: 700;
+            color: #1e40af;
+            text-align: left;
+        }
+
+        .items td {
+            border: 1pt solid #cbd5e1;
+            padding: 4px 11px;
+            font-size: 10pt;
+            height: 24px;
+            vertical-align: top;
+        }
+
+        .item-ar {
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .item-en {
+            font-size: 9pt;
             color: #64748b;
         }
 
-        .total-value {
+        /* ---------- TOTALS ---------- */
+        .tot {
+            width: 240px;
+            border-collapse: collapse;
+            margin-left: auto;
+        }
+
+        .tot td {
+            padding: 5px 11px;
+            font-size: 10.5pt;
+        }
+
+        .tot-lbl {
             text-align: right;
-            font-weight: bold;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .tot-val {
+            text-align: right;
+            font-weight: 700;
             color: #0f172a;
         }
 
-        .grand-total-row td {
-            border-top: 2px solid #1e40af;
-            font-size: 12px;
-            padding-top: 8px;
+        .grand td {
+            border-top: 2pt solid #1e40af;
+            font-size: 14pt !important;
+            font-weight: 800;
             color: #1e40af !important;
+            padding-top: 8px;
         }
 
-        /* RTL Support */
-        [dir="rtl"] {
+        /* RTL flip */
+        [dir="rtl"] .hdr-left {
             text-align: right;
         }
 
-        [dir="rtl"] .meta-cell {
+        [dir="rtl"] .hdr-right {
             text-align: left;
         }
 
-        [dir="rtl"] .meta-label {
-            text-align: right;
-        }
-
-        [dir="rtl"] .items-table th,
-        [dir="rtl"] .items-table td {
-            text-align: right;
-        }
-
-        [dir="rtl"] .totals-table {
+        [dir="rtl"] .meta {
             margin-left: 0;
             margin-right: auto;
         }
 
-        [dir="rtl"] .total-label,
-        [dir="rtl"] .total-value {
+        [dir="rtl"] .meta-lbl {
+            text-align: right;
+        }
+
+        [dir="rtl"] .cust-title {
+            text-align: right;
+        }
+
+        [dir="rtl"] .items th {
+            text-align: right;
+        }
+
+        [dir="rtl"] .tot {
+            margin-left: 0;
+            margin-right: auto;
+        }
+
+        [dir="rtl"] .tot-lbl,
+        [dir="rtl"] .tot-val {
             text-align: left;
         }
     </style>
 </head>
 
 <body dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
-    <table class="header-table">
+
+    {{-- ===== HEADER ===== --}}
+    <table class="hdr">
         <tr>
-            <td class="logo-cell">
+            {{-- LEFT: logo + company info --}}
+            <td class="hdr-left">
                 @if(isset($logoBase64) && $logoBase64)
-                    <img src="{{ $logoBase64 }}" alt="Logo" style="max-height: 70px;">
+                    <img src="{{ $logoBase64 }}" class="logo-img">
                 @elseif($invoice->company?->logo)
-                    <img src="{{ public_path('storage/' . $invoice->company->logo) }}" alt="Logo" style="max-height: 70px;">
+                    <img src="{{ public_path('storage/' . $invoice->company->logo) }}" class="logo-img">
                 @endif
+                @if($invoice->company?->tax_number)
+                    <div class="co-vat">VAT Number:</div>
+                    <div class="co-vat-num">{{ $invoice->company->tax_number }}</div>
+                @endif
+                <div class="co-addr">{{ $invoice->branch?->address ?? $invoice->company?->address ?? 'Street Address' }}
+                </div>
+                <div class="co-addr">{{ $invoice->branch?->phone ?? $invoice->company?->contact_phone ?? 'Phone' }}
+                </div>
             </td>
-            <td class="branding-cell">
-                <div class="company-name-en">
+
+            {{-- CENTRE: branding EN + AR --}}
+            <td class="hdr-mid">
+                <div class="brand-en">
                     {{ strtoupper($invoice->company?->name_en ?? $invoice->company?->name ?? 'BIN AWF AGRICULTURAL') }}
                 </div>
-                <div class="company-name-ar">
+                <div class="brand-ar">
                     {{ $invoice->company_name_ar ?? $invoice->company?->name_ar ?? 'بن عوف الزراعية' }}</div>
-                <div class="company-info">
-                    @if($invoice->company?->vat_number)
-                        <div><strong>VAT: {{ $invoice->company->vat_number }}</strong></div>
-                    @endif
-                    <div>{{ $invoice->company?->address ?? 'Street Address' }}, {{ $invoice->company?->city ?? 'City' }}
-                    </div>
-                    <div>{{ $invoice->company?->phone ?? 'Phone' }}</div>
-                </div>
             </td>
-            <td class="meta-cell">
-                <div class="invoice-title">VAT Invoice</div>
-                <table class="meta-table">
+
+            {{-- RIGHT: doc title + meta grid --}}
+            <td class="hdr-right">
+                <div class="doc-title">VAT Invoice</div>
+                <table class="meta">
                     <tr>
-                        <td class="meta-label">Date:</td>
-                        <td>{{ $invoice->invoice_date->format('F d, Y') }}</td>
+                        <td class="meta-lbl">Date:</td>
+                        <td class="meta-val">{{ $invoice->invoice_date->format('F d, Y') }}</td>
                     </tr>
                     <tr>
-                        <td class="meta-label">Invoice #:</td>
-                        <td>{{ $invoice->document_number }}</td>
+                        <td class="meta-lbl">Invoice #:</td>
+                        <td class="meta-val">{{ $invoice->document_number }}</td>
                     </tr>
                     <tr>
-                        <td class="meta-label">Customer ID:</td>
-                        <td>{{ $invoice->customer?->code ?? 'N/A' }}</td>
+                        <td class="meta-lbl">Customer ID:</td>
+                        <td class="meta-val">{{ $invoice->customer?->code ?? 'N/A' }}</td>
                     </tr>
                 </table>
             </td>
         </tr>
     </table>
 
-    <div class="customer-section">
-        <div class="customer-title">Customer Information</div>
-        <div class="customer-details">
-            <div style="font-weight: bold; font-size: 11px;">
-                {{ $invoice->customer_name_ar ?? $invoice->customer?->name_ar ?? $invoice->customer?->company_name ?? __('sales.cash_customer') }}
-            </div>
-            @if($invoice->customer?->tax_number)
-                <div>VAT Number: {{ $invoice->customer->tax_number }}</div>
-            @endif
-            <div>{{ $invoice->customer?->address ?? 'Street Address' }}</div>
-            <div>
-                {{ implode(', ', array_filter([$invoice->customer?->city, $invoice->customer?->state, $invoice->customer?->zip_code])) ?: 'City, ST ZIP Code' }}
-            </div>
-            @if($invoice->customer?->phone)
-                <div>Phone: {{ $invoice->customer->phone }}</div>
-            @endif
+    {{-- ===== CUSTOMER SECTION ===== --}}
+    <div style="margin-bottom: 10px;">
+        <span class="cust-title">Customer Information</span>
+        <div class="cust-name">
+            {{ $invoice->customer_name_ar ?: ($invoice->customer?->company_name ?? $invoice->customer?->name ?? __('sales.cash_customer')) }}
         </div>
+        @if($invoice->customer?->tax_number)
+            <div class="cust-vat">VAT Number: {{ $invoice->customer->tax_number }}</div>
+        @endif
+        <div class="cust-addr">{{ $invoice->customer?->address ?? 'Street Address' }}</div>
+        <div class="cust-addr">
+            {{ implode(', ', array_filter([$invoice->customer?->city, $invoice->customer?->state, $invoice->customer?->zip_code])) ?: 'City, ST ZIP Code' }}
+        </div>
+        @if($invoice->customer?->phone)
+            <div class="cust-addr">Phone: {{ $invoice->customer->phone }}</div>
+        @endif
     </div>
 
-    <table class="items-table">
+    {{-- ===== ITEMS TABLE ===== --}}
+    <table class="items">
         <thead>
             <tr>
-                <th style="width: 15%;">Item Code</th>
-                <th style="width: 45%;">Description</th>
-                <th style="width: 10%; text-align: center;">Qty</th>
-                <th style="width: 15%; text-align: right;">Unit Price</th>
-                <th style="width: 15%; text-align: right;">Total</th>
+                <th style="width:15%;">Item Code #</th>
+                <th style="width:45%;">Item Description</th>
+                <th style="width:10%;text-align:center;">Qty</th>
+                <th style="width:15%;text-align:right;">Unit Price</th>
+                <th style="width:15%;text-align:right;">Total</th>
             </tr>
         </thead>
         <tbody>
@@ -278,63 +343,70 @@
                 <tr>
                     <td>{{ $item->product?->code ?? $item->product?->sku ?? '-' }}</td>
                     <td>
-                        <strong>{{ $item->product_name_ar ?? $item->product->name_ar ?? $item->product->name_en }}</strong>
-                        @if($item->description && $item->description !== $item->product?->name)
-                            <div style="font-size: 8px; color: #64748b;">{{ $item->description_ar ?? $item->description }}</div>
+                        @if($item->product_name_ar ?? $item->product?->name_ar)
+                            <div class="item-ar">{{ $item->product_name_ar ?? $item->product->name_ar }}</div>
+                            <div class="item-en">{{ $item->product?->name_en ?? '-' }}</div>
+                        @else
+                            <div class="item-ar">{{ $item->product?->name_en ?? $item->product?->name ?? '-' }}</div>
+                        @endif
+                        @if($item->description_ar ?? ($item->description && $item->description !== $item->product?->name && $item->description !== $item->product?->name_ar && $item->description !== $item->product?->name_en))
+                            <div class="item-en" style="margin-top:2px;">{{ $item->description_ar ?? $item->description }}</div>
                         @endif
                     </td>
-                    <td class="text-center">{{ number_format($item->quantity, 2) }}</td>
-                    <td class="text-right">{{ number_format($item->unit_price, 2) }}</td>
-                    <td class="text-right">{{ number_format($item->gross_amount, 2) }}</td>
+                    <td style="text-align:center;">{{ number_format($item->quantity, 2) }}</td>
+                    <td style="text-align:right;">{{ number_format($item->unit_price, 2) }}</td>
+                    <td style="text-align:right;">{{ number_format($item->gross_amount, 2) }}</td>
                 </tr>
             @endforeach
-            @for($i = count($invoice->items); $i < 3; $i++)
+            @for($i = count($invoice->items); $i < 10; $i++)
                 <tr>
                     <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
                 </tr>
             @endfor
         </tbody>
     </table>
 
-    <div class="totals-container">
-        <table class="totals-table">
-            <tr>
-                <td class="total-label">Subtotal:</td>
-                <td class="total-value">{{ number_format($invoice->subtotal, 2) }}</td>
-            </tr>
-            <tr>
-                <td class="total-label">VAT:</td>
-                <td class="total-value">{{ number_format($invoice->tax_amount, 2) }}</td>
-            </tr>
-            @if($invoice->discount_amount > 0)
-                <tr>
-                    <td class="total-label">Discount:</td>
-                    <td class="total-value">-{{ number_format($invoice->discount_amount, 2) }}</td>
-                </tr>
-            @endif
-            <tr class="grand-total-row">
-                <td class="total-label">TOTAL:</td>
-                <td class="total-value">{{ number_format($invoice->total_amount, 2) }}</td>
-            </tr>
-        </table>
-    </div>
+    {{-- ===== TOTALS ===== --}}
+    <table style="width:100%;border-collapse:collapse;">
+        <tr>
+            <td style="width:60%;"></td>
+            <td>
+                <table class="tot">
+                    <tr>
+                        <td class="tot-lbl">{{ __('sales.subtotal') }}:</td>
+                        <td class="tot-val">{{ number_format($invoice->subtotal, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="tot-lbl">{{ __('sales.tax') }}:</td>
+                        <td class="tot-val">{{ number_format($invoice->tax_amount, 2) }}</td>
+                    </tr>
+                    @if($invoice->discount_amount > 0)
+                        <tr>
+                            <td class="tot-lbl">{{ __('sales.discount') }}:</td>
+                            <td class="tot-val">-{{ number_format($invoice->discount_amount, 2) }}</td>
+                        </tr>
+                    @endif
+                    <tr class="grand">
+                        <td class="tot-lbl">TOTAL:</td>
+                        <td class="tot-val">{{ number_format($invoice->total_amount, 2) }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 
+    {{-- ===== NOTES ===== --}}
     @if($invoice->notes)
-        <div style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
-            <div style="font-weight: bold; color: #64748b; font-size: 8px; text-transform: uppercase;">Notes</div>
-            <p style="color: #334155; font-size: 9px; margin-top: 3px;">{{ $invoice->notes_ar ?? $invoice->notes }}</p>
+        <div style="margin-top:35px;border-top:1pt solid #e2e8f0;padding-top:12px;">
+            <div style="font-weight:700;color:#64748b;font-size:9pt;text-transform:uppercase;">{{ __('sales.notes') }}</div>
+            <p style="white-space:pre-wrap;color:#334155;font-size:10pt;margin-top:4px;">{{ $invoice->notes }}</p>
         </div>
     @endif
 
-    <div
-        style="margin-top: 30px; text-align: center; font-size: 8px; color: #94a3b8; border-top: 1px solid #eee; padding-top: 8px;">
-        <p>{{ __('messages.thank_you_for_business') }}</p>
-        <p>{{ config('app.url', 'Aurex ERP') }}</p>
-    </div>
 </body>
 
 </html>

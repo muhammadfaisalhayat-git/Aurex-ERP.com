@@ -204,7 +204,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             Route::post('invoices/{invoice}/post', [SalesInvoiceController::class, 'post'])->name('invoices.post');
             Route::post('invoices/{invoice}/unpost', [SalesInvoiceController::class, 'unpost'])->name('invoices.unpost');
             Route::get('invoices/{invoice}/pdf', [SalesInvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
-            Route::get('invoices/{invoice}/whatsapp', [SalesInvoiceController::class, 'sendWhatsApp'])->name('invoices.whatsapp');
+            Route::match(['get', 'post'], 'invoices/{invoice}/whatsapp', [SalesInvoiceController::class, 'sendWhatsApp'])->name('invoices.whatsapp');
             Route::get('invoices/{invoice}/print', [SalesInvoiceController::class, 'print'])->name('invoices.print');
 
             // Import Invoice from Quotation

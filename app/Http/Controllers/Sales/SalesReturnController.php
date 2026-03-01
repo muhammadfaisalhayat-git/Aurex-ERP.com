@@ -14,6 +14,9 @@ use App\Models\Warehouse;
 use App\Models\TaxSetting;
 use App\Models\DocumentNumber;
 use App\Models\AuditLog;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\ArabicShaper;
+use Illuminate\Support\Facades\Log;
 use App\Models\SalesInvoice;
 use App\Models\BankAccount;
 
@@ -181,5 +184,70 @@ class SalesReturnController extends Controller
     {
         $salesReturn->load(['customer', 'branch', 'warehouse', 'items.product', 'salesInvoice', 'creator']);
         return view('sales.returns.show', compact('salesReturn'));
+    }
+
+    public function print(SalesReturn $salesReturn)
+    {
+        $salesReturn->load(['customer', 'branch', 'warehouse', 'items.product', 'salesInvoice', 'creator', 'company']);
+        return view('sales.returns.print', compact('salesReturn'));
+    }
+
+    public function pdf(SalesReturn $salesReturn)
+    {
+        try {
+            $salesReturn->load(['customer', 'branch', 'warehouse', 'items.product', 'salesInvoice', 'creator', 'company']);
+
+            // Base64 logo for PDF
+            $logoBase64 = null;
+            if ($salesReturn->company?->logo) {
+                $path = public_path('storage/' . $salesReturn->company->logo);
+                if (file_exists($path)) {
+                    $type = pathinfo($path, PATHINFO_EXTENSION);
+                    $data = @file_get_contents($path);
+                    if ($data) {
+                        $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                    }
+                }
+            }
+
+            $arabicShaper = app(ArabicShaper::class);
+
+            // Reshape Arabic text for PDF
+            if ($salesReturn->company) {
+                $salesReturn->company_name_ar = $arabicShaper->shape($salesReturn->company->name_ar ?? $salesReturn->company->name_en);
+            }
+            $salesReturn->customer_name_ar = $arabicShaper->shape($salesReturn->customer?->name_ar ?? $salesReturn->customer?->name_en ?? '');
+            $salesReturn->notes_ar = $arabicShaper->shape($salesReturn->notes ?? '');
+
+            foreach ($salesReturn->items as $item) {
+                $item->product_name_ar = $arabicShaper->shape($item->product?->name_ar ?? $item->product?->name_en);
+            }
+
+            $pdf = PDF::loadView('sales.returns.pdf', compact('salesReturn', 'logoBase64'));
+
+            return $pdf->download("return_{$salesReturn->document_number}.pdf");
+        } catch (\Exception $e) {
+            Log::error('Sales Return PDF Generation Error: ' . $e->getMessage(), [
+                'return_id' => $salesReturn->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        }
+    }
+
+    public function destroy(SalesReturn $salesReturn)
+    {
+        if ($salesReturn->isPosted()) {
+            return back()->with('error', __('messages.return_not_deletable') ?? 'Posted returns cannot be deleted.');
+        }
+
+        $oldValues = $salesReturn->toArray();
+        $salesReturn->items()->delete();
+        $salesReturn->delete();
+
+        AuditLog::log('delete', 'sales_return', $salesReturn->id, $oldValues);
+
+        return redirect()->route('sales.returns.index')
+            ->with('success', __('messages.return_deleted') ?? 'Return deleted successfully.');
     }
 }

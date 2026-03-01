@@ -20,7 +20,7 @@
             line-height: 1.4;
             color: #334155;
             background: #fff;
-            padding: 20px 40px;
+            padding: 0px 30px;
         }
 
         @media print {
@@ -67,78 +67,76 @@
 
         .header {
             display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .header-left {
+            flex: 1;
+            text-align: left;
+        }
+
+        .header-center {
+            flex: 1.5;
+            text-align: center;
+            display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 20px;
-            gap: 15px;
+            gap: 10px;
         }
 
-        .branding-top {
-            text-align: center;
-            width: 100%;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 15px;
-            margin-bottom: 15px;
-            line-height: 1.4;
-        }
-
-        .branding-top h1 {
-            font-size: 32pt;
-            font-weight: 800;
-            color: #0f172a;
-            margin: 0;
-            padding: 0;
-            line-height: 1.2;
-            letter-spacing: -0.01em;
-        }
-
-        .branding-top h2 {
-            font-size: 24pt;
-            color: #1e293b;
-            margin: 5px 0 0 0;
-            padding: 0;
-            line-height: 1.2;
-        }
-
-        .logo-section {
-            width: 100%;
+        .header-right {
+            flex: 1;
+            text-align: right;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .branding-box-en {
+            padding: 5px 0;
+            width: 100%;
+        }
+
+        .branding-box-ar {
+            padding: 5px 0;
+            width: 100%;
+        }
+
+        .branding-box-en h1 {
+            font-size: 24pt;
+            font-weight: 800;
             margin: 0;
-            padding: 0;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        .branding-box-ar h2 {
+            font-size: 20pt;
+            margin: 0;
+            line-height: 1.1;
         }
 
         .company-logo-img {
-            max-height: 250px;
-            max-width: 500px;
-        }
-
-        .header-lower {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            width: 100%;
+            max-height: 100px;
+            max-width: 150px;
+            margin-bottom: 10px;
         }
 
         .company-info-box {
-            flex: 1;
-            font-size: 10pt;
-            color: #64748b;
-            line-height: 1.5;
-        }
-
-        .doc-meta-title {
-            flex: 1;
-            max-width: 33%;
-            text-align: right;
+            font-size: 9pt;
+            color: #475569;
+            line-height: 1.4;
         }
 
         .doc-meta-title h2 {
-            font-size: 32pt;
+            font-size: 24pt;
             font-weight: 800;
-            color: #dc2626; /* Red for credit note/return */
-            margin-bottom: 15px;
+            color: #dc2626;
+            margin: 0 0 5px 0;
         }
 
         .meta-table {
@@ -208,7 +206,7 @@
             margin-top: 0;
             margin-bottom: 20px;
         }
-        
+
         .header-details table {
             width: 100%;
             border-collapse: collapse;
@@ -256,60 +254,251 @@
             font-family: 'Inter', sans-serif;
             color: #475569;
         }
-        .theme-minimalist .branding-top { border: none; padding-bottom: 5px; }
-        .theme-minimalist .branding-top h1 { font-size: 28pt; color: #64748b; font-weight: 400; letter-spacing: 0.1em; }
-        .theme-minimalist .branding-top h2 { font-size: 20pt; color: #94a3b8; }
-        .theme-minimalist .doc-meta-title h2 { color: #64748b; font-weight: 400; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; }
-        .theme-minimalist .customer-title { color: #64748b; border-bottom: 1px solid #e2e8f0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 9pt; }
-        .theme-minimalist .items-table th { background: none; border: none; border-bottom: 2px solid #64748b; color: #64748b; }
-        .theme-minimalist .items-table td { border: none; border-bottom: 1px solid #f1f5f9; }
-        .theme-minimalist .grand-total-row td { border-top: 2px solid #64748b; color: #334155 !important; }
 
-        .theme-indigo { color: #1e1b4b; }
-        .theme-indigo .branding-top { background: #1e40af; padding: 20px; border-radius: 8px; border: none; }
-        .theme-indigo .branding-top h1 { color: #ffffff; }
-        .theme-indigo .branding-top h2 { color: #bfdbfe; }
-        .theme-indigo .doc-meta-title h2 { color: #1e40af !important; border-left: 5px solid #1e40af; padding-left: 10px; text-align: left; }
-        .theme-indigo .customer-title { background: #f1f5f9; padding: 8px 15px; border: none; border-left: 5px solid #1e40af; color: #1e40af !important; }
-        .theme-indigo .items-table th { background: #1e40af; color: #ffffff; border: 1px solid #1e40af; }
-        .theme-indigo .items-table td { border: 1px solid #e2e8f0; }
-        .theme-indigo .grand-total-row td { background: #1e40af; color: #ffffff !important; padding: 10px 15px; }
-
-        .theme-elegant { color: #2d3748; }
-        .theme-elegant .branding-top { border-bottom: 3px double #cbd5e1; }
-        .theme-elegant .branding-top h1 { font-family: 'Inter', serif; color: #0f172a; font-style: italic; }
-        .theme-elegant .doc-meta-title h2 { color: #0f172a !important; text-transform: none; font-weight: 300; font-size: 36pt; }
-        .theme-elegant .customer-title { color: #0f172a !important; border-bottom: 1px solid #0f172a; }
-        .theme-elegant .items-table th { background: #fdf2f2; color: #991b1b; border: none; border-bottom: 1px solid #991b1b; }
-        .theme-elegant .items-table tr:nth-child(even) { background: #fafafa; }
-        .theme-elegant .grand-total-row td { border-top: 1px solid #0f172a; border-bottom: 4px double #0f172a; }
-
-        .theme-bold .branding-top { border: 10px solid #000; padding: 20px; }
-        .theme-bold .branding-top h1 { font-size: 40pt; font-weight: 900; }
-        .theme-bold .doc-meta-title h2 { background: #000; color: #fff !important; padding: 5px 20px; display: inline-block; }
-        .theme-bold .customer-title { background: #000; color: #fff !important; padding: 5px 15px; }
-        .theme-bold .items-table th { background: #000; color: #fff; border: 2px solid #000; }
-        .theme-bold .items-table td { border: 2px solid #000; font-weight: 600; }
-        .theme-bold .grand-total-row td { background: #000; color: #fff !important; }
-
-        .theme-corporate .branding-top { border-left: 10px solid #92400e; padding-left: 20px; text-align: left; }
-        .theme-corporate .branding-top h1 { color: #451a03; }
-        .theme-corporate .doc-meta-title h2 { color: #92400e !important; border-bottom: 2px solid #92400e; }
-        .theme-corporate .customer-title { color: #92400e !important; border-left: 3px solid #92400e; padding-left: 10px; }
-        .theme-corporate .items-table th { background: #451a03; color: #fff; border: 1px solid #451a03; }
-        .theme-corporate .items-table td { border: 1px solid #dcdcdc; }
-        .theme-corporate .grand-total-row td { border-top: 3px solid #92400e; background: #fff7ed; color: #92400e !important; }
-
-        [dir="rtl"] .doc-meta-title, [dir="rtl"] .meta-label, [dir="rtl"] .items-table th {
-            text-align: right;
+        .theme-minimalist .branding-top {
+            border: none;
+            padding-bottom: 5px;
         }
-        
-        [dir="rtl"] .total-label, [dir="rtl"] .total-value {
+
+        .theme-minimalist .branding-top h1 {
+            font-size: 28pt;
+            color: #64748b;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+        }
+
+        .theme-minimalist .branding-top h2 {
+            font-size: 20pt;
+            color: #94a3b8;
+        }
+
+        .theme-minimalist .doc-meta-title h2 {
+            color: #64748b;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .theme-minimalist .customer-title {
+            color: #64748b;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 9pt;
+        }
+
+        .theme-minimalist .items-table th {
+            background: none;
+            border: none;
+            border-bottom: 2px solid #64748b;
+            color: #64748b;
+        }
+
+        .theme-minimalist .items-table td {
+            border: none;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .theme-minimalist .grand-total-row td {
+            border-top: 2px solid #64748b;
+            color: #334155 !important;
+        }
+
+        .theme-indigo {
+            color: #1e1b4b;
+        }
+
+        .theme-indigo .branding-top {
+            background: #1e40af;
+            padding: 20px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        .theme-indigo .branding-top h1 {
+            color: #ffffff;
+        }
+
+        .theme-indigo .branding-top h2 {
+            color: #bfdbfe;
+        }
+
+        .theme-indigo .doc-meta-title h2 {
+            color: #1e40af !important;
+            border-left: 5px solid #1e40af;
+            padding-left: 10px;
             text-align: left;
         }
 
-        [dir="rtl"] .theme-corporate .branding-top { border-left: none; border-right: 10px solid #92400e; padding-left: 0; padding-right: 20px; text-align: right; }
-        [dir="rtl"] .theme-indigo .doc-meta-title h2 { border-left: none; border-right: 5px solid #1e40af; padding-left: 0; padding-right: 10px; text-align: right; }
+        .theme-indigo .customer-title {
+            background: #f1f5f9;
+            padding: 8px 15px;
+            border: none;
+            border-left: 5px solid #1e40af;
+            color: #1e40af !important;
+        }
+
+        .theme-indigo .items-table th {
+            background: #1e40af;
+            color: #ffffff;
+            border: 1px solid #1e40af;
+        }
+
+        .theme-indigo .items-table td {
+            border: 1px solid #e2e8f0;
+        }
+
+        .theme-indigo .grand-total-row td {
+            background: #1e40af;
+            color: #ffffff !important;
+            padding: 10px 15px;
+        }
+
+        .theme-elegant {
+            color: #2d3748;
+        }
+
+        .theme-elegant .branding-top {
+            border-bottom: 3px double #cbd5e1;
+        }
+
+        .theme-elegant .branding-top h1 {
+            font-family: 'Inter', serif;
+            color: #0f172a;
+            font-style: italic;
+        }
+
+        .theme-elegant .doc-meta-title h2 {
+            color: #0f172a !important;
+            text-transform: none;
+            font-weight: 300;
+            font-size: 36pt;
+        }
+
+        .theme-elegant .customer-title {
+            color: #0f172a !important;
+            border-bottom: 1px solid #0f172a;
+        }
+
+        .theme-elegant .items-table th {
+            background: #fdf2f2;
+            color: #991b1b;
+            border: none;
+            border-bottom: 1px solid #991b1b;
+        }
+
+        .theme-elegant .items-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .theme-elegant .grand-total-row td {
+            border-top: 1px solid #0f172a;
+            border-bottom: 4px double #0f172a;
+        }
+
+        .theme-bold .branding-top {
+            border: 10px solid #000;
+            padding: 20px;
+        }
+
+        .theme-bold .branding-top h1 {
+            font-size: 40pt;
+            font-weight: 900;
+        }
+
+        .theme-bold .doc-meta-title h2 {
+            background: #000;
+            color: #fff !important;
+            padding: 5px 20px;
+            display: inline-block;
+        }
+
+        .theme-bold .customer-title {
+            background: #000;
+            color: #fff !important;
+            padding: 5px 15px;
+        }
+
+        .theme-bold .items-table th {
+            background: #000;
+            color: #fff;
+            border: 2px solid #000;
+        }
+
+        .theme-bold .items-table td {
+            border: 2px solid #000;
+            font-weight: 600;
+        }
+
+        .theme-bold .grand-total-row td {
+            background: #000;
+            color: #fff !important;
+        }
+
+        .theme-corporate .branding-top {
+            border-left: 10px solid #92400e;
+            padding-left: 20px;
+            text-align: left;
+        }
+
+        .theme-corporate .branding-top h1 {
+            color: #451a03;
+        }
+
+        .theme-corporate .doc-meta-title h2 {
+            color: #92400e !important;
+            border-bottom: 2px solid #92400e;
+        }
+
+        .theme-corporate .customer-title {
+            color: #92400e !important;
+            border-left: 3px solid #92400e;
+            padding-left: 10px;
+        }
+
+        .theme-corporate .items-table th {
+            background: #451a03;
+            color: #fff;
+            border: 1px solid #451a03;
+        }
+
+        .theme-corporate .items-table td {
+            border: 1px solid #dcdcdc;
+        }
+
+        .theme-corporate .grand-total-row td {
+            border-top: 3px solid #92400e;
+            background: #fff7ed;
+            color: #92400e !important;
+        }
+
+        [dir="rtl"] .doc-meta-title,
+        [dir="rtl"] .meta-label,
+        [dir="rtl"] .items-table th {
+            text-align: right;
+        }
+
+        [dir="rtl"] .total-label,
+        [dir="rtl"] .total-value {
+            text-align: left;
+        }
+
+        [dir="rtl"] .theme-corporate .branding-top {
+            border-left: none;
+            border-right: 10px solid #92400e;
+            padding-left: 0;
+            padding-right: 20px;
+            text-align: right;
+        }
+
+        [dir="rtl"] .theme-indigo .doc-meta-title h2 {
+            border-left: none;
+            border-right: 5px solid #1e40af;
+            padding-left: 0;
+            padding-right: 10px;
+            text-align: right;
+        }
     </style>
 </head>
 
@@ -330,54 +519,55 @@
     <div class="document-container theme-modern" id="printContainer">
         {{-- Header Section --}}
         <div class="header">
-            <div class="branding-top">
-                <h1>{{ strtoupper($salesReturn->company?->name_en ?? $salesReturn->company?->name ?? 'BIN AWF AGRICULTURAL') }}</h1>
-                <h2>{{ $salesReturn->company?->name_ar ?? 'بن عوف الزراعية' }}</h2>
-            </div>
-
-            <div class="logo-section">
-                @if($salesReturn->company?->logo)
-                    <img src="{{ asset('storage/' . $salesReturn->company->logo) }}" 
-                         alt="{{ $salesReturn->company->name_en }}"
-                         class="company-logo-img">
-                @else
-                    <div class="logo-placeholder" style="width: 300px; height: 100px; background: #f8fafc; border: 2px dashed #e2e8f0; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #94a3b8;">
-                        Insert Your Logo
-                    </div>
-                @endif
-            </div>
-
-            <div class="header-lower">
-                <div class="company-info-box">
-                    @if($salesReturn->company?->vat_number)
-                        <div style="font-weight: 600;">VAT Number: {{ $salesReturn->company->vat_number }}</div>
+            <div class="header-left">
+                <div class="logo-section">
+                    @if($salesReturn->company?->logo)
+                        <img src="{{ asset('storage/' . $salesReturn->company->logo) }}"
+                            alt="{{ $salesReturn->company->name_en }}" class="company-logo-img">
                     @endif
-                    <div>{{ $salesReturn->company?->address ?? 'Street Address' }}</div>
-                    <div>{{ $salesReturn->company?->city ?? 'City' }}, {{ $salesReturn->company?->state ?? 'ST' }} {{ $salesReturn->company?->zip_code ?? 'ZIP Code' }}</div>
-                    <div>{{ $salesReturn->company?->phone ?? 'Phone' }}</div>
                 </div>
+                <div class="company-info-box">
+                    @if($salesReturn->company?->tax_number)
+                        <div style="font-weight: 600;">VAT Number: {{ $salesReturn->company->tax_number }}</div>
+                    @endif
+                    <div>{{ $salesReturn->branch?->address ?? $salesReturn->company?->address ?? 'Street Address' }}
+                    </div>
+                    <div>{{ $salesReturn->branch?->phone ?? $salesReturn->company?->contact_phone ?? 'Phone' }}</div>
+                </div>
+            </div>
 
+            <div class="header-center">
+                <div class="branding-box-en">
+                    <h1>{{ strtoupper($salesReturn->company?->name_en ?? $salesReturn->company?->name ?? 'BIN AWF AGRICULTURAL') }}
+                    </h1>
+                </div>
+                <div class="branding-box-ar">
+                    <h2>{{ $salesReturn->company?->name_ar ?? 'بن عوف الزراعية' }}</h2>
+                </div>
+            </div>
+
+            <div class="header-right">
                 <div class="doc-meta-title">
                     <h2 style="color: #dc2626;">Return Invoice</h2>
-                    <table class="meta-table" style="margin-left: auto;">
-                        <tr>
-                            <td class="meta-label">Date:</td>
-                            <td>{{ $salesReturn->return_date->format('F d, Y') }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">Return #:</td>
-                            <td>{{ $salesReturn->return_number }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">Customer ID:</td>
-                            <td>{{ $salesReturn->customer?->code ?? 'N/A' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">Ref. Invoice #</td>
-                            <td>{{ $salesReturn->salesInvoice?->document_number ?? '-' }}</td>
-                        </tr>
-                    </table>
                 </div>
+                <table class="meta-table">
+                    <tr>
+                        <td class="meta-label">Date:</td>
+                        <td>{{ $salesReturn->return_date->format('F d, Y') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Return #:</td>
+                        <td>{{ $salesReturn->return_number }}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Customer ID:</td>
+                        <td>{{ $salesReturn->customer?->code ?? 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Ref. Invoice #</td>
+                        <td>{{ $salesReturn->salesInvoice?->document_number ?? '-' }}</td>
+                    </tr>
+                </table>
             </div>
         </div>
 
@@ -389,7 +579,8 @@
                     {{ $salesReturn->customer?->company_name ?? $salesReturn->customer?->name ?? __('messages.walking_customer') }}
                 </div>
                 @if($salesReturn->customer?->tax_number)
-                    <div>Tax Number: {{ $salesReturn->customer->tax_number }}</div>
+                    <div style="font-weight: 600; color: #dc2626;">VAT Number: {{ $salesReturn->customer->tax_number }}
+                    </div>
                 @endif
                 <div>{{ $salesReturn->customer?->address ?? 'Street Address' }}</div>
                 <div>
@@ -452,7 +643,9 @@
                 </tr>
                 <tr class="grand-total-row">
                     <td class="total-label" style="color: #dc2626; font-size: 14pt;">TOTAL:</td>
-                    <td class="total-value" style="color: #dc2626; font-size: 14pt;">{{ number_format($salesReturn->total_amount, 2) }}</td>
+                    <td class="total-value" style="color: #dc2626; font-size: 14pt;">
+                        {{ number_format($salesReturn->total_amount, 2) }}
+                    </td>
                 </tr>
             </table>
         </div>
@@ -460,7 +653,8 @@
         {{-- Reason & Notes --}}
         <div style="margin-top: 40px; display: flex; gap: 40px;">
             <div style="flex: 1;">
-                <div style="font-weight: 700; color: #64748b; font-size: 9pt; text-transform: uppercase;">Return Reason</div>
+                <div style="font-weight: 700; color: #64748b; font-size: 9pt; text-transform: uppercase;">Return Reason
+                </div>
                 <p style="color: #334155; font-size: 10pt; margin-top: 5px;">
                     <strong>{{ $salesReturn->return_reason }}</strong><br>
                     {{ $salesReturn->reason_description }}
@@ -468,8 +662,12 @@
             </div>
             @if($salesReturn->notes)
                 <div style="flex: 1;">
-                    <div style="font-weight: 700; color: #64748b; font-size: 9pt; text-transform: uppercase;">{{ __('messages.notes') }}</div>
-                    <p style="white-space: pre-wrap; color: #334155; font-size: 10pt; margin-top: 5px;">{{ $salesReturn->notes }}</p>
+                    <div style="font-weight: 700; color: #64748b; font-size: 9pt; text-transform: uppercase;">
+                        {{ __('messages.notes') }}
+                    </div>
+                    <p style="white-space: pre-wrap; color: #334155; font-size: 10pt; margin-top: 5px;">
+                        {{ $salesReturn->notes }}
+                    </p>
                 </div>
             @endif
         </div>
