@@ -209,13 +209,15 @@
         /* Turbo Progress Bar */
         .turbo-progress-bar {
             height: 3px;
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
     </style>
 
     <style>
         :root {
-            --primary-color: #2563eb;
+            --primary-color: #667eea;
+            --primary-dark: #764ba2;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --secondary-color: #64748b;
             --success-color: #10b981;
             --danger-color: #ef4444;
@@ -340,7 +342,9 @@
             border: none;
             border-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}: 3px solid transparent;
             transition: all 0.2s ease;
-            text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};
+            text-align:
+                {{ app()->getLocale() === 'ar' ? 'right' : 'left' }}
+            ;
             cursor: pointer;
             font-family: inherit;
             font-size: inherit;
@@ -355,9 +359,10 @@
 
         .menu-link:hover,
         .menu-link.active {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(102, 126, 234, 0.08);
             color: #fff;
             border-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}-color: var(--primary-color);
+            border-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}-image: var(--primary-gradient) 1;
         }
 
         .menu-link i {
@@ -405,7 +410,8 @@
         .header {
             height: var(--header-height);
             background: #fff;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 2px solid transparent;
+            border-image: var(--primary-gradient) 1;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -413,6 +419,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.08);
         }
 
         .header-left {
@@ -452,8 +459,9 @@
         }
 
         .language-switcher a.active {
-            background: var(--primary-color);
+            background: var(--primary-gradient);
             color: #fff;
+            border-radius: 6px;
         }
 
         .language-switcher a:not(.active) {
@@ -483,7 +491,7 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: var(--primary-color);
+            background: var(--primary-gradient);
             color: #fff;
             display: flex;
             align-items: center;
@@ -561,13 +569,15 @@
         }
 
         .btn-primary {
-            background: var(--primary-color);
+            background: var(--primary-gradient);
             border-color: var(--primary-color);
         }
 
         .btn-primary:hover {
-            background: #1d4ed8;
-            border-color: #1d4ed8;
+            background: linear-gradient(135deg, #5a6fd0 0%, #6a3d8f 100%);
+            border-color: #5a6fd0;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
         /* Tables */
@@ -604,8 +614,8 @@
         }
 
         .badge-posted {
-            background: #dbeafe;
-            color: #1d4ed8;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+            color: #667eea;
         }
 
         .badge-paid {
@@ -656,7 +666,7 @@
         .form-control:focus,
         .form-select:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
         }
 
         .search-result-item .item-meta {
@@ -883,7 +893,7 @@
         .select2-container--bootstrap-5.select2-container--focus .select2-selection,
         .select2-container--bootstrap-5.select2-container--open .select2-selection {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
             outline: none;
         }
 
@@ -905,7 +915,7 @@
 
         .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
             outline: none;
         }
 
@@ -921,7 +931,7 @@
         }
 
         .select2-container--bootstrap-5 .select2-results__option--selected {
-            background-color: rgba(37, 99, 235, 0.08);
+            background-color: rgba(102, 126, 234, 0.1);
             color: var(--primary-color);
             font-weight: 500;
         }
