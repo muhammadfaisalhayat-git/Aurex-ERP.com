@@ -7,7 +7,13 @@
     <style>
         @font-face {
             font-family: 'DejaVu Sans';
-            src: url('{{ storage_path('fonts/DejaVuSans.ttf') }}') format('truetype');
+            src: url('{{ base_path('vendor/dompdf/dompdf/lib/fonts/DejaVuSans.ttf') }}') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'DejaVu Sans Bold';
+            src: url('{{ base_path('vendor/dompdf/dompdf/lib/fonts/DejaVuSans-Bold.ttf') }}') format('truetype');
+            font-weight: bold;
         }
 
         @page {
@@ -17,7 +23,7 @@
 
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 11pt;
+            font-size: 10pt;
             line-height: 1.4;
             color: #334155;
             background: #fff;
@@ -29,26 +35,25 @@
         .hdr {
             width: 100%;
             border-collapse: collapse;
-            padding-bottom: 12px;
-            border-bottom: 1.5pt solid #e2e8f0;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .hdr td {
+            vertical-align: top;
         }
 
         .hdr-left {
             width: 30%;
-            vertical-align: top;
             text-align: left;
         }
 
         .hdr-mid {
-            width: 38%;
-            vertical-align: top;
+            width: 40%;
             text-align: center;
         }
 
         .hdr-right {
-            width: 32%;
-            vertical-align: top;
+            width: 30%;
             text-align: right;
         }
 
@@ -56,170 +61,153 @@
             max-height: 65px;
             max-width: 140px;
             margin-bottom: 6px;
-            display: block;
         }
 
         .co-vat {
-            font-weight: 700;
-            font-size: 10.5pt;
-            color: #1e293b;
-            margin-top: 6px;
-        }
-
-        .co-vat-num {
-            font-weight: 700;
-            font-size: 10.5pt;
+            font-weight: bold;
+            font-size: 9pt;
             color: #1e293b;
         }
 
         .co-addr {
-            font-size: 9.5pt;
+            font-size: 9pt;
             color: #475569;
-            margin-top: 1px;
         }
 
         .brand-en {
-            font-size: 22pt;
-            font-weight: 800;
+            font-size: 18pt;
+            font-weight: bold;
             color: #1e293b;
-            line-height: 1.05;
+            margin-top: 5px;
         }
 
         .brand-ar {
-            font-size: 16pt;
+            font-size: 14pt;
             color: #1e293b;
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         .doc-title {
-            font-size: 22pt;
-            font-weight: 800;
+            font-size: 18pt;
+            font-weight: bold;
             color: #1e40af;
-            margin: 0 0 6px 0;
+            margin-bottom: 5px;
         }
 
         .meta {
             border-collapse: collapse;
-            width: 220px;
-            margin-left: auto;
+            width: 100%;
         }
 
         .meta td {
-            border: 1pt solid #cbd5e1;
-            padding: 4px 9px;
-            font-size: 10pt;
+            border: 0.5pt solid #cbd5e1;
+            padding: 3pt 6pt;
+            font-size: 9pt;
         }
 
         .meta-lbl {
             background: #f8fafc;
             color: #64748b;
-            width: 45%;
+            width: 40%;
             text-align: left;
         }
 
-        .meta-val {
-            text-align: right;
+        /* ---------- CUSTOMER ---------- */
+        .sect-title {
+            font-weight: bold;
+            color: #1e40af;
+            font-size: 10pt;
+            border-bottom: 1.5pt solid #1e40af;
+            margin-bottom: 8px;
+            padding-bottom: 2px;
         }
 
-        /* ---------- CUSTOMER ---------- */
-        .cust-title {
-            font-weight: 700;
-            color: #1e40af;
-            font-size: 11pt;
-            border-bottom: 2pt solid #1e40af;
-            padding-bottom: 2px;
-            margin-bottom: 6px;
-            display: block;
-            width: 100%;
+        .cust-box {
+            margin-bottom: 15px;
         }
 
         .cust-name {
-            font-weight: 700;
-            font-size: 12pt;
+            font-weight: bold;
+            font-size: 11pt;
             color: #0f172a;
-            margin-bottom: 1px;
-        }
-
-        .cust-vat {
-            font-weight: 600;
-            color: #1e40af;
-            font-size: 10.5pt;
             margin-bottom: 2px;
-        }
-
-        .cust-addr {
-            font-size: 10pt;
-            color: #334155;
         }
 
         /* ---------- ITEMS TABLE ---------- */
         .items {
             width: 100%;
             border-collapse: collapse;
-            margin: 12px 0 10px;
+            margin-bottom: 15px;
         }
 
         .items th {
-            border: 2pt solid #1e40af;
+            border: 1.5pt solid #1e40af;
             background: #f8fafc;
-            padding: 5px 11px;
-            font-size: 10pt;
-            font-weight: 700;
+            padding: 4pt 8pt;
+            font-size: 9pt;
+            font-weight: bold;
             color: #1e40af;
             text-align: left;
         }
 
         .items td {
-            border: 1pt solid #cbd5e1;
-            padding: 4px 11px;
-            font-size: 10pt;
-            height: 24px;
+            border: 0.5pt solid #cbd5e1;
+            padding: 4pt 8pt;
+            font-size: 9pt;
+            height: 20pt;
             vertical-align: top;
         }
 
         .item-ar {
-            font-weight: 700;
+            font-weight: bold;
             color: #1e293b;
         }
 
         .item-en {
-            font-size: 9pt;
+            font-size: 8pt;
             color: #64748b;
         }
 
         /* ---------- TOTALS ---------- */
-        .tot {
-            width: 240px;
+        .totals-table {
+            width: 200pt;
             border-collapse: collapse;
             margin-left: auto;
         }
 
-        .tot td {
-            padding: 5px 11px;
-            font-size: 10.5pt;
+        .totals-table td {
+            padding: 3pt 8pt;
+            font-size: 10pt;
         }
 
         .tot-lbl {
             text-align: right;
-            font-weight: 600;
             color: #64748b;
         }
 
         .tot-val {
             text-align: right;
-            font-weight: 700;
+            font-weight: bold;
             color: #0f172a;
         }
 
-        .grand td {
-            border-top: 2pt solid #1e40af;
-            font-size: 14pt !important;
-            font-weight: 800;
-            color: #1e40af !important;
-            padding-top: 8px;
+        .tot-grand {
+            border-top: 1.5pt solid #1e40af;
+            padding-top: 6pt;
         }
 
-        /* RTL flip */
+        .tot-grand-lbl {
+            color: #1e40af;
+            font-size: 12pt;
+            text-transform: uppercase;
+        }
+
+        .tot-grand-val {
+            color: #1e40af;
+            font-size: 12pt;
+        }
+
+        /* RTL support */
         [dir="rtl"] .hdr-left {
             text-align: right;
         }
@@ -228,16 +216,7 @@
             text-align: left;
         }
 
-        [dir="rtl"] .meta {
-            margin-left: 0;
-            margin-right: auto;
-        }
-
         [dir="rtl"] .meta-lbl {
-            text-align: right;
-        }
-
-        [dir="rtl"] .cust-title {
             text-align: right;
         }
 
@@ -245,7 +224,7 @@
             text-align: right;
         }
 
-        [dir="rtl"] .tot {
+        [dir="rtl"] .totals-table {
             margin-left: 0;
             margin-right: auto;
         }
@@ -259,83 +238,70 @@
 
 <body dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
-    {{-- ===== HEADER ===== --}}
+    <!-- HEADER -->
     <table class="hdr">
         <tr>
-            {{-- LEFT: logo + company info --}}
             <td class="hdr-left">
                 @if(isset($logoBase64) && $logoBase64)
                     <img src="{{ $logoBase64 }}" class="logo-img">
                 @elseif($invoice->company?->logo)
                     <img src="{{ public_path('storage/' . $invoice->company->logo) }}" class="logo-img">
                 @endif
-                @if($invoice->company?->tax_number)
-                    <div class="co-vat">VAT Number:</div>
-                    <div class="co-vat-num">{{ $invoice->company->tax_number }}</div>
-                @endif
+                <div class="co-vat">VAT Number: {{ $invoice->company?->tax_number }}</div>
                 <div class="co-addr">{{ $invoice->branch?->address ?? $invoice->company?->address ?? 'Street Address' }}
                 </div>
                 <div class="co-addr">{{ $invoice->branch?->phone ?? $invoice->company?->contact_phone ?? 'Phone' }}
                 </div>
             </td>
-
-            {{-- CENTRE: branding EN + AR --}}
             <td class="hdr-mid">
-                <div class="brand-en">
-                    {{ strtoupper($invoice->company?->name_en ?? $invoice->company?->name ?? 'BIN AWF AGRICULTURAL') }}
-                </div>
-                <div class="brand-ar">
-                    {{ $invoice->company_name_ar ?? $invoice->company?->name_ar ?? 'بن عوف الزراعية' }}</div>
+                <div class="brand-en">{{ strtoupper($invoice->company?->name_en ?? 'BIN AWF AGRICULTURAL') }}</div>
+                <div class="brand-ar">{{ $invoice->company_name_ar ?? 'بن عوف الزراعية' }}</div>
             </td>
-
-            {{-- RIGHT: doc title + meta grid --}}
             <td class="hdr-right">
                 <div class="doc-title">VAT Invoice</div>
                 <table class="meta">
                     <tr>
                         <td class="meta-lbl">Date:</td>
-                        <td class="meta-val">{{ $invoice->invoice_date->format('F d, Y') }}</td>
+                        <td>{{ $invoice->invoice_date->format('March d, Y') }}</td>
                     </tr>
                     <tr>
                         <td class="meta-lbl">Invoice #:</td>
-                        <td class="meta-val">{{ $invoice->document_number }}</td>
+                        <td>{{ $invoice->document_number }}</td>
                     </tr>
                     <tr>
                         <td class="meta-lbl">Customer ID:</td>
-                        <td class="meta-val">{{ $invoice->customer?->code ?? 'N/A' }}</td>
+                        <td>{{ $invoice->customer?->code ?? 'N/A' }}</td>
                     </tr>
                 </table>
             </td>
         </tr>
     </table>
 
-    {{-- ===== CUSTOMER SECTION ===== --}}
-    <div style="margin-bottom: 10px;">
-        <span class="cust-title">Customer Information</span>
+    <!-- CUSTOMER -->
+    <div class="sect-title">Customer Information</div>
+    <div class="cust-box">
         <div class="cust-name">
             {{ $invoice->customer_name_ar ?: ($invoice->customer?->company_name ?? $invoice->customer?->name ?? __('sales.cash_customer')) }}
         </div>
         @if($invoice->customer?->tax_number)
-            <div class="cust-vat">VAT Number: {{ $invoice->customer->tax_number }}</div>
+            <div style="font-weight: bold; color: #1e40af; font-size: 9pt;">VAT Number: {{ $invoice->customer->tax_number }}
+            </div>
         @endif
-        <div class="cust-addr">{{ $invoice->customer?->address ?? 'Street Address' }}</div>
-        <div class="cust-addr">
+        <div class="co-addr">{{ $invoice->customer?->address ?? 'Street Address' }}</div>
+        <div class="co-addr">
             {{ implode(', ', array_filter([$invoice->customer?->city, $invoice->customer?->state, $invoice->customer?->zip_code])) ?: 'City, ST ZIP Code' }}
         </div>
-        @if($invoice->customer?->phone)
-            <div class="cust-addr">Phone: {{ $invoice->customer->phone }}</div>
-        @endif
     </div>
 
-    {{-- ===== ITEMS TABLE ===== --}}
+    <!-- ITEMS -->
     <table class="items">
         <thead>
             <tr>
-                <th style="width:15%;">Item Code #</th>
-                <th style="width:45%;">Item Description</th>
-                <th style="width:10%;text-align:center;">Qty</th>
-                <th style="width:15%;text-align:right;">Unit Price</th>
-                <th style="width:15%;text-align:right;">Total</th>
+                <th style="width: 15%;">Item Code #</th>
+                <th style="width: 45%;">Item Description</th>
+                <th style="width: 10%; text-align: center;">Qty</th>
+                <th style="width: 15%; text-align: right;">Unit Price</th>
+                <th style="width: 15%; text-align: right;">Total</th>
             </tr>
         </thead>
         <tbody>
@@ -343,19 +309,19 @@
                 <tr>
                     <td>{{ $item->product?->code ?? $item->product?->sku ?? '-' }}</td>
                     <td>
-                        @if($item->product_name_ar ?? $item->product?->name_ar)
-                            <div class="item-ar">{{ $item->product_name_ar ?? $item->product->name_ar }}</div>
+                        @if(isset($item->product_name_ar))
+                            <div class="item-ar">{{ $item->product_name_ar }}</div>
                             <div class="item-en">{{ $item->product?->name_en ?? '-' }}</div>
                         @else
                             <div class="item-ar">{{ $item->product?->name_en ?? $item->product?->name ?? '-' }}</div>
                         @endif
-                        @if($item->description_ar ?? ($item->description && $item->description !== $item->product?->name && $item->description !== $item->product?->name_ar && $item->description !== $item->product?->name_en))
-                            <div class="item-en" style="margin-top:2px;">{{ $item->description_ar ?? $item->description }}</div>
+                        @if(isset($item->description_ar))
+                            <div class="item-en" style="margin-top: 1pt;">{{ $item->description_ar }}</div>
                         @endif
                     </td>
-                    <td style="text-align:center;">{{ number_format($item->quantity, 2) }}</td>
-                    <td style="text-align:right;">{{ number_format($item->unit_price, 2) }}</td>
-                    <td style="text-align:right;">{{ number_format($item->gross_amount, 2) }}</td>
+                    <td style="text-align: center;">{{ number_format($item->quantity, 2) }}</td>
+                    <td style="text-align: right;">{{ number_format($item->unit_price, 2) }}</td>
+                    <td style="text-align: right;">{{ number_format($item->gross_amount, 2) }}</td>
                 </tr>
             @endforeach
             @for($i = count($invoice->items); $i < 10; $i++)
@@ -370,40 +336,34 @@
         </tbody>
     </table>
 
-    {{-- ===== TOTALS ===== --}}
-    <table style="width:100%;border-collapse:collapse;">
+    <!-- TOTALS -->
+    <table class="totals-table">
         <tr>
-            <td style="width:60%;"></td>
-            <td>
-                <table class="tot">
-                    <tr>
-                        <td class="tot-lbl">{{ __('sales.subtotal') }}:</td>
-                        <td class="tot-val">{{ number_format($invoice->subtotal, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td class="tot-lbl">{{ __('sales.tax') }}:</td>
-                        <td class="tot-val">{{ number_format($invoice->tax_amount, 2) }}</td>
-                    </tr>
-                    @if($invoice->discount_amount > 0)
-                        <tr>
-                            <td class="tot-lbl">{{ __('sales.discount') }}:</td>
-                            <td class="tot-val">-{{ number_format($invoice->discount_amount, 2) }}</td>
-                        </tr>
-                    @endif
-                    <tr class="grand">
-                        <td class="tot-lbl">TOTAL:</td>
-                        <td class="tot-val">{{ number_format($invoice->total_amount, 2) }}</td>
-                    </tr>
-                </table>
-            </td>
+            <td class="tot-lbl">Subtotal:</td>
+            <td class="tot-val">{{ number_format($invoice->subtotal, 2) }}</td>
+        </tr>
+        <tr>
+            <td class="tot-lbl">Tax:</td>
+            <td class="tot-val">{{ number_format($invoice->tax_amount, 2) }}</td>
+        </tr>
+        @if($invoice->discount_amount > 0)
+            <tr>
+                <td class="tot-lbl">Discount:</td>
+                <td class="tot-val">-{{ number_format($invoice->discount_amount, 2) }}</td>
+            </tr>
+        @endif
+        <tr class="tot-grand">
+            <td class="tot-lbl tot-grand-lbl">TOTAL:</td>
+            <td class="tot-val tot-grand-val">{{ number_format($invoice->total_amount, 2) }}</td>
         </tr>
     </table>
 
-    {{-- ===== NOTES ===== --}}
+    <!-- NOTES -->
     @if($invoice->notes)
-        <div style="margin-top:35px;border-top:1pt solid #e2e8f0;padding-top:12px;">
-            <div style="font-weight:700;color:#64748b;font-size:9pt;text-transform:uppercase;">{{ __('sales.notes') }}</div>
-            <p style="white-space:pre-wrap;color:#334155;font-size:10pt;margin-top:4px;">{{ $invoice->notes }}</p>
+        <div style="margin-top: 30pt; border-top: 0.5pt solid #cbd5e1; padding-top: 10pt;">
+            <div style="font-weight: bold; color: #64748b; font-size: 8pt; text-transform: uppercase;">
+                {{ __('sales.notes') }}</div>
+            <div style="font-size: 9pt; color: #334155; margin-top: 2pt;">{{ $invoice->notes_ar ?? $invoice->notes }}</div>
         </div>
     @endif
 

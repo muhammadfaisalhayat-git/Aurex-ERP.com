@@ -15,12 +15,16 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', 'DejaVu Sans', sans-serif;
             font-size: 11pt;
             line-height: 1.4;
             color: #334155;
             background: #fff;
             padding: 0px 30px;
+        }
+
+        @page {
+            margin: 20px;
         }
 
         @media print {
@@ -517,7 +521,9 @@
         <div class="header">
             <div class="header-left">
                 <div class="logo-section">
-                    @if($invoice->company?->logo)
+                    @if(isset($logoBase64) && $logoBase64)
+                        <img src="{{ $logoBase64 }}" class="company-logo-img">
+                    @elseif($invoice->company?->logo)
                         <img src="{{ asset('storage/' . $invoice->company->logo) }}" alt="{{ $invoice->company->name_en }}"
                             class="company-logo-img">
                     @endif

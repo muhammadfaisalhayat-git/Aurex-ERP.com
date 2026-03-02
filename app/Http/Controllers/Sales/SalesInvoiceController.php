@@ -527,7 +527,7 @@ class SalesInvoiceController extends Controller
                 }
             }
 
-            // Reshape Arabic text for PDF
+            // Reshape Arabic text
             if ($invoice->company) {
                 $invoice->company_name_ar = $this->arabicShaper->shape($invoice->company->name_ar ?? $invoice->company->name_en);
             }
@@ -545,10 +545,7 @@ class SalesInvoiceController extends Controller
 
             return $pdf->download("invoice_{$invoice->document_number}.pdf");
         } catch (\Exception $e) {
-            Log::error('PDF Generation Error: ' . $e->getMessage(), [
-                'invoice_id' => $invoice->id,
-                'trace' => $e->getTraceAsString()
-            ]);
+            Log::error('PDF Generation Error: ' . $e->getMessage());
             return back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
         }
     }
