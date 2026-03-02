@@ -8,7 +8,7 @@
         <h1 class="h3 mb-0 text-gray-800">{{ __('messages.finance') }}</h1>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('finance.fixed_assets.index') }}">{{ __('messages.fixed_assets') }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('finance.fixed-assets.index') }}">{{ __('messages.fixed_assets') }}</a></li>
                 <li class="breadcrumb-item active" aria-current="page">{{ __('messages.add_asset') }}</li>
             </ol>
         </nav>
@@ -19,7 +19,7 @@
             <h6 class="m-0 font-weight-bold text-primary">{{ __('messages.add_asset') }}</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('finance.fixed_assets.store') }}" method="POST">
+            <form action="{{ route('finance.fixed-assets.store') }}" method="POST">
                 @csrf
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -123,7 +123,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end">
-                    <a href="{{ route('finance.fixed_assets.index') }}" class="btn btn-secondary me-2">{{ __('messages.cancel') }}</a>
+                    <a href="{{ route('finance.fixed-assets.index') }}" class="btn btn-secondary me-2">{{ __('messages.cancel') }}</a>
                     <button type="submit" class="btn btn-primary">{{ __('messages.save') }}</button>
                 </div>
             </form>

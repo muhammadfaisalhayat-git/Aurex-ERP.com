@@ -30,8 +30,8 @@
                                 <tr>
                                     <td>{{ $transfer->document_number }}</td>
                                     <td>{{ $transfer->transfer_date->format('Y-m-d') }}</td>
-                                    <td>{{ $transfer->fromWarehouse->name }}</td>
-                                    <td>{{ $transfer->toWarehouse->name }}</td>
+                                    <td>{{ $transfer->fromWarehouse->name ?? __('messages.unknown') }}</td>
+                                    <td>{{ $transfer->toWarehouse->name ?? __('messages.unknown') }}</td>
                                     <td>
                                         @php
                                             $badgeClass = match ($transfer->status) {

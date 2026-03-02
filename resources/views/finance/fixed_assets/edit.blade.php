@@ -8,7 +8,7 @@
         <h1 class="h3 mb-0 text-gray-800">{{ __('messages.finance') }}</h1>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('finance.fixed_assets.index') }}">{{ __('messages.fixed_assets') }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('finance.fixed-assets.index') }}">{{ __('messages.fixed_assets') }}</a></li>
                 <li class="breadcrumb-item active" aria-current="page">{{ __('messages.edit_asset') }} ({{ $asset->code }})</li>
             </ol>
         </nav>
@@ -19,7 +19,7 @@
             <h6 class="m-0 font-weight-bold text-primary">{{ __('messages.edit_asset') }}</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('finance.fixed_assets.update', $asset->id) }}" method="POST">
+            <form action="{{ route('finance.fixed-assets.update', $asset->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="row mb-3">
@@ -112,12 +112,12 @@
                         <i class="fas fa-trash me-1"></i> {{ __('messages.delete') }}
                     </button>
                     <div class="d-flex">
-                        <a href="{{ route('finance.fixed_assets.index') }}" class="btn btn-secondary me-2">{{ __('messages.cancel') }}</a>
+                        <a href="{{ route('finance.fixed-assets.index') }}" class="btn btn-secondary me-2">{{ __('messages.cancel') }}</a>
                         <button type="submit" class="btn btn-primary">{{ __('messages.update') }}</button>
                     </div>
                 </div>
             </form>
-            <form id="delete-form" action="{{ route('finance.fixed_assets.destroy', $asset->id) }}" method="POST" class="d-none">
+            <form id="delete-form" action="{{ route('finance.fixed-assets.destroy', $asset->id) }}" method="POST" class="d-none">
                 @csrf
                 @method('DELETE')
             </form>
