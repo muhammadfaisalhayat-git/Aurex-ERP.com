@@ -1,0 +1,11 @@
+{
+    "dejavu sans": {
+        "bold": "C:\\Users\\Pc\\Downloads\\aurex-erp\\aurex-erp\\vendor\\dompdf\\dompdf\/lib\/fonts\/DejaVuSans-Bold",
+        "bold_italic": "C:\\Users\\Pc\\Downloads\\aurex-erp\\aurex-erp\\vendor\\dompdf\\dompdf\/lib\/fonts\/DejaVuSans-BoldOblique",
+        "italic": "C:\\Users\\Pc\\Downloads\\aurex-erp\\aurex-erp\\vendor\\dompdf\\dompdf\/lib\/fonts\/DejaVuSans-Oblique",
+        "normal": "dejavu_sans_normal_348c559201bc482ac5d401a50dd4757c"
+    },
+    "dejavu sans bold": {
+        "bold": "dejavu_sans_bold_bold_cca017e92b12b7cd3f91c4a8e2aeda4d"
+    }
+}
