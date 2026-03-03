@@ -369,7 +369,8 @@ class ProductController extends Controller
             ->where(function ($query) use ($search) {
                 $query->where('name_en', 'like', "%$search%")
                     ->orWhere('name_ar', 'like', "%$search%")
-                    ->orWhere('code', 'like', "%$search%");
+                    ->orWhere('code', 'like', "%$search%")
+                    ->orWhere('id', $search); // Added search by ID
             })
             ->limit(10)
             ->get(['id', 'code', 'name_en', 'name_ar', 'sale_price', 'cost_price']);

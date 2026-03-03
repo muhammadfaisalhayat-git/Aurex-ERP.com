@@ -25,6 +25,8 @@ return [
     'filter_by_status' => 'Filter by Status',
     'error' => 'Error',
     'success' => 'Success',
+    'ok' => 'OK',
+    'please_select_customer_first' => 'Please select customer first',
     'audit_logs' => 'Audit Logs',
     'changes' => 'Changes',
     'view_details' => 'View Details',

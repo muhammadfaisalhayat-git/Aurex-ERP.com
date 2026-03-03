@@ -273,12 +273,41 @@
                                                                                                                 <input type="text" class="form-control total-display" readonly>
                                                                                                             </td>
                                                                                                             <td class="text-center">
-                                                                                                                <button type="button" class="btn btn-sm btn-danger remove-item">
+                                                                                                        <button type="button" class="btn btn-sm btn-danger remove-item">
                                                                                                                     <i class="fas fa-trash"></i>
                                                                                                                 </button>
                                                                                                             </td>
                                                                                                         </tr>
                                                                                                     </script>
+    
+    <style>
+        /* Fix search result clipping in table-responsive */
+        .table-responsive {
+            overflow: visible !important;
+            padding-bottom: 100px; /* Space for the dropdown */
+            margin-bottom: -100px;
+        }
+        
+        #items-table tr {
+            position: static; /* Let the absolute dropdown reference the relative cell */
+        }
+        
+        .product-cell {
+            position: relative;
+        }
+        
+        .search-results-container {
+            z-index: 1060 !important;
+            width: 100%;
+            top: 100%;
+            left: 0;
+            background: #fff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
 
     <!-- Import Source Modal -->
     <div class="modal fade" id="importSourceModal" tabindex="-1" aria-labelledby="importSourceModalLabel"
@@ -348,7 +377,7 @@
                     name_en: "{{ addslashes($product->name_en) }}",
                     name_ar: "{{ addslashes($product->name_ar) }}",
                     name: "{{ addslashes($product->name) }}",
-                    code: "{{ $product->product_code }}",
+                    code: "{{ $product->code }}", // Changed from product_code to code
                     price: {{ $product->sale_price ?? 0 }},
                     cost_price: {{ $product->cost_price ?? 0 }},
                     tax: {{ $product->tax_rate ?? $taxSetting->default_tax_rate ?? 0 }} 
@@ -369,43 +398,33 @@
             // 3. Helper Functions
             function initSelect2() {
                 if (window.jQuery) {
-                    $('#customer_id').select2({
-                        theme: 'bootstrap-5',
-                        width: '100%',
-                        dir: document.documentElement.dir || 'ltr',
-                        placeholder: '{{ __("sales.cash_customer") }}',
-                        allowClear: true
-                    });
+                    const selectConfigs = [
+                        { id: '#customer_id', placeholder: '{{ __("sales.cash_customer") }}' },
+                        { id: '#branch_id', placeholder: '{{ __("common.select") }}' },
+                        { id: '#warehouse_id', placeholder: '{{ __("common.select") }}' },
+                        { id: '#salesman_id', placeholder: '{{ __("sales.select_salesman") }}' },
+                        { id: '#import_source_type', placeholder: '--' },
+                        { id: '#payment_terms', placeholder: '--' }
+                    ];
 
-                    $('#branch_id').select2({
-                        theme: 'bootstrap-5',
-                        width: '100%',
-                        dir: document.documentElement.dir || 'ltr',
-                        placeholder: '{{ __("common.select") }}'
-                    });
-
-                    $('#warehouse_id').select2({
-                        theme: 'bootstrap-5',
-                        width: '100%',
-                        dir: document.documentElement.dir || 'ltr',
-                        placeholder: '{{ __("common.select") }}',
-                        allowClear: true
-                    });
-
-                    $('#salesman_id').select2({
-                        theme: 'bootstrap-5',
-                        width: '100%',
-                        dir: document.documentElement.dir || 'ltr',
-                        placeholder: '{{ __("sales.select_salesman") }}',
-                        allowClear: true
-                    });
-
-                    $('#import_source_type, #payment_terms').select2({
-                        theme: 'bootstrap-5',
-                        width: '100%',
-                        dir: document.documentElement.dir || 'ltr',
-                        allowClear: true,
-                        placeholder: '--'
+                    selectConfigs.forEach(config => {
+                        const $el = $(config.id);
+                        $el.select2({
+                            theme: 'bootstrap-5',
+                            width: '100%',
+                            dir: document.documentElement.dir || 'ltr',
+                            placeholder: config.placeholder,
+                            allowClear: true
+                        });
+                        
+                        // Move focus to next field after selection
+                        $el.on('select2:select', function (e) {
+                            const selection = $(this).next('.select2-container').find('.select2-selection')[0];
+                            if (selection) {
+                                // Short delay to let Select2 finish its internal closing logic
+                                setTimeout(() => moveFocus(selection), 50);
+                            }
+                        });
                     });
                 }
             }
@@ -442,7 +461,38 @@
                     dir: document.documentElement.dir || 'ltr',
                     allowClear: true,
                     placeholder: '{{ __("common.select") }}'
+                }).on('select2:select', function() {
+                    const selection = $(this).next('.select2-container').find('.select2-selection')[0];
+                    if (selection) setTimeout(() => moveFocus(selection), 50);
                 });
+            }
+
+            function moveFocus(currentElement) {
+                const form = document.getElementById('invoice-form');
+                // Ensure we find the right element even if it's inside a Select2 container
+                const target = currentElement.closest('.select2-selection') || currentElement;
+                
+                const focusableElements = 'input:not([type="hidden"]):not([disabled]):not([readonly]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), .select2-selection';
+                const elements = Array.from(form.querySelectorAll(focusableElements)).filter(el => {
+                    return el.offsetParent !== null || el.classList.contains('select2-selection');
+                });
+                
+                const index = elements.indexOf(target);
+                
+                if (index > -1 && index < elements.length - 1) {
+                    let nextElement = elements[index + 1];
+                    
+                    // If it's a Select2 selection, open it
+                    if (nextElement.classList.contains('select2-selection')) {
+                        const select = nextElement.closest('.mb-3, td').querySelector('select');
+                        if (select && select.id) {
+                            $(`#${select.id}`).select2('open');
+                        }
+                    } else {
+                        nextElement.focus();
+                        if (nextElement.select) nextElement.select();
+                    }
+                }
             }
 
             function addItem() {
@@ -459,8 +509,11 @@
 
                 input.addEventListener('input', function () {
                     const search = this.value.toLowerCase();
-                    if (search.length < 1) {
-                        results.style.display = 'none';
+                    
+                    if (search.length === 0) {
+                        renderResults(results, products.slice(0, 10), (product) => {
+                            selectItem(product, input, hidden, row, results);
+                        }, true);
                         return;
                     }
 
@@ -469,22 +522,65 @@
                         p.name_en.toLowerCase().includes(search) ||
                         p.name_ar.toLowerCase().includes(search) ||
                         p.name_ar.toLowerCase().includes(transliterated) ||
-                        (p.code && p.code.toLowerCase().includes(search))
+                        (p.code && p.code.toLowerCase().includes(search)) ||
+                        p.id.toString() === search
                     );
 
                     renderResults(results, filtered, (product) => {
-                        input.value = '{{ app()->getLocale() === 'ar' }}' === '1' ? (product.name_ar || product.name_en) : (product.name_en || product.name_ar);
-                        hidden.value = product.id;
-                        row.querySelector('.price-input').value = product.price;
-                        row.querySelector('.tax-rate-input').value = product.tax;
-                        results.style.display = 'none';
-                        calculateRow(row);
+                        selectItem(product, input, hidden, row, results);
                     }, true);
                 });
 
-                input.addEventListener('focus', function() {
-                    if (this.value.length > 0) this.dispatchEvent(new Event('input'));
+                input.addEventListener('keydown', function (e) {
+                    const items = results.querySelectorAll('.search-result-item');
+                    let activeIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
+
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (results.style.display === 'none') {
+                            this.dispatchEvent(new Event('input'));
+                            return;
+                        }
+                        if (activeIndex < items.length - 1) {
+                            if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+                            items[activeIndex + 1].classList.add('active');
+                            items[activeIndex + 1].scrollIntoView({ block: 'nearest' });
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (activeIndex > 0) {
+                            items[activeIndex].classList.remove('active');
+                            items[activeIndex - 1].classList.add('active');
+                            items[activeIndex - 1].scrollIntoView({ block: 'nearest' });
+                        }
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (results.style.display !== 'none' && activeIndex >= 0) {
+                            items[activeIndex].click();
+                        } else if (hidden.value) {
+                            row.querySelector('.quantity-input').focus();
+                        }
+                    } else if (e.key === 'Escape') {
+                        results.style.display = 'none';
+                    }
                 });
+
+                input.addEventListener('focus', function() {
+                    this.dispatchEvent(new Event('input'));
+                });
+
+                input.addEventListener('click', function() {
+                    this.dispatchEvent(new Event('input'));
+                });
+            }
+
+            function selectItem(product, input, hidden, row, results) {
+                input.value = '{{ app()->getLocale() === 'ar' }}' === '1' ? (product.name_ar || product.name_en) : (product.name_en || product.name_ar);
+                hidden.value = product.id;
+                row.querySelector('.price-input').value = product.price;
+                row.querySelector('.tax-rate-input').value = product.tax;
+                results.style.display = 'none';
+                calculateRow(row);
             }
 
             function renderResults(container, items, onSelect, isProduct = false) {
@@ -679,11 +775,112 @@
             document.getElementById('add-item-btn').addEventListener('click', addItem);
             if (tableBody.children.length === 0) addItem();
 
+            // 6. Payment Terms & Form Validation
+            $('#payment_terms').on('change', function() {
+                if ($(this).val() === 'credit' && !$('#customer_id').val()) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '{{ __("messages.info") }}',
+                        text: '{{ __("messages.please_select_customer_first") }}',
+                        confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                    });
+                    $(this).val('cash').trigger('change');
+                }
+            });
+
+            document.getElementById('invoice-form').addEventListener('submit', function(e) {
+                const paymentTerms = $('#payment_terms').val();
+                const customerId = $('#customer_id').val();
+                
+                if (paymentTerms === 'credit' && !customerId) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '{{ __("messages.info") }}',
+                        text: '{{ __("messages.please_select_customer_first") }}',
+                        confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                    });
+                }
+            });
+
+            // Prevent form submission on Enter and move to next field
+            document.getElementById('invoice-form').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                    // Don't prevent if it's a button (let them click via Enter if they want)
+                    if (e.target.tagName === 'BUTTON' || e.target.type === 'submit') return;
+                    
+                    // Specific handling for product search input to avoid double processing
+                    if (e.target.classList.contains('product-search-input')) {
+                        const results = e.target.closest('td').querySelector('.product-results');
+                        if (results && results.style.display !== 'none') {
+                            const active = results.querySelector('.search-result-item.active');
+                            if (active) {
+                                e.preventDefault();
+                                active.click();
+                                return;
+                            }
+                        }
+                    }
+
+                    // Special case: Last field of an item row (Discount) adds a new row
+                    if (e.target.classList.contains('discount-input')) {
+                        e.preventDefault();
+                        const trs = tableBody.querySelectorAll('tr');
+                        const currentTr = e.target.closest('tr');
+                        // Only add row if we are on the last row
+                        if (currentTr === trs[trs.length - 1]) {
+                            addItem();
+                            // After adding row, move focus to the new search input
+                            setTimeout(() => {
+                                const newRow = tableBody.lastElementChild;
+                                if (newRow) moveFocus(e.target);
+                            }, 50);
+                        } else {
+                            moveFocus(e.target);
+                        }
+                        return;
+                    }
+
+                    e.preventDefault();
+                    
+                    // Logic to handle Select2 states
+                    const isSelect2Search = e.target.classList.contains('select2-search__field');
+                    const selectionSpan = e.target.closest('.select2-container')?.previousElementSibling?.nextElementSibling?.querySelector('.select2-selection');
+                    const isSelect2Closed = selectionSpan && !e.target.closest('.select2-container').classList.contains('select2-container--open');
+
+                    if (isSelect2Search) {
+                        // Dropdown is open, let Select2 handle the Enter key for selection.
+                        // Our select2:select listener will then move focus.
+                        return;
+                    }
+
+                    // If it's a closed Select2 or a normal input, move focus.
+                    const targetEl = e.target.closest('.select2-selection') || e.target;
+                    moveFocus(targetEl);
+                }
+            });
+
+            // Initial focus on first editable field
+            setTimeout(() => {
+                const firstField = document.getElementById('invoice_date');
+                if (firstField) firstField.focus();
+            }, 500);
+
             tableBody.addEventListener('click', function (e) {
                 if (e.target.closest('.remove-item')) {
                     if (tableBody.querySelectorAll('tr').length > 1) {
                         e.target.closest('tr').remove();
                         calculateTotals();
+                    }
+                }
+                
+                const searchBtn = e.target.closest('.product-search-btn');
+                if (searchBtn) {
+                    e.preventDefault();
+                    const input = searchBtn.closest('tr').querySelector('.product-search-input');
+                    if (input) {
+                        input.focus();
+                        if (input.value.length > 0) input.dispatchEvent(new Event('input'));
                     }
                 }
             });
@@ -709,17 +906,7 @@
                 }
             });
 
-            tableBody.addEventListener('click', function (e) {
-                const searchBtn = e.target.closest('.product-search-btn');
-                if (searchBtn) {
-                    e.preventDefault();
-                    const input = searchBtn.closest('tr').querySelector('.product-search-input');
-                    if (input) {
-                        input.focus();
-                        if (input.value.length > 0) input.dispatchEvent(new Event('input'));
-                    }
-                }
-            });
+            // Removed redundant tableBody click listener
         });
 
     </script>

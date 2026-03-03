@@ -424,6 +424,8 @@
                             <div class="row g-2">
                                 @php
                                     $flagFields = [
+                                        'is_sellable',
+                                        'is_purchasable',
                                         'is_not_for_sale',
                                         'is_controlled',
                                         'allow_fractions',

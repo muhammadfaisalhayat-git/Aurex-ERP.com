@@ -3,12 +3,15 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 use Illuminate\Pagination\Paginator;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -48,5 +51,26 @@ class AppServiceProvider extends ServiceProvider
             'fuel_log' => 'App\Models\FuelLog',
             'maintenance_voucher' => 'App\Models\MaintenanceVoucher',
         ]);
+
+        // Configure Rate Limiters
+        $this->configureRateLimiting();
+    }
+
+    /**
+     * Configure the rate limiters for the application.
+     */
+    protected function configureRateLimiting(): void
+    {
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('login', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
+        });
+
+        RateLimiter::for('global', function (Request $request) {
+            return Limit::perMinute(120)->by($request->ip());
+        });
     }
 }
