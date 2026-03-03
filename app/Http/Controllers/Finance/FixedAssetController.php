@@ -53,7 +53,7 @@ class FixedAssetController extends Controller
 
         \App\Models\Finance\FixedAsset::create($validated);
 
-        return redirect()->route('finance.fixed_assets.index')->with('success', __('messages.asset_created_successfully'));
+        return redirect()->route('finance.fixed-assets.index')->with('success', __('messages.asset_created_successfully'));
     }
 
     /**
@@ -100,7 +100,7 @@ class FixedAssetController extends Controller
 
         $asset->update($validated);
 
-        return redirect()->route('finance.fixed_assets.index')->with('success', __('messages.asset_updated_successfully'));
+        return redirect()->route('finance.fixed-assets.index')->with('success', __('messages.asset_updated_successfully'));
     }
 
     /**
@@ -111,7 +111,7 @@ class FixedAssetController extends Controller
         $asset = \App\Models\Finance\FixedAsset::findOrFail($id);
         $asset->delete();
 
-        return redirect()->route('finance.fixed_assets.index')->with('success', __('messages.asset_deleted_successfully'));
+        return redirect()->route('finance.fixed-assets.index')->with('success', __('messages.asset_deleted_successfully'));
     }
 
     /**

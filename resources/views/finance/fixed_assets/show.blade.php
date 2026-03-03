@@ -8,7 +8,7 @@
         <h1 class="h3 mb-0 text-gray-800">{{ __('messages.finance') }}</h1>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('finance.fixed_assets.index') }}">{{ __('messages.fixed_assets') }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('finance.fixed-assets.index') }}">{{ __('messages.fixed_assets') }}</a></li>
                 <li class="breadcrumb-item active" aria-current="page">{{ __('messages.asset_details') }} ({{ $asset->code }})</li>
             </ol>
         </nav>
@@ -19,7 +19,7 @@
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">{{ __('messages.basic_info') }}</h6>
-                    <a href="{{ route('finance.fixed_assets.edit', $asset->id) }}" class="btn btn-sm btn-outline-primary">
+                    <a href="{{ route('finance.fixed-assets.edit', $asset->id) }}" class="btn btn-sm btn-outline-primary">
                         <i class="fas fa-edit me-1"></i> {{ __('messages.edit') }}
                     </a>
                 </div>
