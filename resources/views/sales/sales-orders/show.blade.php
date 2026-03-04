@@ -5,7 +5,8 @@
 @section('content')
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3">{{ __('messages.view_sales_order') ?? 'View Sales Order' }}: {{ $salesOrder->document_number }}</h1>
+            <h1 class="h3">{{ __('messages.view_sales_order') ?? 'View Sales Order' }}: {{ $salesOrder->document_number }}
+            </h1>
             <a href="{{ route('sales.sales-orders.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> {{ __('messages.back') }}
             </a>
@@ -23,16 +24,30 @@
                         <div class="row mb-4">
                             <div class="col-sm-6">
                                 <h6 class="fw-bold">{{ __('messages.customer_details') }}</h6>
-                                <p class="mb-0">{{ $salesOrder->customer->name ?? $salesOrder->customer->name_en }}</p>
-                                <p class="mb-0">{{ $salesOrder->customer->address ?? '' }}</p>
-                                <p class="mb-0">{{ $salesOrder->customer->phone ?? '' }}</p>
+                                <p class="mb-0">
+                                    <strong>{{ $salesOrder->customer?->name ?? __('messages.walking_customer') }}</strong>
+                                </p>
+                                <p class="mb-0"><strong>{{ __('messages.address') }}:</strong>
+                                    {{ $salesOrder->customer->address ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.city') }}:</strong>
+                                    {{ $salesOrder->customer->city ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.country') }}:</strong>
+                                    {{ $salesOrder->customer->country ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.phone') }}:</strong>
+                                    {{ $salesOrder->customer->phone ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.email') }}:</strong>
+                                    {{ $salesOrder->customer->email ?? '-' }}</p>
                             </div>
                             <div class="col-sm-6 text-sm-end">
-                                <h6 class="fw-bold text-muted text-uppercase small">{{ __('messages.order_details') ?? 'Order Details' }}</h6>
+                                <h6 class="fw-bold text-muted text-uppercase small">
+                                    {{ __('messages.order_details') ?? 'Order Details' }}
+                                </h6>
                                 <p class="mb-1"><strong>{{ __('messages.order_number') ?? 'Order Number' }}:</strong>
                                     {{ $salesOrder->order_number }}</p>
-                                <p class="mb-1"><strong>{{ __('messages.expected_delivery_date') ?? 'Expected Delivery' }}:</strong>
-                                    {{ $salesOrder->expected_delivery_date ? $salesOrder->expected_delivery_date->format('Y-m-d') : '-' }}</p>
+                                <p class="mb-1">
+                                    <strong>{{ __('messages.expected_delivery_date') ?? 'Expected Delivery' }}:</strong>
+                                    {{ $salesOrder->expected_delivery_date ? $salesOrder->expected_delivery_date->format('Y-m-d') : '-' }}
+                                </p>
                                 <p class="mb-0"><strong>{{ __('messages.status') }}:</strong>
                                     <span class="badge rounded-pill bg-info px-3">{{ $salesOrder->status }}</span>
                                 </p>

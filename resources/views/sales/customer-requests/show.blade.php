@@ -73,11 +73,32 @@
                         <table class="table table-sm">
                             <tr>
                                 <th width="40%">Name</th>
-                                <td>{{ $customerRequest->customer->name ?? '-' }}</td>
+                                <td><strong>{{ $customerRequest->customer?->name ?? __('messages.walking_customer') }}</strong>
+                                </td>
                             </tr>
                             <tr>
                                 <th>Branch</th>
                                 <td>{{ $customerRequest->branch->name ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ __('messages.address') }}</th>
+                                <td>{{ $customerRequest->customer->address ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ __('messages.city') }}</th>
+                                <td>{{ $customerRequest->customer->city ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ __('messages.country') }}</th>
+                                <td>{{ $customerRequest->customer->country ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ __('messages.phone') }}</th>
+                                <td>{{ $customerRequest->customer->phone ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ __('messages.email') }}</th>
+                                <td>{{ $customerRequest->customer->email ?? '-' }}</td>
                             </tr>
                         </table>
                     </div>

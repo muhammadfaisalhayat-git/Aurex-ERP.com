@@ -105,10 +105,12 @@
             <td style="width: 50%; text-align: {{ app()->getLocale() === 'ar' ? 'right' : 'left' }};">
                 <h3 class="fw-bold">{{ __('messages.customer_details') }}</h3>
                 <div style="font-family: 'DejaVu Sans', sans-serif;">
-                    <p>{{ $quotation->customer_name_ar ?? $quotation->customer?->name_ar ?? $quotation->customer?->name_en }}<br>
-                        @if($quotation->customer?->address) {{ $quotation->customer->address }}<br> @endif
-                        @if($quotation->customer?->phone) {{ $quotation->customer->phone }}<br> @endif
-                        @if($quotation->customer?->email) {{ $quotation->customer->email }} @endif
+                    <p>{{ $quotation->customer_name_ar ?: ($quotation->customer?->name ?? __('sales.cash_customer')) }}<br>
+                        <strong>{{ __('messages.address') }}:</strong> {{ $quotation->customer?->address ?? '-' }}<br>
+                        <strong>{{ __('messages.city') }}:</strong> {{ $quotation->customer?->city ?? '-' }}<br>
+                        <strong>{{ __('messages.country') }}:</strong> {{ $quotation->customer?->country ?? '-' }}<br>
+                        <strong>{{ __('messages.phone') }}:</strong> {{ $quotation->customer?->phone ?? '-' }}<br>
+                        <strong>{{ __('messages.email') }}:</strong> {{ $quotation->customer?->email ?? '-' }}
                     </p>
                 </div>
             </td>

@@ -110,12 +110,12 @@
                             <div class="col-md-4">
                                 <h5>{{ __('sales.customer_info') }}</h5>
                                 <p>
-                                    <strong>{{ $invoice->customer->company_name ?? __('sales.cash_customer') }}</strong><br>
-                                    {{ $invoice->customer->address ?? '-' }}<br>
-                                    {{ $invoice->customer->city ?? '-' }}, {{ $invoice->customer->country ?? '-' }}<br>
-                                    <abbr title="{{ __('sales.phone') }}">P:</abbr>
-                                    {{ $invoice->customer->phone ?? '-' }}<br>
-                                    <abbr title="{{ __('sales.email') }}">E:</abbr> {{ $invoice->customer->email ?? '-' }}
+                                    <strong>{{ $invoice->customer?->name ?? __('sales.cash_customer') }}</strong><br>
+                                    <strong>{{ __('sales.address') }}:</strong> {{ $invoice->customer->address ?? '-' }}<br>
+                                    <strong>{{ __('sales.city') }}:</strong> {{ $invoice->customer->city ?? '-' }}<br>
+                                    <strong>{{ __('sales.country') }}:</strong> {{ $invoice->customer->country ?? '-' }}<br>
+                                    <strong>{{ __('sales.phone') }}:</strong> {{ $invoice->customer->phone ?? '-' }}<br>
+                                    <strong>{{ __('sales.email') }}:</strong> {{ $invoice->customer->email ?? '-' }}
                                 </p>
                             </div>
                             <div class="col-md-4">
@@ -217,50 +217,10 @@
 @endsection
 
 @push('scripts')
-    <script>
-        function promptWhatsApp(baseRoute, existingPhone) {
-            if (existingPhone && existingPhone.trim() !== '') {
-                // If phone exists, just navigate to the route
-                window.location.href = baseRoute;
-                return;
-            }
-
-            Swal.fire({
-                title: '{{ __('messages.enter_whatsapp_number') ?? 'Enter WhatsApp Number' }}',
-                text: '{{ __('messages.whatsapp_number_required') ?? 'This customer does not have a saved phone number. Please enter a valid number (e.g., +966123456789) to send the invoice.' }}',
-                input: 'text',
-                inputPlaceholder: '+966...',
-                showCancelButton: true,
-                confirmButtonText: '{{ __('messages.send') ?? 'Send' }}',
-                cancelButtonText: '{{ __('common.cancel') ?? 'Cancel' }}',
-                inputValidator: (value) => {
-                    if (!value) {
-                        return '{{ __('messages.whatsapp_number_required') ?? 'Phone number is required.' }}';
-                    }
-                }
-            }).then((result) => {
-                if (result.isConfirmed && result.value) {
-                    // Submit via POST
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = baseRoute;
-
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = '{{ csrf_token() }}';
-                    form.appendChild(csrfInput);
-
-                    const phoneInput = document.createElement('input');
-                    phoneInput.type = 'hidden';
-                    phoneInput.name = 'phone';
-                    phoneInput.value = result.value;
-                    form.appendChild(phoneInput);
-
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
-        }
+    <script>     function promptWhatsApp(baseRoute, existingPhone) {         if (existingPhone && existingPhone.trim() !== '') {             // If phone exists, just navigate to the route             window.location.href = baseRoute;             return;         }
+             Swal.fire({             title: '{{ __('messages.enter_whatsapp_number') ?? 'Enter WhatsApp Number' }}',             text: '{{ __('messages.whatsapp_number_required') ?? 'This customer does not have a saved phone number. Please enter a valid number (e.g., +966123456789) to send the invoice.' }}',             input: 'text',             inputPlaceholder: '+966...',             showCancelButton: true,             confirmButtonText: '{{ __('messages.send') ?? 'Send' }}',             cancelButtonText: '{{ __('common.cancel') ?? 'Cancel' }}',             inputValidator: (value) => {                 if (!value) {                     return '{{ __('messages.whatsapp_number_required') ?? 'Phone number is required.' }}';                 }             }         }).then((result) => {             if (result.isConfirmed && result.value) {                 // Submit via POST                 const form = document.createElement('form');                 form.method = 'POST';                 form.action = baseRoute;
+                     const csrfInput = document.createElement('input');                 csrfInput.type = 'hidden';                 csrfInput.name = '_token';                 csrfInput.value = '{{ csrf_token() }}';                 form.appendChild(csrfInput);
+                     const phoneInput = document.createElement('input');                 phoneInput.type = 'hidden';                 phoneInput.name = 'phone';                 phoneInput.value = result.value;                 form.appendChild(phoneInput);
+                     document.body.appendChild(form);                 form.submit();             }         });     }
     </script>
 @endpush

@@ -87,7 +87,8 @@
             <img src="{{ $logoBase64 }}" alt="Logo" style="max-height: 80px; margin-bottom: 10px;"><br>
         @else
             <div class="company-name">
-                {{ $customerRequest->company_name_ar ?? $customerRequest->company?->name ?? 'AUREX ERP' }}</div>
+                {{ $customerRequest->company_name_ar ?? $customerRequest->company?->name ?? 'AUREX ERP' }}
+            </div>
         @endif
         <div style="font-size: 18px; margin-top: 5px; color: #555;">{{ __('messages.customer_request') }}</div>
     </div>
@@ -107,8 +108,12 @@
             <div class="label">Customer Information</div>
             <div style="margin-top: 5px; line-height: 1.6;">
                 <strong
-                    style="font-size: 16px;">{{ $customerRequest?->customer_name_ar ?? $customerRequest->customer?->name_ar ?? $customerRequest?->customer?->name ?? '' }}</strong><br>
-                {{ $customerRequest?->branch?->name ?? '' }}
+                    style="font-size: 16px;">{{ $customerRequest?->customer_name_ar ?? ($customerRequest->customer?->name ?? __('messages.cash_customer')) }}</strong><br>
+                <strong>{{ __('messages.address') }}:</strong> {{ $customerRequest->customer?->address ?? '-' }}<br>
+                <strong>{{ __('messages.city') }}:</strong> {{ $customerRequest->customer?->city ?? '-' }}<br>
+                <strong>{{ __('messages.country') }}:</strong> {{ $customerRequest->customer?->country ?? '-' }}<br>
+                <strong>{{ __('messages.phone') }}:</strong> {{ $customerRequest->customer?->phone ?? '-' }}<br>
+                <strong>{{ __('messages.email') }}:</strong> {{ $customerRequest->customer?->email ?? '-' }}
             </div>
         </div>
     </div>

@@ -19,7 +19,8 @@
                                     </button>
                                 </form>
                             @endif
-                            <a href="{{ route('sales.returns.print', $salesReturn) }}" target="_blank" class="btn btn-outline-info me-2">
+                            <a href="{{ route('sales.returns.print', $salesReturn) }}" target="_blank"
+                                class="btn btn-outline-info me-2">
                                 <i class="fas fa-print me-1"></i> {{ __('messages.print') ?? 'Print' }}
                             </a>
                             <a href="{{ route('sales.returns.index') }}" class="btn btn-outline-secondary">
@@ -81,10 +82,16 @@
                             <div class="col-md-4">
                                 <h5>{{ __('messages.customer_info') }}</h5>
                                 <p>
-                                    @if($salesReturn->customer)
-                                        <strong>{{ $salesReturn->customer->name }}</strong><br>
+                                    <strong>{{ $salesReturn->customer?->name ?? __('messages.walking_customer') }}</strong><br>
+                                        <strong>{{ __('messages.address') }}:</strong>
                                         {{ $salesReturn->customer->address ?? '-' }}<br>
-                                        {{ $salesReturn->customer->phone ?? '-' }}
+                                        <strong>{{ __('messages.city') }}:</strong>
+                                        {{ $salesReturn->customer->city ?? '-' }}<br>
+                                        <strong>{{ __('messages.country') }}:</strong>
+                                        {{ $salesReturn->customer->country ?? '-' }}<br>
+                                        <strong>{{ __('messages.phone') }}:</strong>
+                                        {{ $salesReturn->customer->phone ?? '-' }}<br>
+                                        <strong>{{ __('messages.email') }}:</strong> {{ $salesReturn->customer->email ?? '-' }}
                                     @else
                                         <span
                                             class="text-muted">{{ __('messages.walking_customer') ?? 'Walking Customer' }}</span>

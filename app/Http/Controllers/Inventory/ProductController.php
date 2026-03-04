@@ -36,6 +36,7 @@ class ProductController extends Controller
         $warehouseId = null;
         $movementType = null;
         $measurementUnits = MeasurementUnit::active()->orderBy('name')->get();
+        $suggestedCode = $this->generateProductCode();
 
         return view('inventory.products.create', compact(
             'categories',
@@ -45,8 +46,27 @@ class ProductController extends Controller
             'toDate',
             'warehouseId',
             'movementType',
-            'measurementUnits'
+            'measurementUnits',
+            'suggestedCode'
         ));
+    }
+
+    private function generateProductCode(): string
+    {
+        $year = date('Y');
+        $prefix = $year . '-';
+
+        // Find all product codes for this year, then pick the max sequential number
+        $products = Product::where('code', 'like', $prefix . '%')->get(['code']);
+        $maxNum = 0;
+        foreach ($products as $p) {
+            $suffix = substr($p->code, strlen($prefix));
+            if (is_numeric($suffix)) {
+                $maxNum = max($maxNum, (int) $suffix);
+            }
+        }
+
+        return $prefix . ($maxNum + 1);
     }
 
     public function show(Product $product, Request $request)

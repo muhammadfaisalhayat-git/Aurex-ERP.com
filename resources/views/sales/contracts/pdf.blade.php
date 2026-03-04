@@ -290,14 +290,22 @@
                     <td class="info-box">
                         <div class="info-box-title">{{ __('messages.customer_info') }}</div>
                         <div class="info-box-value">
-                            {{ $contract->customer_name_ar_reshaped ?? ($contract->customer?->name_ar ?? $contract->customer?->name_en) }}
+                            {{ $contract->customer_name_ar_reshaped ?? ($contract->customer?->name ?? __('messages.cash_customer')) }}
                         </div>
                         @if($contract->customer?->address)
-                            <div class="info-box-sub">{{ $contract->customer->address }}</div>
+                            <div class="info-box-sub"><strong>{{ __('messages.address') }}:</strong>
+                                {{ $contract->customer->address }}</div>
                         @endif
+                        <div class="info-box-sub"><strong>{{ __('messages.city') }}:</strong>
+                            {{ $contract->customer?->city ?? '-' }}</div>
+                        <div class="info-box-sub"><strong>{{ __('messages.country') }}:</strong>
+                            {{ $contract->customer?->country ?? '-' }}</div>
                         @if($contract->customer?->phone)
-                            <div class="info-box-sub">{{ __('messages.phone') }}: {{ $contract->customer->phone }}</div>
+                            <div class="info-box-sub"><strong>{{ __('messages.phone') }}:</strong>
+                                {{ $contract->customer->phone }}</div>
                         @endif
+                        <div class="info-box-sub"><strong>{{ __('messages.email') }}:</strong>
+                            {{ $contract->customer?->email ?? '-' }}</div>
                     </td>
 
                     <td class="spacer"></td>
@@ -309,12 +317,14 @@
                                 <tr class="detail-row">
                                     <td class="detail-label">{{ __('messages.start_date') ?? 'Start Date' }}</td>
                                     <td class="detail-value">
-                                        {{ $contract->start_date ? $contract->start_date->format('d M Y') : '-' }}</td>
+                                        {{ $contract->start_date ? $contract->start_date->format('d M Y') : '-' }}
+                                    </td>
                                 </tr>
                                 <tr class="detail-row">
                                     <td class="detail-label">{{ __('messages.end_date') ?? 'End Date' }}</td>
                                     <td class="detail-value">
-                                        {{ $contract->end_date ? $contract->end_date->format('d M Y') : '-' }}</td>
+                                        {{ $contract->end_date ? $contract->end_date->format('d M Y') : '-' }}
+                                    </td>
                                 </tr>
                                 <tr class="detail-row">
                                     <td class="detail-label">{{ __('messages.status') }}</td>

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', isset($product) ? __('messages.edit') . ' ' . $product->name : __('messages.create_product'))
 
@@ -40,7 +40,7 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-bold">{{ __('messages.category') }}</label>
+                            <label class="form-label small fw-bold">{{ __('messages.category') }} <span class="text-danger">*</span></label>
                             <select name="category_id" class="form-select select2" required>
                                 <option value="">{{ __('messages.select_category') }}</option>
                                 @foreach($categories as $category)
@@ -65,12 +65,12 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold">{{ __('messages.name_en') }}</label>
+                            <label class="form-label small fw-bold">{{ __('messages.name_en') }} <span class="text-danger">*</span></label>
                             <input type="text" name="name_en" class="form-control"
                                 value="{{ old('name_en', $product->name_en ?? '') }}" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold">{{ __('messages.name_ar') }}</label>
+                            <label class="form-label small fw-bold">{{ __('messages.name_ar') }} <span class="text-danger">*</span></label>
                             <input type="text" name="name_ar" class="form-control"
                                 value="{{ old('name_ar', $product->name_ar ?? '') }}" required dir="rtl">
                         </div>
@@ -79,7 +79,7 @@
             </div>
 
             <!-- Tabs Navigation -->
-            <div class="card glassy border-0 shadow-sm overflow-hidden">
+            <div class="card tab-card-highlight shadow-sm overflow-hidden">
                 <div class="card-header bg-transparent border-0 p-0">
                     <ul class="nav nav-tabs nav-justified" id="productTabs" role="tablist">
                         <li class="nav-item">
@@ -149,14 +149,26 @@
                                                     value="{{ old('ref_code', $product->ref_code ?? '') }}">
                                             </div>
                                             <div class="col-md-3">
-                                                <label class="form-label small fw-bold">{{ __('messages.unit_of_measure') }}</label>
-                                                <input type="text" name="unit_of_measure" class="form-control"
-                                                    value="{{ old('unit_of_measure', $product->unit_of_measure ?? '') }}">
+                                                <label class="form-label small fw-bold">{{ __('messages.unit_of_measure') }} <span class="text-danger">*</span></label>
+                                                <select name="unit_of_measure" class="form-select select2" required>
+                                                    <option value="">{{ __('messages.select_unit') }}</option>
+                                                    @foreach($measurementUnits as $mu)
+                                                        <option value="{{ $mu->name }}" {{ old('unit_of_measure', $product->unit_of_measure ?? '') == $mu->name ? 'selected' : '' }}>
+                                                            {{ $mu->name }} ({{ $mu->code }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                             <div class="col-md-3">
                                                 <label class="form-label small fw-bold">{{ __('messages.default_unit') }}</label>
-                                                <input type="text" name="default_unit" class="form-control"
-                                                    value="{{ old('default_unit', $product->default_unit ?? '') }}">
+                                                <select name="default_unit" class="form-select select2">
+                                                    <option value="">{{ __('messages.select_unit') }}</option>
+                                                    @foreach($measurementUnits as $mu)
+                                                        <option value="{{ $mu->name }}" {{ old('default_unit', $product->default_unit ?? '') == $mu->name ? 'selected' : '' }}>
+                                                            {{ $mu->name }} ({{ $mu->code }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                             <div class="col-md-3">
                                                 <label class="form-label small fw-bold">{{ __('messages.decimals_count') }}</label>
@@ -173,7 +185,7 @@
                                         </h6>
                                         <div class="row g-3">
                                             <div class="col-md-4">
-                                                <label class="form-label small fw-bold">{{ __('messages.cost_price') }}</label>
+                                                <label class="form-label small fw-bold">{{ __('messages.cost_price') }} <span class="text-danger">*</span></label>
                                                 <div class="input-group">
                                                     <input type="number" name="cost_price" class="form-control" step="0.01"
                                                         value="{{ old('cost_price', $product->cost_price ?? '0.00') }}" required>
@@ -189,7 +201,7 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
-                                                <label class="form-label small fw-bold">{{ __('messages.sale_price') }}</label>
+                                                <label class="form-label small fw-bold">{{ __('messages.sale_price') }} <span class="text-danger">*</span></label>
                                                 <div class="input-group">
                                                     <input type="number" name="sale_price" class="form-control" step="0.01"
                                                         value="{{ old('sale_price', $product->sale_price ?? '0.00') }}" required>
@@ -627,7 +639,7 @@
                 </div>
 
                 <div class="card-footer bg-light p-3">
-                    <button type="submit" class="btn btn-primary px-4 bg-gradient">
+                    <button type="submit" class="btn btn-success px-5 shadow-sm">
                         <i class="fas fa-save me-2"></i> {{ __('messages.save_changes') }}
                     </button>
                 </div>
@@ -659,6 +671,13 @@
     </script>
 
     <style>
+        .tab-card-highlight {
+            border-radius: 12px;
+            background: #fff;
+            border: 2px solid #0d9488;
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12), 0 4px 16px rgba(13, 148, 136, 0.10) !important;
+        }
+
         .glassy {
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.4);

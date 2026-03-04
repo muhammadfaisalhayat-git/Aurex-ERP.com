@@ -98,6 +98,14 @@ return [
     'amount' => 'Amount',
     'quantity' => 'Quantity',
     'price' => 'Price',
+
+    // Product Sections
+    'section_identification' => 'Identification',
+    'section_pricing' => 'Pricing',
+    'section_dimensions_weight' => 'Dimensions & Weight',
+    'section_inventory_settings' => 'Inventory Settings',
+    'section_additional_info' => 'Additional Information',
+
     'capacity' => 'Capacity',
     'total' => 'Total',
     'subtotal' => 'Subtotal',
@@ -125,6 +133,9 @@ return [
     'date_to' => 'Date To',
     'balance' => 'Balance',
     'code' => 'Code',
+    'category' => 'Category',
+    'select_category' => 'Select Category...',
+    'foreign_description' => 'Foreign Description',
     'unknown_customer' => 'Unknown Customer',
     'name' => 'Name',
     'sar' => 'SAR',
@@ -135,6 +146,7 @@ return [
     'phone' => 'Phone',
     'mobile' => 'Mobile',
     'city' => 'City',
+    'country' => 'Country',
     'region' => 'Region',
     'postal_code' => 'Postal Code',
     'logo' => 'Logo',

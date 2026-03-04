@@ -23,13 +23,23 @@
                         <div class="row mb-4">
                             <div class="col-sm-6">
                                 <h6 class="fw-bold">{{ __('messages.customer_details') }}</h6>
-                                <p class="mb-0">{{ $contract->customer->name ?? $contract->customer->name_en }}</p>
-                                <p class="mb-0">{{ $contract->customer->address ?? '' }}</p>
-                                <p class="mb-0">{{ $contract->customer->phone ?? '' }}</p>
+                                <p class="mb-0">
+                                    <strong>{{ $contract->customer?->name ?? __('messages.walking_customer') }}</strong></p>
+                                <p class="mb-0"><strong>{{ __('messages.address') }}:</strong>
+                                    {{ $contract->customer->address ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.city') }}:</strong>
+                                    {{ $contract->customer->city ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.country') }}:</strong>
+                                    {{ $contract->customer->country ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.phone') }}:</strong>
+                                    {{ $contract->customer->phone ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.email') }}:</strong>
+                                    {{ $contract->customer->email ?? '-' }}</p>
                             </div>
                             <div class="col-sm-6 text-sm-end">
                                 <h6 class="fw-bold text-muted text-uppercase small">
-                                    {{ __('messages.contract_details') ?? 'Contract Details' }}</h6>
+                                    {{ __('messages.contract_details') ?? 'Contract Details' }}
+                                </h6>
                                 <p class="mb-1"><strong>{{ __('messages.contract_number') ?? 'Contract Number' }}:</strong>
                                     {{ $contract->contract_number }}</p>
                                 <p class="mb-1"><strong>{{ __('messages.start_date') ?? 'Start Date' }}:</strong>

@@ -280,17 +280,18 @@
     <!-- CUSTOMER -->
     <div class="sect-title">Customer Information</div>
     <div class="cust-box">
-        <div class="cust-name">
-            {{ $invoice->customer_name_ar ?: ($invoice->customer?->company_name ?? $invoice->customer?->name ?? __('sales.cash_customer')) }}
-        </div>
+        {{ $invoice->customer_name_ar ?: ($invoice->customer?->name ?? __('sales.cash_customer')) }}
         @if($invoice->customer?->tax_number)
             <div style="font-weight: bold; color: #1e40af; font-size: 9pt;">VAT Number: {{ $invoice->customer->tax_number }}
             </div>
         @endif
-        <div class="co-addr">{{ $invoice->customer?->address ?? 'Street Address' }}</div>
-        <div class="co-addr">
-            {{ implode(', ', array_filter([$invoice->customer?->city, $invoice->customer?->state, $invoice->customer?->zip_code])) ?: 'City, ST ZIP Code' }}
+        <div class="co-addr"><strong>{{ __('messages.address') }}:</strong> {{ $invoice->customer?->address ?? '-' }}
         </div>
+        <div class="co-addr"><strong>{{ __('messages.city') }}:</strong> {{ $invoice->customer?->city ?? '-' }}</div>
+        <div class="co-addr"><strong>{{ __('messages.country') }}:</strong> {{ $invoice->customer?->country ?? '-' }}
+        </div>
+        <div class="co-addr"><strong>{{ __('messages.phone') }}:</strong> {{ $invoice->customer?->phone ?? '-' }}</div>
+        <div class="co-addr"><strong>{{ __('messages.email') }}:</strong> {{ $invoice->customer?->email ?? '-' }}</div>
     </div>
 
     <!-- ITEMS -->
@@ -362,7 +363,8 @@
     @if($invoice->notes)
         <div style="margin-top: 30pt; border-top: 0.5pt solid #cbd5e1; padding-top: 10pt;">
             <div style="font-weight: bold; color: #64748b; font-size: 8pt; text-transform: uppercase;">
-                {{ __('sales.notes') }}</div>
+                {{ __('sales.notes') }}
+            </div>
             <div style="font-size: 9pt; color: #334155; margin-top: 2pt;">{{ $invoice->notes_ar ?? $invoice->notes }}</div>
         </div>
     @endif

@@ -97,6 +97,14 @@ return [
     'amount' => 'المبلغ',
     'quantity' => 'الكمية',
     'price' => 'السعر',
+
+    // Product Sections
+    'section_identification' => 'التعريف',
+    'section_pricing' => 'التسعير',
+    'section_dimensions_weight' => 'الأبعاد والوزن',
+    'section_inventory_settings' => 'إعدادات المخزون',
+    'section_additional_info' => 'معلومات إضافية',
+
     'capacity' => 'القدرة / الطاقة',
     'total' => 'الإجمالي',
     'subtotal' => 'المجموع الفرعي',
@@ -124,8 +132,10 @@ return [
     'date_to' => 'إلى تاريخ',
     'balance' => 'الرصيد',
     'code' => 'الكود',
-    'generated_on' => 'تم الإنشاء في',
-    'phone_number_not_found' => 'رقم الهاتف غير موجود لهذه الجهة',
+    'category' => 'الفئة',
+    'select_category' => 'اختر الفئة...',
+    'foreign_description' => 'الوصف باللغة الأجنبية',
+    'unknown_customer' => 'عميل غير معروف',
     'whatsapp_sent_successfully' => 'تم إرسال كشف الحساب بنجاح عبر الواتساب',
     'entity_statement_report' => 'تقرير كشف حساب :type',
     'statement_report' => 'تقرير كشف الحساب',

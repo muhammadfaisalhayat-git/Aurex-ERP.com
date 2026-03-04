@@ -243,19 +243,14 @@
 
     <script type="text/template" id="item-row-template">
                                                                                                         <tr>
-                                                                                                            <td class="position-relative product-cell">
-                                                                                                                <div class="input-group">
-                                                                                                                    <input type="text" class="form-control product-search-input" 
-                                                                                                                           placeholder="Type to search products..." 
-                                                                                                                           autocomplete="off"
-                                                                                                                           data-product-id="">
-                                                                                                                    <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
-                                                                                                                    <button class="btn btn-outline-secondary product-search-btn" type="button" title="Search Product (F2)">
-                                                                                                                        <i class="fas fa-search"></i>
-                                                                                                                    </button>
-                                                                                                                </div>
-                                                                                                                <div class="search-results-container glassy product-results"></div>
-                                                                                                            </td>
+                                                                                                             <td class="position-relative product-cell">
+                                                                                                                 <input type="text" class="form-control product-search-input" 
+                                                                                                                        placeholder="Type to search products..." 
+                                                                                                                        autocomplete="off"
+                                                                                                                        data-product-id="">
+                                                                                                                 <input type="hidden" class="product-id-input" name="items[INDEX][product_id]" required>
+                                                                                                                 <div class="search-results-container glassy product-results"></div>
+                                                                                                             </td>
                                                                                                             <td>
                                                                                                                 <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
                                                                                                             </td>
@@ -472,9 +467,9 @@
                 // Ensure we find the right element even if it's inside a Select2 container
                 const target = currentElement.closest('.select2-selection') || currentElement;
                 
-                const focusableElements = 'input:not([type="hidden"]):not([disabled]):not([readonly]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), .select2-selection';
+                const focusableElements = 'input:not([type="hidden"]):not([disabled]):not([readonly]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]):not(.remove-item):not(#add-item-btn), .select2-selection--single';
                 const elements = Array.from(form.querySelectorAll(focusableElements)).filter(el => {
-                    return el.offsetParent !== null || el.classList.contains('select2-selection');
+                    return el.offsetParent !== null || el.classList.contains('select2-selection--single');
                 });
                 
                 const index = elements.indexOf(target);
@@ -495,7 +490,12 @@
                 }
             }
 
+            let lastAddTimestamp = 0;
             function addItem() {
+                const now = Date.now();
+                if (now - lastAddTimestamp < 300) return; // Debounce 300ms
+                lastAddTimestamp = now;
+
                 const html = template.replace(/INDEX/g, itemIndex++);
                 tableBody.insertAdjacentHTML('beforeend', html);
                 const newRow = tableBody.lastElementChild;
@@ -557,8 +557,6 @@
                         e.preventDefault();
                         if (results.style.display !== 'none' && activeIndex >= 0) {
                             items[activeIndex].click();
-                        } else if (hidden.value) {
-                            row.querySelector('.quantity-input').focus();
                         }
                     } else if (e.key === 'Escape') {
                         results.style.display = 'none';
@@ -845,17 +843,15 @@
                     
                     // Logic to handle Select2 states
                     const isSelect2Search = e.target.classList.contains('select2-search__field');
-                    const selectionSpan = e.target.closest('.select2-container')?.previousElementSibling?.nextElementSibling?.querySelector('.select2-selection');
-                    const isSelect2Closed = selectionSpan && !e.target.closest('.select2-container').classList.contains('select2-container--open');
-
+                    
                     if (isSelect2Search) {
                         // Dropdown is open, let Select2 handle the Enter key for selection.
                         // Our select2:select listener will then move focus.
                         return;
                     }
 
-                    // If it's a closed Select2 or a normal input, move focus.
-                    const targetEl = e.target.closest('.select2-selection') || e.target;
+                    // For Select2 containers or standard inputs, move focus forward
+                    const targetEl = e.target.closest('.select2-container') ? e.target.closest('.select2-container').previousElementSibling : e.target;
                     moveFocus(targetEl);
                 }
             });

@@ -23,10 +23,12 @@
                         <div class="row mb-4">
                             <div class="col-sm-6">
                                 <h6 class="fw-bold">{{ __('messages.customer_details') }}</h6>
-                                <p class="mb-0">{{ $quotation->customer->name }}</p>
-                                <p class="mb-0">{{ $quotation->customer->address ?? '' }}</p>
-                                <p class="mb-0">{{ $quotation->customer->phone ?? '' }}</p>
-                                <p class="mb-0">{{ $quotation->customer->email ?? '' }}</p>
+                                <p class="mb-0"><strong>{{ $quotation->customer?->name ?? __('messages.walking_customer') }}</strong></p>
+                                <p class="mb-0"><strong>{{ __('messages.address') }}:</strong> {{ $quotation->customer->address ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.city') }}:</strong> {{ $quotation->customer->city ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.country') }}:</strong> {{ $quotation->customer->country ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.phone') }}:</strong> {{ $quotation->customer->phone ?? '-' }}</p>
+                                <p class="mb-0"><strong>{{ __('messages.email') }}:</strong> {{ $quotation->customer->email ?? '-' }}</p>
                             </div>
                             <div class="col-sm-6 text-sm-end">
                                 <h6 class="fw-bold text-muted text-uppercase small">{{ __('messages.quotation_details') }}</h6>

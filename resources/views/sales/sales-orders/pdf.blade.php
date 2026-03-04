@@ -290,19 +290,22 @@
                     <td class="info-box">
                         <div class="info-box-title">{{ __('messages.customer_info') }}</div>
                         <div class="info-box-value">
-                            {{ $salesOrder->customer_name_ar_reshaped ?? ($salesOrder->customer?->name_ar ?? $salesOrder->customer?->name_en) }}
+                            {{ $salesOrder->customer_name_ar_reshaped ?? ($salesOrder->customer?->name ?? __('messages.cash_customer')) }}
                         </div>
                         @if($salesOrder->customer?->address)
-                            <div class="info-box-sub">{{ $salesOrder->customer->address }}</div>
+                            <div class="info-box-sub"><strong>{{ __('messages.address') }}:</strong>
+                                {{ $salesOrder->customer->address }}</div>
                         @endif
-                        @if($salesOrder->customer?->city || $salesOrder->customer?->country)
-                            <div class="info-box-sub">
-                                {{ implode(', ', array_filter([$salesOrder->customer?->city, $salesOrder->customer?->country])) }}
-                            </div>
-                        @endif
+                        <div class="info-box-sub"><strong>{{ __('messages.city') }}:</strong>
+                            {{ $salesOrder->customer?->city ?? '-' }}</div>
+                        <div class="info-box-sub"><strong>{{ __('messages.country') }}:</strong>
+                            {{ $salesOrder->customer?->country ?? '-' }}</div>
                         @if($salesOrder->customer?->phone)
-                            <div class="info-box-sub">{{ __('messages.phone') }}: {{ $salesOrder->customer->phone }}</div>
+                            <div class="info-box-sub"><strong>{{ __('messages.phone') }}:</strong>
+                                {{ $salesOrder->customer->phone }}</div>
                         @endif
+                        <div class="info-box-sub"><strong>{{ __('messages.email') }}:</strong>
+                            {{ $salesOrder->customer?->email ?? '-' }}</div>
                     </td>
 
                     <td class="spacer"></td>
@@ -317,7 +320,8 @@
                                 </tr>
                                 <tr class="detail-row">
                                     <td class="detail-label">
-                                        {{ __('messages.expected_delivery_date') ?? 'Expected Delivery' }}</td>
+                                        {{ __('messages.expected_delivery_date') ?? 'Expected Delivery' }}
+                                    </td>
                                     <td class="detail-value">
                                         {{ $salesOrder->expected_delivery_date ? $salesOrder->expected_delivery_date->format('d M Y') : '-' }}
                                     </td>
@@ -376,13 +380,15 @@
                     <tr class="totals-row">
                         <td class="detail-label">{{ __('messages.tax') }}</td>
                         <td class="text-right" style="font-weight: bold;">
-                            {{ number_format($salesOrder->tax_amount, 2) }}</td>
+                            {{ number_format($salesOrder->tax_amount, 2) }}
+                        </td>
                     </tr>
                     @if($salesOrder->shipping_amount > 0)
                         <tr class="totals-row">
                             <td class="detail-label">{{ __('messages.shipping') }}</td>
                             <td class="text-right" style="font-weight: bold;">
-                                {{ number_format($salesOrder->shipping_amount, 2) }}</td>
+                                {{ number_format($salesOrder->shipping_amount, 2) }}
+                            </td>
                         </tr>
                     @endif
                     @if($salesOrder->discount_amount > 0)

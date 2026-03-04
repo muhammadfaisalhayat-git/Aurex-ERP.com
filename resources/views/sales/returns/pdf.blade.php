@@ -291,14 +291,18 @@
                     <td class="info-box">
                         <div class="info-box-title">{{ __('messages.customer_info') }}</div>
                         <div class="info-box-value">
-                            {{ $salesReturn->customer_name_ar_reshaped ?? ($salesReturn->customer?->name_ar ?? $salesReturn->customer?->name_en ?? __('messages.cash_customer')) }}
+                            {{ $salesReturn->customer_name_ar_reshaped ?? ($salesReturn->customer?->name ?? __('messages.cash_customer')) }}
                         </div>
-                        @if($salesReturn->customer?->address)
-                            <div class="info-box-sub">{{ $salesReturn->customer->address }}</div>
-                        @endif
-                        @if($salesReturn->customer?->phone)
-                            <div class="info-box-sub">{{ __('messages.phone') }}: {{ $salesReturn->customer->phone }}</div>
-                        @endif
+                        <div class="info-box-sub"><strong>{{ __('messages.address') }}:</strong>
+                            {{ $salesReturn->customer?->address ?? '-' }}</div>
+                        <div class="info-box-sub"><strong>{{ __('messages.city') }}:</strong>
+                            {{ $salesReturn->customer?->city ?? '-' }}</div>
+                        <div class="info-box-sub"><strong>{{ __('messages.country') }}:</strong>
+                            {{ $salesReturn->customer?->country ?? '-' }}</div>
+                        <div class="info-box-sub"><strong>{{ __('messages.phone') }}:</strong>
+                            {{ $salesReturn->customer?->phone ?? '-' }}</div>
+                        <div class="info-box-sub"><strong>{{ __('messages.email') }}:</strong>
+                            {{ $salesReturn->customer?->email ?? '-' }}</div>
                     </td>
 
                     <td class="spacer"></td>
@@ -369,7 +373,8 @@
                     <tr class="totals-row">
                         <td class="detail-label">{{ __('messages.tax') }}</td>
                         <td class="text-right" style="font-weight: bold;">
-                            {{ number_format($salesReturn->tax_amount, 2) }}</td>
+                            {{ number_format($salesReturn->tax_amount, 2) }}
+                        </td>
                     </tr>
                     <tr class="totals-row-grand">
                         <td>{{ __('messages.total_refund') ?? 'Total Refund' }}</td>

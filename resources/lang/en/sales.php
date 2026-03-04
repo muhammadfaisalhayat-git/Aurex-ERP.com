@@ -56,4 +56,7 @@ return [
     'sales_order' => 'Sales Order',
     'select_customer' => 'Select Customer',
     'select_salesman' => 'Select Salesman',
+    'address' => 'Address',
+    'city' => 'City',
+    'country' => 'Country',
 ];
