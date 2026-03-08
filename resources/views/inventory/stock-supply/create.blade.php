@@ -82,7 +82,8 @@
                                                     @foreach($products as $product)
                                                         <option value="{{ $product->id }}"
                                                             data-cost="{{ $product->cost_price }}">
-                                                            {{ $product->name }} ({{ $product->code }})
+                                                            {{ $product->name }} ({{ __('messages.stock') }}:
+                                                            {{ $product->stock_balances_sum_available_quantity ?? 0 }})
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -139,31 +140,29 @@
 
                 $('#addRow').click(function () {
                     let newRow = `
-                            <tr>
-                                <td>
-                                    <select name="items[${rowCount}][product_id]" class="form-select product-select" required>
-                                        <option value="">{{ __('messages.select_product') }}</option>
-                                        @foreach($products as $product)
-                                            <option value="{{ $product->id }}" data-cost="{{ $product->cost_price }}">
-                                                {{ $product->name }} ({{ $product->code }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </td>
-                                <td>
-                                    <input type="number" name="items[${rowCount}][quantity]" class="form-control qty-input" step="0.001" min="0.001" required>
-                                </td>
-                                <td>
-                                    <input type="number" name="items[${rowCount}][unit_cost]" class="form-control cost-input" step="0.01" min="0" required>
-                                </td>
-                                <td>
-                                    <input type="text" class="form-control total-input" readonly value="0.00">
-                                </td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
+                                    <tr>
+                                        <td>
+                                            <select name="items[${rowCount}][product_id]" class="form-select product-select" required>
+                                                <option value="">{{ __('messages.select_product') }}</option>
+                                                @foreach($products as $product)
+                                                    <option value="{{ $product->id }}" data-cost="{{ $product->cost_price }}">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->stock_balances_sum_available_quantity ?? 0 }})</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="items[${rowCount}][quantity]" class="form-control qty-input" step="0.001" min="0.001" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="items[${rowCount}][unit_cost]" class="form-control cost-input" step="0.01" min="0" required>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control total-input" readonly value="0.00">
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                `;
                     $('#itemsTable tbody').append(newRow);
                     if (window.initGlobalSelect2) window.initGlobalSelect2(newRow[0] || newRow);
                     rowCount++;

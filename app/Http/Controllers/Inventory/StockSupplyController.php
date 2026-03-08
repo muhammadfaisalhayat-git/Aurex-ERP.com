@@ -50,7 +50,7 @@ class StockSupplyController extends Controller
     {
         $warehouses = Warehouse::active()->get();
         $vendors = Vendor::active()->get();
-        $products = Product::purchasable()->active()->get();
+        $products = Product::purchasable()->active()->withSum('stockBalances', 'available_quantity')->get();
         $documentNumber = DocumentNumber::generate('stock_supply');
 
         return view('inventory.stock-supply.create', compact('warehouses', 'vendors', 'products', 'documentNumber'));

@@ -22,7 +22,9 @@ class ProductController extends Controller
     }
     public function index()
     {
-        $products = Product::with('category')->paginate(20);
+        $products = Product::with('category')
+            ->withSum('stockBalances', 'available_quantity')
+            ->paginate(20);
         return view('inventory.products.index', compact('products'));
     }
 

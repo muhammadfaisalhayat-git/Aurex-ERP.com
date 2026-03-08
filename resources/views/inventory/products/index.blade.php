@@ -23,6 +23,7 @@
                                 <th>{{ __('messages.code') }}</th>
                                 <th>{{ __('messages.name') }}</th>
                                 <th>{{ __('messages.category') }}</th>
+                                <th>{{ __('messages.available_quantity') }}</th>
                                 <th>{{ __('messages.price') }}</th>
                                 <th>{{ __('messages.status') }}</th>
                                 <th>{{ __('messages.actions') }}</th>
@@ -34,6 +35,12 @@
                                     <td><code>{{ $product->code }}</code></td>
                                     <td>{{ $product->name }}</td>
                                     <td>{{ $product->category?->name ?? '-' }}</td>
+                                    <td>
+                                        <span
+                                            class="badge {{ ($product->stock_balances_sum_available_quantity ?? 0) > 0 ? 'bg-success' : 'bg-danger' }}">
+                                            {{ number_format($product->stock_balances_sum_available_quantity ?? 0, 2) }}
+                                        </span>
+                                    </td>
                                     <td>{{ number_format($product->sale_price, 2) }} {{ __('messages.sar') }}</td>
                                     <td>
                                         <span class="badge {{ $product->is_active ? 'bg-success' : 'bg-danger' }}">

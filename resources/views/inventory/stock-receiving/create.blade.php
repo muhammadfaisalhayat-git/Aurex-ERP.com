@@ -80,8 +80,10 @@
                                                 <select name="items[0][product_id]" class="form-select product-select"
                                                     required>
                                                     <option value="">{{ __('messages.select_product') }}</option>
-                                                    @foreach(\App\Models\Product::all() as $product)
-                                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                                    @foreach(\App\Models\Product::withSum('stockBalances', 'available_quantity')->get() as $product)
+                                                        <option value="{{ $product->id }}">{{ $product->name }}
+                                                            ({{ __('messages.stock') }}:
+                                                            {{ $product->stock_balances_sum_available_quantity ?? 0 }})</option>
                                                     @endforeach
                                                 </select>
                                             </td>
@@ -141,26 +143,26 @@
                 const newRow = document.createElement('tr');
                 newRow.className = 'item-row';
                 newRow.innerHTML = `
-                                <td>
-                                    <select name="items[${rowCount}][product_id]" class="form-select" required>
-                                        <option value="">{{ __('messages.select_product') }}</option>
-                                        @foreach(\App\Models\Product::all() as $product)
-                                            <option value="{{ $product->id }}">{{ $product->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </td>
-                                <td>
-                                    <input type="number" name="items[${rowCount}][quantity]" class="form-control" step="0.001" min="0.001" required>
-                                </td>
-                                <td>
-                                    <input type="text" name="items[${rowCount}][notes]" class="form-control">
-                                </td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeRow(this)">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            `;
+                                        <td>
+                                            <select name="items[${rowCount}][product_id]" class="form-select" required>
+                                                <option value="">{{ __('messages.select_product') }}</option>
+                                                @foreach(\App\Models\Product::withSum('stockBalances', 'available_quantity')->get() as $product)
+                                                    <option value="{{ $product->id }}">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->stock_balances_sum_available_quantity ?? 0 }})</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="items[${rowCount}][quantity]" class="form-control" step="0.001" min="0.001" required>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="items[${rowCount}][notes]" class="form-control">
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeRow(this)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    `;
                 tbody.appendChild(newRow);
                 if (window.initGlobalSelect2) window.initGlobalSelect2(newRow);
                 rowCount++;

@@ -151,6 +151,14 @@ class Product extends Model
         return $this->hasMany(StockBalance::class);
     }
 
+    public function getAvailableStockAttribute()
+    {
+        if (array_key_exists('stock_balances_sum_available_quantity', $this->attributes)) {
+            return $this->attributes['stock_balances_sum_available_quantity'] ?? 0;
+        }
+        return $this->stockBalances()->sum('available_quantity') ?? 0;
+    }
+
     public function stockLedgers()
     {
         return $this->hasMany(StockLedger::class);
