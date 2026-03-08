@@ -205,7 +205,7 @@
                     <option value="">{{ __('messages.select_item') }}</option>
                     @foreach($products as $product)
                         <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? $product->sale_price }}">
-                            {{ $product->code }} - {{ $product->name }}
+                            {{ $product->code }} - {{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})
                         </option>
                     @endforeach
                 </select>

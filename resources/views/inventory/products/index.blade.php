@@ -33,7 +33,7 @@
                             @forelse($products as $product)
                                 <tr>
                                     <td><code>{{ $product->code }}</code></td>
-                                    <td>{{ $product->name }}</td>
+                                    <td>{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</td>
                                     <td>{{ $product->category?->name ?? '-' }}</td>
                                     <td>
                                         <span

@@ -222,7 +222,7 @@
                     <select name="product_id" class="form-select" required>
                         <option value="">Search Part...</option>
                         @foreach(App\Models\Product::all() as $product)
-                            <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->code }})</option>
+                            <option value="{{ $product->id }}">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }}) ({{ $product->code }})</option>
                         @endforeach
                     </select>
                 </div>

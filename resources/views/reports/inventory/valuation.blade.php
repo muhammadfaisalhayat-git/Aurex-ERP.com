@@ -37,7 +37,7 @@
                             @if($totalQty > 0)
                             <tr>
                                 <td><code>{{ $product->code }}</code></td>
-                                <td>{{ $product->name }}</td>
+                                <td>{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</td>
                                 <td>{{ $product->category->name ?? '-' }}</td>
                                 <td class="text-end">{{ number_format($totalQty, 3) }}</td>
                                 <td class="text-end">{{ number_format($avgCost, 2) }}</td>

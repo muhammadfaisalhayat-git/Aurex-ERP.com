@@ -118,7 +118,7 @@
                                             <select name="items[0][product_id]" class="form-select select2" required>
                                                 <option value="">{{ __('messages.select_product') }}</option>
                                                 @foreach($products as $product)
-                                                    <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                                    <option value="{{ $product->id }}">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</option>
                                                 @endforeach
                                             </select>
                                         </td>
@@ -172,7 +172,7 @@
                             <select name="items[${itemCount}][product_id]" class="form-select select2" required>
                                 <option value="">{{ __('messages.select_product') }}</option>
                                 @foreach($products as $product)
-                                    <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                    <option value="{{ $product->id }}">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</option>
                                 @endforeach
                             </select>
                         </td>

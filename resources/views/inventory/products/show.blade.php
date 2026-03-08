@@ -13,7 +13,7 @@
                         <li class="breadcrumb-item active">{{ $product->code }}</li>
                     </ol>
                 </nav>
-                <h1 class="h3 mb-0">{{ $product->name }}</h1>
+                <h1 class="h3 mb-0">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</h1>
             </div>
             <div>
                 <a href="{{ route('inventory.products.edit', $product) }}" class="btn btn-primary">
@@ -143,7 +143,7 @@
                                     <h6 class="fw-bold mb-3"><i class="fas fa-image me-1"></i> Product Image</h6>
                                     @if($product->image_path)
                                         <img src="{{ asset('storage/' . $product->image_path) }}"
-                                            class="img-fluid rounded border shadow-sm" alt="{{ $product->name }}">
+                                            class="img-fluid rounded border shadow-sm" alt="{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})">
                                     @else
                                         <div class="text-center py-5 bg-light rounded border border-dashed">
                                             <i class="fas fa-box-open fa-4x text-muted mb-2"></i>

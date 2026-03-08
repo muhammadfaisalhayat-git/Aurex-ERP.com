@@ -107,7 +107,7 @@
                                                 <select name="items[{{ $index }}][product_id]" class="form-select select2"
                                                     required>
                                                     @foreach($products as $product)
-                                                        <option value="{{ $product->id }}" {{ $item->product_id == $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
+                                                        <option value="{{ $product->id }}" {{ $item->product_id == $product->id ? 'selected' : '' }}>{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</option>
                                                     @endforeach
                                                 </select>
                                             </td>

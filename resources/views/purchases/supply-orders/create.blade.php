@@ -120,7 +120,7 @@
                                                         <option value="{{ $product->id }}" 
                                                                 data-price="{{ $product->purchase_price }}" 
                                                                 data-tax="{{ $product->tax_rate ?? $taxSetting->default_tax_rate }}">
-                                                            {{ $product->code }} - {{ $product->name }}
+                                                            {{ $product->code }} - {{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})
                                                         </option>
                                                     @endforeach
                                                 </select>

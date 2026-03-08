@@ -39,7 +39,7 @@
                             @endphp
                             <tr>
                                 <td><code>{{ $product->code }}</code></td>
-                                <td>{{ $product->name }}</td>
+                                <td>{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</td>
                                 <td class="text-end text-danger fw-bold">{{ number_format($currentStock, 3) }}</td>
                                 <td class="text-end">{{ number_format($product->reorder_level, 3) }}</td>
                                 <td class="text-end text-warning fw-bold">{{ number_format($shortage, 3) }}</td>

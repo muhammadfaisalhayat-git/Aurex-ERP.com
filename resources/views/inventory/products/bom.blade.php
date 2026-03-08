@@ -10,7 +10,7 @@
                     <ol class="breadcrumb mb-1">
                         <li class="breadcrumb-item"><a
                                 href="{{ route('inventory.products.index') }}">{{ __('messages.products') }}</a></li>
-                        <li class="breadcrumb-item active">{{ $product->name }}</li>
+                        <li class="breadcrumb-item active">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</li>
                     </ol>
                 </nav>
                 <h1 class="h3 mb-0">{{ __('messages.bill_of_materials') }}</h1>
@@ -29,7 +29,7 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="text-muted small d-block">{{ __('messages.name') }}</label>
-                            <span class="fw-bold">{{ $product->name }}</span>
+                            <span class="fw-bold">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</span>
                         </div>
                         <div class="mb-3">
                             <label class="text-muted small d-block">{{ __('messages.code') }}</label>

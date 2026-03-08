@@ -81,7 +81,7 @@
                                                     required>
                                                     <option value="">{{ __('messages.select_product') }}</option>
                                                     @foreach(\App\Models\Product::withSum('stockBalances', 'available_quantity')->get() as $product)
-                                                        <option value="{{ $product->id }}">{{ $product->name }}
+                                                        <option value="{{ $product->id }}">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})
                                                             ({{ __('messages.stock') }}:
                                                             {{ $product->stock_balances_sum_available_quantity ?? 0 }})</option>
                                                     @endforeach
