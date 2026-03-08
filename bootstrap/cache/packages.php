@@ -64,11 +64,15 @@
       0 => 'Termwind\\Laravel\\TermwindServiceProvider',
     ),
   ),
-  'spatie/laravel-backup' => 
+  'simplesoftwareio/simple-qrcode' => 
   array (
+    'aliases' => 
+    array (
+      'QrCode' => 'SimpleSoftwareIO\\QrCode\\Facades\\QrCode',
+    ),
     'providers' => 
     array (
-      0 => 'Spatie\\Backup\\BackupServiceProvider',
+      0 => 'SimpleSoftwareIO\\QrCode\\QrCodeServiceProvider',
     ),
   ),
   'spatie/laravel-ignition' => 
@@ -87,17 +91,6 @@
     'providers' => 
     array (
       0 => 'Spatie\\Permission\\PermissionServiceProvider',
-    ),
-  ),
-  'spatie/laravel-signal-aware-command' => 
-  array (
-    'aliases' => 
-    array (
-      'Signal' => 'Spatie\\SignalAwareCommand\\Facades\\Signal',
-    ),
-    'providers' => 
-    array (
-      0 => 'Spatie\\SignalAwareCommand\\SignalAwareCommandServiceProvider',
     ),
   ),
 );
