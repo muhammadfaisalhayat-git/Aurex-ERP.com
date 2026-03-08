@@ -51,6 +51,13 @@ class EmployeeController extends Controller
         return view('hr.employees.edit', compact('employee', 'departments', 'designations', 'users'));
     }
 
+    public function destroy(Employee $employee)
+    {
+        $employee->delete();
+        return redirect()->route('hr.employees.index')
+            ->with('success', __('messages.deleted_successfully'));
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -74,11 +81,8 @@ class EmployeeController extends Controller
             'other_allowance' => 'nullable|numeric|min:0',
             'status' => 'required|in:active,inactive,on_leave,terminated',
         ]);
-
         Employee::create($validated);
-
-        return redirect()->route('hr.employees.index')
-            ->with('success', __('messages.created_successfully'));
+        return redirect()->route('hr.employees.index')->with('success', __('messages.created_successfully'));
     }
 
     public function update(Request $request, Employee $employee)
@@ -104,31 +108,18 @@ class EmployeeController extends Controller
             'other_allowance' => 'nullable|numeric|min:0',
             'status' => 'required|in:active,inactive,on_leave,terminated',
         ]);
-
         $employee->update($validated);
-
-        return redirect()->route('hr.employees.index')
-            ->with('success', __('messages.updated_successfully'));
-    }
-
-    public function destroy(Employee $employee)
-    {
-        $employee->delete();
-        return redirect()->route('hr.employees.index')
-            ->with('success', __('messages.deleted_successfully'));
+        return redirect()->route('hr.employees.index')->with('success', __('messages.updated_successfully'));
     }
 
     public function salarySlip(Employee $employee)
     {
         $employee->load(['department', 'designation', 'company', 'branch']);
-
-        // Reshape Arabic text for PDF
-        $employee->name_ar_reshaped = $this->arabicShaper->shape(($employee->first_name_ar ?? '') . ' ' . ($employee->last_name_ar ?? ''));
-        $employee->designation_ar_reshaped = $this->arabicShaper->shape($employee->designation->name_ar ?? '');
-        $employee->department_ar_reshaped = $this->arabicShaper->shape($employee->department->name_ar ?? '');
-        $employee->company_name_ar_reshaped = $this->arabicShaper->shape($employee->company->name_ar ?? '');
-
-        // Base64 logo for PDF
+        $shaper = app(\App\Services\ArabicShaper::class);
+        $employee->name_ar_reshaped = $shaper->shape(($employee->first_name_ar ?? '') . ' ' . ($employee->last_name_ar ?? ''));
+        $employee->designation_ar_reshaped = $shaper->shape($employee->designation->name_ar ?? '');
+        $employee->department_ar_reshaped = $shaper->shape($employee->department->name_ar ?? '');
+        $employee->company_name_ar_reshaped = $shaper->shape($employee->company->name_ar ?? '');
         $logoBase64 = null;
         if ($employee->company?->logo) {
             $path = public_path('storage/' . $employee->company->logo);
@@ -138,9 +129,66 @@ class EmployeeController extends Controller
                 $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
             }
         }
-
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('hr.employees.salary-slip', compact('employee', 'logoBase64'));
-
         return $pdf->stream('salary-slip-' . $employee->employee_code . '.pdf');
+    }
+
+    private function buildCardData(array $validated, Employee $employee, bool $isPreview = false): array
+    {
+        $data = $validated;
+        $data['designation_en'] = $employee->designation->name ?? '';
+        $data['designation_ar'] = $employee->designation->name_ar ?? '';
+        $data['name_ar_reshaped'] = $this->arabicShaper->shape($data['name_ar'] ?? '');
+        $data['company_name_ar_reshaped'] = $this->arabicShaper->shape($data['company_name_ar'] ?? '');
+        $data['designation_ar_reshaped'] = $this->arabicShaper->shape($data['designation_ar'] ?? '');
+        $data['address_ar_reshaped'] = $this->arabicShaper->shape($data['address_ar'] ?? '');
+        $data['is_preview'] = $isPreview;
+        $data['logoBase64'] = null;
+        if ($employee->company?->logo) {
+            $path = public_path('storage/' . $employee->company->logo);
+            if (file_exists($path)) {
+                $type = pathinfo($path, PATHINFO_EXTENSION);
+                $fileData = file_get_contents($path);
+                $data['logoBase64'] = 'data:image/' . $type . ';base64,' . base64_encode($fileData);
+            }
+        }
+        return $data;
+    }
+
+    private function cardValidationRules(): array
+    {
+        return [
+            'name_en' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:50',
+            'mobile' => 'nullable|string|max:50',
+            'company_name_en' => 'nullable|string|max:255',
+            'company_name_ar' => 'nullable|string|max:255',
+            'website' => 'nullable|string|max:255',
+            'address_en' => 'nullable|string|max:500',
+            'address_ar' => 'nullable|string|max:500',
+            'template' => 'required|string|in:template-1,template-2,template-3,template-4,template-5',
+        ];
+    }
+
+    public function generateVisitingCard(Request $request, Employee $employee)
+    {
+        $validated = $request->validate($this->cardValidationRules());
+        $employee->load(['designation', 'company']);
+        $data = $this->buildCardData($validated, $employee, false);
+        $templateField = $validated['template'];
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('hr.employees.visiting-cards.' . $templateField, ['data' => $data]);
+        $pdf->setPaper([0.0, 0.0, 252.0, 144.0], 'landscape');
+        return $pdf->stream('visiting-card-' . $employee->employee_code . '.pdf');
+    }
+
+    public function previewVisitingCard(Request $request, Employee $employee)
+    {
+        $validated = $request->validate($this->cardValidationRules());
+        $employee->load(['designation', 'company', 'branch']);
+        $data = $this->buildCardData($validated, $employee, true);
+        $templateField = $validated['template'];
+        return view('hr.employees.visiting-cards.' . $templateField, ['data' => $data, 'is_preview' => true]);
     }
 }
