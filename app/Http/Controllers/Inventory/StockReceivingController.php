@@ -104,52 +104,14 @@ class StockReceivingController extends Controller
     public function receive($id)
     {
         try {
-            DB::beginTransaction();
-            $receiving = StockReceiving::with('items')->findOrFail($id);
+            $receiving = StockReceiving::findOrFail($id);
 
-            if ($receiving->status !== 'pending') {
-                return back()->with('error', 'Only pending receipts can be received.');
-            }
-
-            // In a real scenario, we might want to allow partial receiving,
-            // but for simplicity, we receive full quantity here if not provided.
-            foreach ($receiving->items as $item) {
-                if ($item->received_quantity <= 0) {
-                    $item->update(['received_quantity' => $item->ordered_quantity]);
-                }
-            }
-
-            $receiving->update([
-                'status' => 'received',
-                'received_at' => now(),
-                'received_by' => auth()->id(),
-            ]);
-
-            // Record movements
-            foreach ($receiving->items as $item) {
-                $this->stockService->recordMovement([
-                    'product_id' => $item->product_id,
-                    'warehouse_id' => $receiving->warehouse_id,
-                    'movement_type' => 'in',
-                    'quantity' => $item->received_quantity,
-                    'unit_cost' => $item->product->average_cost ?? 0,
-                    'reference_type' => 'stock_receiving',
-                    'reference_id' => $receiving->id,
-                    'reference_number' => $receiving->document_number,
-                    'notes' => 'Received from Vendor: ' . ($receiving->vendor->name ?? 'N/A')
-                ]);
-            }
-
-            // Accounting integration
-            if ($this->accountingService->postStockReceiving($receiving)) {
-                DB::commit();
+            if ($receiving->post()) {
                 return back()->with('success', __('messages.stock_received_successfully'));
             }
 
-            DB::commit();
-            return back()->with('warning', 'Stock received but ledger posting failed.');
+            return back()->with('error', 'Only pending receipts can be received.');
         } catch (\Exception $e) {
-            DB::rollBack();
             return back()->with('error', 'Error during receiving: ' . $e->getMessage());
         }
     }

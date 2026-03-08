@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
@@ -120,8 +121,22 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
      |--------------------------------------------------------------------------
      */
 
-    Route::middleware(['can:view-user-management'])->prefix('admin')->name('admin.')->group(
-        function () {
+    /*
+     |--------------------------------------------------------------------------
+     | Administrator Control Panel (ACP)
+     |--------------------------------------------------------------------------
+     */
+    Route::middleware(['can:view-user-management'])->prefix('acp')->name('acp.')->group(function () {
+
+        // Organization
+        Route::prefix('organization')->name('organization.')->group(function () {
+            Route::resource('companies', CompanyController::class);
+            Route::resource('branches', BranchController::class);
+            Route::resource('warehouses', WarehouseController::class);
+        });
+
+        // User Management
+        Route::prefix('user-mgmt')->name('user-mgmt.')->group(function () {
             // Users
             Route::resource('users', UserController::class);
             Route::post('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
@@ -134,26 +149,63 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             Route::get('roles/{role}/permissions', [RoleController::class, 'editPermissions'])->name('roles.permissions');
             Route::post('roles/{role}/permissions', [RoleController::class, 'updatePermissions'])->name('roles.permissions.update');
 
-            // Companies
-            Route::resource('companies', CompanyController::class);
+            // Groups & Profiles
+            Route::resource('user-groups', Admin\UserGroupController::class);
+            Route::get('user-profiles', [Admin\UserProfileController::class, 'index'])->name('user-profiles.index');
+            Route::get('user-profiles/{user}', [Admin\UserProfileController::class, 'show'])->name('user-profiles.show');
+            Route::get('user-profiles/{user}/visiting-card-pdf', [Admin\UserProfileController::class, 'visitingCardPdf'])->name('user-profiles.visiting-card-pdf');
+            Route::resource('signatures', Admin\SignatureController::class);
+        });
 
-            // Branches
-            Route::resource('branches', BranchController::class);
+        // System & Security
+        Route::prefix('system')->name('system.')->group(function () {
+            // Logs & Audits
+            Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+            Route::get('transaction-audit', [Admin\TransactionAuditController::class, 'index'])->name('transaction-audit.index');
+            Route::get('user-login-details', [Admin\UserLoginDetailController::class, 'index'])->name('user-login-details.index');
 
-            // Warehouses
-            Route::resource('warehouses', WarehouseController::class);
+            // Privileges
+            Route::get('privileges', [Admin\PrivilegeController::class, 'index'])->name('privileges.index');
+            Route::get('privileges/{role}/edit', [Admin\PrivilegeController::class, 'edit'])->name('privileges.edit');
+            Route::put('privileges/{role}', [Admin\PrivilegeController::class, 'update'])->name('privileges.update');
+            Route::get('privilege-reports', [Admin\PrivilegeReportController::class, 'index'])->name('privilege-reports.index');
 
-            // Settings
+            // Utilities
             Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
             Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
-
-            // Dashboard Layouts
             Route::resource('dashboard-layouts', DashboardLayoutController::class);
 
-            // Audit Logs
-            Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-        }
-    );
+            // Backup & Restore
+            Route::get('backup', [Admin\BackupController::class, 'index'])->name('backup.index');
+            Route::post('backup/create', [Admin\BackupController::class, 'create'])->name('backup.create');
+            Route::get('backup/{backup}/download', [Admin\BackupController::class, 'download'])->name('backup.download');
+            Route::get('restore-backup', [Admin\RestoreBackupController::class, 'index'])->name('restore-backup.index');
+            Route::post('restore-backup/{backup}/restore', [Admin\RestoreBackupController::class, 'restore'])->name('restore-backup.restore');
+
+            // Alert System
+            Route::resource('alert-system', Admin\AlertSystemController::class);
+
+            // Archiving
+            Route::get('document-archive', [Admin\DocumentArchiveController::class, 'index'])->name('document-archive.index');
+            Route::get('document-archive/{document}', [Admin\DocumentArchiveController::class, 'show'])->name('document-archive.show');
+            Route::get('document-archive/{document}/download', [Admin\DocumentArchiveController::class, 'download'])->name('document-archive.download');
+
+            // Field Config
+            Route::get('mandatory-fields', [Admin\MandatoryFieldController::class, 'index'])->name('mandatory-fields.index');
+            Route::put('mandatory-fields', [Admin\MandatoryFieldController::class, 'update'])->name('mandatory-fields.update');
+
+            // User Specific
+            Route::get('change-password', [Admin\ChangePasswordController::class, 'index'])->name('change-password.index');
+            Route::put('change-password', [Admin\ChangePasswordController::class, 'update'])->name('change-password.update');
+            Route::get('user-header', [Admin\UserHeaderSettingController::class, 'index'])->name('user-header.index');
+            Route::get('user-header/{user}/edit', [Admin\UserHeaderSettingController::class, 'edit'])->name('user-header.edit');
+            Route::put('user-header/{user}', [Admin\UserHeaderSettingController::class, 'update'])->name('user-header.update');
+            Route::get('favorite-screens', [Admin\FavoriteScreenController::class, 'index'])->name('favorite-screens.index');
+            Route::post('favorite-screens', [Admin\FavoriteScreenController::class, 'store'])->name('favorite-screens.store');
+            Route::delete('favorite-screens/{favorite}', [Admin\FavoriteScreenController::class, 'destroy'])->name('favorite-screens.destroy');
+            Route::post('favorite-screens/reorder', [Admin\FavoriteScreenController::class, 'reorder'])->name('favorite-screens.reorder');
+        });
+    });
 
     /*
  |--------------------------------------------------------------------------
@@ -337,6 +389,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
         ['prefix' => 'inventory', 'as' => 'inventory.'],
         function () {
             // Products
+            Route::get('products/search/ajax', [ProductController::class, 'ajaxSearch'])->name('products.ajax-search');
             Route::resource('products', ProductController::class);
             Route::resource('categories', ProductCategoryController::class);
             Route::resource('measurement-units', \App\Http\Controllers\Inventory\MeasurementUnitController::class)->names('measurement.units');
@@ -631,4 +684,5 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             Route::resource('appointments', \App\Http\Controllers\Healthcare\AppointmentController::class);
         }
     );
+
 });

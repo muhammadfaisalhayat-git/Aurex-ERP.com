@@ -18,12 +18,12 @@ class TransportOrder extends Model
 
     public function vehicle()
     {
-        return $this->belongsTo(\App\Models\Logistics\DeliveryVehicle::class , 'delivery_vehicle_id');
+        return $this->belongsTo(\App\Models\Logistics\DeliveryVehicle::class, 'delivery_vehicle_id');
     }
 
     public function driver()
     {
-        return $this->belongsTo(User::class , 'driver_id');
+        return $this->belongsTo(User::class, 'driver_id');
     }
 
     public function items()
@@ -34,5 +34,18 @@ class TransportOrder extends Model
     public function routeStops()
     {
         return $this->hasMany(\App\Models\Logistics\RouteStop::class);
+    }
+
+    public function claims()
+    {
+        return $this->hasMany(TransportClaim::class);
+    }
+
+    public function post()
+    {
+        // For now, transport orders don't have direct GL value (cost/revenue)
+        // unless they have claims or contractors. This method can be a placeholder
+        // or used for audit logs.
+        return true;
     }
 }

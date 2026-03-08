@@ -20,6 +20,7 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'avatar',
         'employee_code',
         'branch_id',
         'default_language',

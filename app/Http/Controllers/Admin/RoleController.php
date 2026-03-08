@@ -16,13 +16,13 @@ class RoleController extends Controller
             ->orderBy('name')
             ->paginate(20);
 
-        return view('admin.roles.index', compact('roles'));
+        return view('acp.user-mgmt.roles.index', compact('roles'));
     }
 
     public function create()
     {
         $permissions = Permission::all()->groupBy('module');
-        return view('admin.roles.create', compact('permissions'));
+        return view('acp.user-mgmt.roles.create', compact('permissions'));
     }
 
     public function store(Request $request)
@@ -51,14 +51,14 @@ class RoleController extends Controller
         // Log audit
         AuditLog::log('create', 'role', $role->id, null, $role->toArray());
 
-        return redirect()->route('admin.roles.index')
+        return redirect()->route('acp.user-mgmt.roles.index')
             ->with('success', __('messages.role_created'));
     }
 
     public function show(Role $role)
     {
         $role->load(['permissions', 'users']);
-        return view('admin.roles.show', compact('role'));
+        return view('acp.user-mgmt.roles.show', compact('role'));
     }
 
     public function edit(Role $role)
@@ -70,7 +70,7 @@ class RoleController extends Controller
         $permissions = Permission::all()->groupBy('module');
         $rolePermissions = $role->permissions->pluck('id')->toArray();
 
-        return view('admin.roles.edit', compact('role', 'permissions', 'rolePermissions'));
+        return view('acp.user-mgmt.roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }
 
     public function update(Request $request, Role $role)
@@ -101,7 +101,7 @@ class RoleController extends Controller
         // Log audit
         AuditLog::log('update', 'role', $role->id, $oldValues, $role->toArray());
 
-        return redirect()->route('admin.roles.index')
+        return redirect()->route('acp.user-mgmt.roles.index')
             ->with('success', __('messages.role_updated'));
     }
 
@@ -122,7 +122,7 @@ class RoleController extends Controller
         // Log audit
         AuditLog::log('delete', 'role', $role->id, $oldValues);
 
-        return redirect()->route('admin.roles.index')
+        return redirect()->route('acp.user-mgmt.roles.index')
             ->with('success', __('messages.role_deleted'));
     }
 
@@ -131,7 +131,7 @@ class RoleController extends Controller
         $permissions = Permission::all()->groupBy('module');
         $rolePermissions = $role->permissions->pluck('id')->toArray();
 
-        return view('admin.roles.permissions', compact('role', 'permissions', 'rolePermissions'));
+        return view('acp.user-mgmt.roles.permissions', compact('role', 'permissions', 'rolePermissions'));
     }
 
     public function updatePermissions(Request $request, Role $role)
@@ -149,7 +149,7 @@ class RoleController extends Controller
         // Log audit
         AuditLog::log('update_permissions', 'role', $role->id, null, ['permissions' => $permissionNames->toArray()]);
 
-        return redirect()->route('admin.roles.index')
+        return redirect()->route('acp.user-mgmt.roles.show', $role)
             ->with('success', __('messages.permissions_updated'));
     }
 }

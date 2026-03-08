@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', isset($product) ? __('messages.edit') . ' ' . $product->name : __('messages.create_product'))
 

@@ -224,11 +224,11 @@
 
                     if (results.length > 0) {
                         customerResults.innerHTML = results.map(c => `
-                                                                    <div class="search-result-item p-2 border-bottom" data-id="${c.id}" style="cursor: pointer;">
-                                                                        <div class="fw-bold">${c.name}</div>
-                                                                        <small class="text-muted">${c.code || ''}</small>
-                                                                    </div>
-                                                                `).join('');
+                                                                            <div class="search-result-item p-2 border-bottom" data-id="${c.id}" style="cursor: pointer;">
+                                                                                <div class="fw-bold">${c.name}</div>
+                                                                                <small class="text-muted">${c.code || ''}</small>
+                                                                            </div>
+                                                                        `).join('');
                         customerResults.style.display = 'block';
                     } else {
                         customerResults.innerHTML = '<div class="p-2 text-muted">No customer found</div>';
@@ -263,38 +263,38 @@
                     const taxRate = taxSetting.tax_enabled ? taxSetting.default_tax_rate : 0;
 
                     tr.innerHTML = `
-                                                                <td>
-                                                                    <div class="position-relative product-search-container">
-                                                                        <input type="text" class="form-control form-control-sm bg-white product-search-input" 
-                                                                            placeholder="{{ __('messages.select_product') }}" autocomplete="off" value="${productName}" required>
-                                                                        <input type="hidden" name="items[${index}][product_id]" class="product-id-input" value="${productId}" required>
-                                                                        <div class="product-results search-results-container glassy" style="display: none; position: absolute; z-index: 1000; width: 100%;"></div>
-                                                                    </div>
-                                                                </td>
-                                                                <td>
-                                                                    <input type="number" step="0.001" class="form-control form-control-sm bg-white quantity-input" name="items[${index}][quantity]" value="${data ? data.quantity : 1}" required min="0.001">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="number" step="0.01" class="form-control form-control-sm bg-white price-input" name="items[${index}][unit_price]" value="${data ? data.unit_price : 0}" required min="0">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="text" class="form-control form-control-sm bg-light tax-rate-display" value="${taxRate}%" readonly tabindex="-1">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="text" class="form-control form-control-sm bg-light tax-amount-display" value="0.00" readonly tabindex="-1">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="text" class="form-control form-control-sm bg-light total-amount-display" value="0.00" readonly tabindex="-1">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="text" class="form-control form-control-sm bg-white" name="items[${index}][notes]" value="${data ? data.notes || '' : ''}">
-                                                                </td>
-                                                                <td class="text-center">
-                                                                    <button type="button" class="btn btn-sm btn-link text-danger remove-item p-0">
-                                                                        <i class="fas fa-trash"></i>
-                                                                    </button>
-                                                                </td>
-                                                            `;
+                                                                        <td>
+                                                                            <div class="position-relative product-search-container">
+                                                                                <input type="text" class="form-control form-control-sm bg-white product-search-input" 
+                                                                                    placeholder="{{ __('messages.select_product') }}" autocomplete="off" value="${productName}" required>
+                                                                                <input type="hidden" name="items[${index}][product_id]" class="product-id-input" value="${productId}" required>
+                                                                                <div class="product-results search-results-container glassy" style="display: none; position: absolute; z-index: 1000; width: 100%;"></div>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" step="0.001" class="form-control form-control-sm bg-white quantity-input" name="items[${index}][quantity]" value="${data ? data.quantity : 1}" required min="0.001">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" step="0.01" class="form-control form-control-sm bg-white price-input" name="items[${index}][unit_price]" value="${data ? data.unit_price : 0}" required min="0">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="text" class="form-control form-control-sm bg-light tax-rate-display" value="${taxRate}%" readonly tabindex="-1">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="text" class="form-control form-control-sm bg-light tax-amount-display" value="0.00" readonly tabindex="-1">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="text" class="form-control form-control-sm bg-light total-amount-display" value="0.00" readonly tabindex="-1">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="text" class="form-control form-control-sm bg-white" name="items[${index}][notes]" value="${data ? data.notes || '' : ''}">
+                                                                        </td>
+                                                                        <td class="text-center">
+                                                                            <button type="button" class="btn btn-sm btn-link text-danger remove-item p-0">
+                                                                                <i class="fas fa-trash"></i>
+                                                                            </button>
+                                                                        </td>
+                                                                    `;
 
                     itemsBody.appendChild(tr);
                     if (window.initGlobalSelect2) window.initGlobalSelect2(tr);
@@ -354,50 +354,79 @@
 
                 function performProductSearch(query, resultsDiv, idInput, searchInput) {
                     const transliterated = window.transliterateToArabic(query);
-                    const results = products.filter(p =>
-                        p.name_en.toLowerCase().includes(query.toLowerCase()) ||
-                        (p.name_ar && p.name_ar.toLowerCase().includes(query.toLowerCase())) ||
-                        (p.name_ar && p.name_ar.toLowerCase().includes(transliterated)) ||
-                        (p.product_code && p.product_code.toLowerCase().includes(query.toLowerCase()))
-                    ).slice(0, 10);
+                    const branchId = document.getElementById('branch_id')?.value;
 
-                    if (results.length > 0) {
-                        const currentLocale = '{{ app()->getLocale() }}';
-                        resultsDiv.innerHTML = results.map(p => {
-                            const currentName = currentLocale === 'ar' ? p.name_ar || p.name_en : p.name_en || p.name_ar;
-                            const subName = currentLocale === 'ar' ? p.name_en : p.name_ar;
-                            return `
-                                        <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.sale_price || 0}" style="cursor: pointer;">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div class="result-content">
-                                                    <div class="fw-bold">${currentName}</div>
-                                                    ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
-                                                    <small class="text-muted">${p.product_code || ''}</small>
-                                                </div>
-                                                <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
-                                                    <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
-                                                    <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `;
-                        }).join('');
-                        resultsDiv.style.display = 'block';
+                    fetch(`{{ route('inventory.products.ajax-search') }}?q=${encodeURIComponent(query)}&branch_id=${branchId}`)
+                        .then(response => response.json())
+                        .then(results => {
+                            if (results.length > 0) {
+                                const currentLocale = '{{ app()->getLocale() }}';
+                                resultsDiv.innerHTML = results.map(p => {
+                                    const currentName = currentLocale === 'ar' ? p.name_ar || p.name_en : p.name_en || p.name_ar;
+                                    const subName = currentLocale === 'ar' ? p.name_en : p.name_ar;
+                                    const stockColor = (p.available_quantity > 0) ? 'text-success' : 'text-danger';
+                                    const stockLabel = '{{ __("messages.stock") ?? "Stock" }}';
 
-                        resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
-                            item.addEventListener('click', function () {
-                                searchInput.value = this.dataset.name;
-                                idInput.value = this.dataset.id;
-                                const priceInput = searchInput.closest('td')?.querySelector('.price-input');
-                                if (priceInput && this.dataset.price) priceInput.value = this.dataset.price;
-                                resultsDiv.style.display = 'none';
-                                calculateTotals();
-                            });
+                                    return `
+                                                <div class="search-result-item p-2 border-bottom" 
+                                                    data-id="${p.id}" 
+                                                    data-name="${currentName}" 
+                                                    data-price="${p.sale_price || 0}"
+                                                    data-stock="${p.available_quantity || 0}"
+                                                    style="cursor: pointer;">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div class="result-content">
+                                                            <div class="fw-bold">${currentName}</div>
+                                                            ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                                            <small class="text-muted">${p.code || ''}</small>
+                                                        </div>
+                                                        <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-2 small">
+                                                            <div class="d-flex gap-2">
+                                                                <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
+                                                                <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                                                            </div>
+                                                            <div class="${stockColor} fw-bold">${stockLabel}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `;
+                                }).join('');
+                                resultsDiv.style.display = 'block';
+
+                                resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
+                                    item.addEventListener('click', function () {
+                                        const stock = parseFloat(this.dataset.stock) || 0;
+                                        if (stock <= 0) {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: '{{ __("messages.out_of_stock") ?? "Out of Stock" }}',
+                                                text: '{{ __("messages.product_not_available") ?? "This product is currently out of stock." }}',
+                                                confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                                            });
+                                            resultsDiv.style.display = 'none';
+                                            searchInput.value = '';
+                                            return;
+                                        }
+
+                                        searchInput.value = this.dataset.name;
+                                        idInput.value = this.dataset.id;
+                                        const row = searchInput.closest('.item-row');
+                                        const priceInput = row?.querySelector('.price-input');
+                                        if (priceInput && this.dataset.price) priceInput.value = this.dataset.price;
+                                        resultsDiv.style.display = 'none';
+                                        calculateTotals();
+                                    });
+                                });
+                            } else {
+                                resultsDiv.innerHTML = '<div class="p-2 text-muted">No product found</div>';
+                                resultsDiv.style.display = 'block';
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Search error:', err);
+                            resultsDiv.innerHTML = '<div class="p-2 text-danger">Error fetching results</div>';
+                            resultsDiv.style.display = 'block';
                         });
-                    } else {
-                        resultsDiv.innerHTML = '<div class="p-2 text-muted">No product found</div>';
-                        resultsDiv.style.display = 'block';
-                    }
                 }
 
                 // Use named function to avoid stacking listeners on turbo:load
@@ -413,7 +442,7 @@
                 @else
                     if (itemsBody.children.length === 0) addItem();
                 @endif
-                                            });
+                                                    });
 
             // Clear dynamic content before Turbo caches the page
             document.addEventListener('turbo:before-cache', function () {

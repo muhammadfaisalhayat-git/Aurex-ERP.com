@@ -17,13 +17,13 @@ class WarehouseController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('admin.warehouses.index', compact('warehouses'));
+        return view('acp.organization.warehouses.index', compact('warehouses'));
     }
 
     public function create()
     {
         $branches = Branch::active()->get();
-        return view('admin.warehouses.create', compact('branches'));
+        return view('acp.organization.warehouses.create', compact('branches'));
     }
 
     public function store(Request $request)
@@ -43,20 +43,20 @@ class WarehouseController extends Controller
 
         AuditLog::log('create', 'warehouse', $warehouse->id, null, $warehouse->toArray());
 
-        return redirect()->route('admin.warehouses.index')
+        return redirect()->route('acp.organization.warehouses.index')
             ->with('success', __('messages.warehouse_created'));
     }
 
     public function show(Warehouse $warehouse)
     {
         $warehouse->load(['branch', 'users']);
-        return view('admin.warehouses.show', compact('warehouse'));
+        return view('acp.organization.warehouses.show', compact('warehouse'));
     }
 
     public function edit(Warehouse $warehouse)
     {
         $branches = Branch::active()->get();
-        return view('admin.warehouses.edit', compact('warehouse', 'branches'));
+        return view('acp.organization.warehouses.edit', compact('warehouse', 'branches'));
     }
 
     public function update(Request $request, Warehouse $warehouse)
@@ -79,7 +79,7 @@ class WarehouseController extends Controller
 
         AuditLog::log('update', 'warehouse', $warehouse->id, $oldValues, $warehouse->toArray());
 
-        return redirect()->route('admin.warehouses.index')
+        return redirect()->route('acp.organization.warehouses.index')
             ->with('success', __('messages.warehouse_updated'));
     }
 

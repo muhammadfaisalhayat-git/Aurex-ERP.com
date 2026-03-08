@@ -311,20 +311,6 @@
             const defaultTaxRate = {{ $taxSetting->default_tax_rate ?? 0 }};
             const tableBody = document.querySelector('#items-table tbody');
 
-            const productData = [
-                @foreach($products as $product)
-                                {
-                    id: {{ $product->id }},
-                    name_en: "{{ addslashes($product->name_en) }}",
-                    name_ar: "{{ addslashes($product->name_ar) }}",
-                    name: "{{ addslashes($product->name) }}",
-                    code: "{{ $product->product_code ?? '' }}",
-                    price: {{ $product->unit_price ?? $product->sale_price ?? 0 }},
-                    cost: {{ $product->cost_price ?? 0 }},
-                    tax: {{ $product->tax_rate ?? $taxSetting->default_tax_rate ?? 0 }}
-                                },
-                @endforeach
-                        ];
 
             function initProductSearch(row) {
                 const searchInput = row.querySelector('.product-search-input');
@@ -361,55 +347,86 @@
 
                 function performSearch(query) {
                     const transliterated = window.transliterateToArabic(query);
-                    const results = productData.filter(p =>
-                        p.name_en.toLowerCase().includes(query.toLowerCase()) ||
-                        p.name_ar.toLowerCase().includes(query.toLowerCase()) ||
-                        p.name_ar.toLowerCase().includes(transliterated) ||
-                        (p.code && p.code.toLowerCase().includes(query.toLowerCase()))
-                    ).slice(0, 10);
+                    const warehouseId = document.getElementById('warehouse_id')?.value;
+                    const branchId = document.getElementById('branch_id')?.value;
 
-                    if (results.length > 0) {
-                        const currentLocale = '{{ app()->getLocale() }}';
-                        resultsDiv.innerHTML = results.map(p => {
-                            const currentName = currentLocale === 'ar' ? p.name_ar || p.name_en : p.name_en || p.name_ar;
-                            const subName = currentLocale === 'ar' ? p.name_en : p.name_ar;
-                            return `
-                                            <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.price}" data-tax="${p.tax}" data-cost="${p.cost}" style="cursor:pointer;">
+                    fetch(`{{ route('inventory.products.ajax-search') }}?q=${encodeURIComponent(query)}&warehouse_id=${warehouseId}&branch_id=${branchId}`)
+                        .then(response => response.json())
+                        .then(results => {
+                            if (results.length > 0) {
+                                const currentLocale = '{{ app()->getLocale() }}';
+                                resultsDiv.innerHTML = results.map(p => {
+                                    const currentName = currentLocale === 'ar' ? p.name_ar || p.name_en : p.name_en || p.name_ar;
+                                    const subName = currentLocale === 'ar' ? p.name_en : p.name_ar;
+                                    const stockColor = (p.available_quantity > 0) ? 'text-success' : 'text-danger';
+                                    const stockLabel = '{{ __("messages.stock") ?? "Stock" }}';
+
+                                    return `
+                                            <div class="search-result-item p-2 border-bottom" 
+                                                data-id="${p.id}" 
+                                                data-name="${currentName}" 
+                                                data-price="${p.sale_price || 0}" 
+                                                data-tax="${p.tax_rate || 15}"
+                                                data-cost="${p.cost_price || 0}"
+                                                data-stock="${p.available_quantity || 0}"
+                                                style="cursor: pointer;">
                                                 <div class="d-flex justify-content-between align-items-start">
                                                     <div class="result-content">
                                                         <div class="fw-bold">${currentName}</div>
                                                         ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
-                                                        <small class="text-muted">${p.code}</small>
+                                                        <small class="text-muted">${p.code || ''}</small>
                                                     </div>
-                                                    <div class="d-flex gap-2 flex-shrink-0 ms-2 small">
-                                                        <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost || 0).toFixed(2)}</span>
-                                                        <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.price || 0).toFixed(2)}</span>
+                                                    <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-2 small">
+                                                        <div class="d-flex gap-2">
+                                                            <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
+                                                            <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                                                        </div>
+                                                        <div class="${stockColor} fw-bold">${stockLabel}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</div>
                                                     </div>
                                                 </div>
                                             </div>
                                         `;
-                        }).join('');
-                        resultsDiv.style.display = 'block';
+                                }).join('');
+                                resultsDiv.style.display = 'block';
 
-                        resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
-                            item.addEventListener('click', function () {
-                                searchInput.value = this.dataset.name;
-                                idInput.value = this.dataset.id;
-                                const priceInput = row.querySelector('.price-input');
-                                const taxRateInput = row.querySelector('.tax-rate-input');
-                                if (priceInput) priceInput.value = this.dataset.price;
-                                if (taxRateInput) taxRateInput.value = this.dataset.tax;
-                                if (!row.querySelector('.quantity-input').value) {
-                                    row.querySelector('.quantity-input').value = 1;
-                                }
-                                resultsDiv.style.display = 'none';
-                                calculateRow($(row));
-                            });
+                                resultsDiv.querySelectorAll('.search-result-item').forEach(item => {
+                                    item.addEventListener('click', function () {
+                                        const stock = parseFloat(this.dataset.stock) || 0;
+                                        if (stock <= 0) {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: '{{ __("messages.out_of_stock") ?? "Out of Stock" }}',
+                                                text: '{{ __("messages.product_not_available") ?? "This product is currently out of stock." }}',
+                                                confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                                            });
+                                            resultsDiv.style.display = 'none';
+                                            searchInput.value = '';
+                                            return;
+                                        }
+
+                                        searchInput.value = this.dataset.name;
+                                        idInput.value = this.dataset.id;
+                                        const priceInput = row.querySelector('.price-input');
+                                        const taxRateInput = row.querySelector('.tax-rate-input');
+                                        if (priceInput) priceInput.value = this.dataset.price;
+                                        if (taxRateInput) taxRateInput.value = this.dataset.tax;
+                                        if (!row.querySelector('.quantity-input').value) {
+                                            row.querySelector('.quantity-input').value = 1;
+                                        }
+                                        resultsDiv.style.display = 'none';
+                                        calculateRow($(row));
+                                    });
+                                });
+                            } else {
+                                resultsDiv.innerHTML = '<div class="p-2 text-muted">No product found</div>';
+                                resultsDiv.style.display = 'block';
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Search error:', err);
+                            resultsDiv.innerHTML = '<div class="p-2 text-danger">Error fetching results</div>';
+                            resultsDiv.style.display = 'block';
                         });
-                    } else {
-                        resultsDiv.innerHTML = '<div class="p-2 text-muted">No product found</div>';
-                        resultsDiv.style.display = 'block';
-                    }
                 }
             }
 

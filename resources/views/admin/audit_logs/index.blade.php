@@ -11,7 +11,7 @@
         <!-- Filters -->
         <div class="card glassy mb-4">
             <div class="card-body">
-                <form action="{{ route('admin.audit-logs.index') }}" method="GET" class="row g-3">
+                <form action="{{ route('acp.system.audit-logs.index') }}" method="GET" class="row g-3">
                     <div class="col-md-2">
                         <label class="form-label small">{{ __('messages.date_from') }}</label>
                         <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">

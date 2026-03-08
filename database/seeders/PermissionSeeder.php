@@ -124,6 +124,8 @@ class PermissionSeeder extends Seeder
 
             // Settings
             ['name' => 'manage settings', 'display_name_en' => 'Manage Settings', 'display_name_ar' => 'إدارة الإعدادات', 'module' => 'settings'],
+            ['name' => 'manage backups', 'display_name_en' => 'Manage Backups', 'display_name_ar' => 'إدارة النسخ الاحتياطي', 'module' => 'settings'],
+            ['name' => 'restore backups', 'display_name_en' => 'Restore Backups', 'display_name_ar' => 'استعادة النسخ الاحتياطي', 'module' => 'settings'],
             // Accounting
             ['name' => 'view accounting', 'display_name_en' => 'View Accounting', 'display_name_ar' => 'عرض المحاسبة', 'module' => 'accounting'],
             ['name' => 'view journal_vouchers', 'display_name_en' => 'View Journal Vouchers', 'display_name_ar' => 'عرض قيود اليومية', 'module' => 'accounting'],
@@ -156,12 +158,12 @@ class PermissionSeeder extends Seeder
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(
-            ['name' => $permission['name'], 'guard_name' => 'web'],
-            [
-                'display_name_en' => $permission['display_name_en'],
-                'display_name_ar' => $permission['display_name_ar'],
-                'module' => $permission['module'],
-            ]
+                ['name' => $permission['name'], 'guard_name' => 'web'],
+                [
+                    'display_name_en' => $permission['display_name_en'],
+                    'display_name_ar' => $permission['display_name_ar'],
+                    'module' => $permission['module'],
+                ]
             );
         }
     }

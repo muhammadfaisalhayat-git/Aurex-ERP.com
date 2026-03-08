@@ -15,13 +15,13 @@ class BranchController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('admin.branches.index', compact('branches'));
+        return view('acp.organization.branches.index', compact('branches'));
     }
 
     public function create()
     {
         $companies = \App\Models\Company::all();
-        return view('admin.branches.create', compact('companies'));
+        return view('acp.organization.branches.create', compact('companies'));
     }
 
     public function store(Request $request)
@@ -42,20 +42,20 @@ class BranchController extends Controller
 
         AuditLog::log('create', 'branch', $branch->id, null, $branch->toArray());
 
-        return redirect()->route('admin.branches.index')
+        return redirect()->route('acp.organization.branches.index')
             ->with('success', __('messages.branch_created'));
     }
 
     public function show(Branch $branch)
     {
         $branch->load(['users', 'warehouses', 'company']);
-        return view('admin.branches.show', compact('branch'));
+        return view('acp.organization.branches.show', compact('branch'));
     }
 
     public function edit(Branch $branch)
     {
         $companies = \App\Models\Company::all();
-        return view('admin.branches.edit', compact('branch', 'companies'));
+        return view('acp.organization.branches.edit', compact('branch', 'companies'));
     }
 
     public function update(Request $request, Branch $branch)
@@ -77,7 +77,7 @@ class BranchController extends Controller
 
         AuditLog::log('update', 'branch', $branch->id, $oldValues, $branch->toArray());
 
-        return redirect()->route('admin.branches.index')
+        return redirect()->route('acp.organization.branches.index')
             ->with('success', __('messages.branch_updated'));
     }
 
@@ -92,7 +92,7 @@ class BranchController extends Controller
 
         AuditLog::log('delete', 'branch', $branch->id, $oldValues);
 
-        return redirect()->route('admin.branches.index')
+        return redirect()->route('acp.organization.branches.index')
             ->with('success', __('messages.branch_deleted'));
     }
 }

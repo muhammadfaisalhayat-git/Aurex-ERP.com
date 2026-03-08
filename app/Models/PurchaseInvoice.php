@@ -68,12 +68,12 @@ class PurchaseInvoice extends Model
 
     public function creator()
     {
-        return $this->belongsTo(User::class , 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function poster()
     {
-        return $this->belongsTo(User::class , 'posted_by');
+        return $this->belongsTo(User::class, 'posted_by');
     }
 
     public function items()
@@ -97,19 +97,51 @@ class PurchaseInvoice extends Model
             return false;
         }
 
-        $this->status = 'posted';
-        $this->posted_by = auth()->id();
-        $this->posted_at = now();
-        $this->save();
+        return \Illuminate\Support\Facades\DB::transaction(function () {
+            $this->status = 'posted';
+            $this->posted_by = auth()->id();
+            $this->posted_at = now();
+            $this->save();
 
-        // Update vendor balance
-        if ($this->vendor) {
-            $this->vendor->updateBalance($this->total_amount);
+            // Update vendor balance
+            if ($this->vendor) {
+                $this->vendor->updateBalance($this->total_amount);
+            }
+
+            // Create stock receiving
+            $this->createStockReceiving();
+
+            // Accounting integration
+            app(\App\Services\AccountingService::class)->postPurchaseInvoice($this);
+
+            return true;
+        });
+    }
+
+    protected function createStockReceiving()
+    {
+        $receiving = StockReceiving::create([
+            'company_id' => $this->company_id,
+            'document_number' => DocumentNumber::generate('stock_receiving'),
+            'receiving_date' => $this->invoice_date,
+            'warehouse_id' => $this->warehouse_id,
+            'vendor_id' => $this->vendor_id,
+            'reference_type' => 'purchase_invoice',
+            'reference_id' => $this->id,
+            'status' => 'pending',
+            'notes' => 'Auto-generated from Purchase Invoice: ' . $this->document_number,
+            'created_by' => auth()->id(),
+        ]);
+
+        foreach ($this->items as $item) {
+            $receiving->items()->create([
+                'product_id' => $item->product_id,
+                'ordered_quantity' => $item->quantity,
+                'received_quantity' => $item->quantity,
+                'notes' => null,
+            ]);
         }
 
-        // Accounting integration
-        app(\App\Services\AccountingService::class)->postPurchaseInvoice($this);
-
-        return true;
+        $receiving->post();
     }
 }

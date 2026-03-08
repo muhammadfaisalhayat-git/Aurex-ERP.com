@@ -11,6 +11,7 @@ use App\Models\AuditLog;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -21,7 +22,7 @@ class UserController extends Controller
             ->orderBy('name')
             ->paginate(20);
 
-        return view('admin.users.index', compact('users'));
+        return view('acp.user-mgmt.users.index', compact('users'));
     }
 
     public function create()
@@ -30,7 +31,7 @@ class UserController extends Controller
         $warehouses = Warehouse::active()->get();
         $roles = Role::orderBy('name')->get();
 
-        return view('admin.users.create', compact('branches', 'warehouses', 'roles'));
+        return view('acp.user-mgmt.users.create', compact('branches', 'warehouses', 'roles'));
     }
 
     public function store(Request $request)
@@ -48,6 +49,7 @@ class UserController extends Controller
             'warehouses' => 'nullable|array',
             'warehouses.*' => 'exists:warehouses,id',
             'is_active' => 'boolean',
+            'avatar' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
         ]);
 
         $companyId = null;
@@ -67,6 +69,12 @@ class UserController extends Controller
             'is_active' => $validated['is_active'] ?? true,
         ]);
 
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->update(['avatar' => $path]);
+        }
+
         // Assign roles
         $roleNames = Role::whereIn('id', $validated['roles'])->pluck('name');
         $user->syncRoles($roleNames);
@@ -79,14 +87,14 @@ class UserController extends Controller
         // Log audit
         AuditLog::log('create', 'user', $user->id, null, $user->toArray());
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('acp.user-mgmt.users.index')
             ->with('success', __('messages.user_created_success'));
     }
 
     public function show(User $user)
     {
         $user->load(['branch', 'roles', 'warehouses']);
-        return view('admin.users.show', compact('user'));
+        return view('acp.user-mgmt.users.show', compact('user'));
     }
 
     public function edit(User $user)
@@ -96,7 +104,7 @@ class UserController extends Controller
         $roles = Role::orderBy('name')->get();
         $user->load(['roles', 'warehouses']);
 
-        return view('admin.users.edit', compact('user', 'branches', 'warehouses', 'roles'));
+        return view('acp.user-mgmt.users.edit', compact('user', 'branches', 'warehouses', 'roles'));
     }
 
     public function update(Request $request, User $user)
@@ -114,6 +122,7 @@ class UserController extends Controller
             'warehouses' => 'nullable|array',
             'warehouses.*' => 'exists:warehouses,id',
             'is_active' => 'boolean',
+            'avatar' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
         ]);
 
         $oldValues = $user->toArray();
@@ -136,6 +145,15 @@ class UserController extends Controller
             $updateData['password'] = Hash::make($validated['password']);
         }
 
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $updateData['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        }
+
         if ($request->has('password_reset_key')) {
             $updateData['password_reset_key'] = $request->password_reset_key;
         }
@@ -156,7 +174,7 @@ class UserController extends Controller
         // Log audit
         AuditLog::log('update', 'user', $user->id, $oldValues, $user->toArray());
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('acp.user-mgmt.users.index')
             ->with('success', __('messages.user_updated'));
     }
 
@@ -177,7 +195,7 @@ class UserController extends Controller
         // Log audit
         AuditLog::log('delete', 'user', $user->id, $oldValues);
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('acp.user-mgmt.users.index')
             ->with('success', __('messages.user_deleted'));
     }
 
@@ -216,7 +234,7 @@ class UserController extends Controller
         $permissions = Permission::all()->groupBy('module');
         $userPermissions = $user->permissions->pluck('id')->toArray();
 
-        return view('admin.users.permissions', compact('user', 'permissions', 'userPermissions'));
+        return view('acp.user-mgmt.users.permissions', compact('user', 'permissions', 'userPermissions'));
     }
 
     public function updatePermissions(Request $request, User $user)
@@ -234,7 +252,7 @@ class UserController extends Controller
         // Log audit
         AuditLog::log('update_permissions', 'user', $user->id, null, ['permissions' => $permissionNames->toArray()]);
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route('acp.user-mgmt.user-profiles.show', $user)
             ->with('success', __('messages.permissions_updated'));
     }
 }

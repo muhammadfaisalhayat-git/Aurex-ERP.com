@@ -670,6 +670,11 @@ class AccountingService
             ],
             'purchase' => [
                 'payable' => '201',
+                'clearing' => '101',
+            ],
+            'transport' => [
+                'expense' => '506',
+                'clearing' => '101',
             ],
             'tax' => [
                 'payable' => '202',
@@ -916,4 +921,114 @@ class AccountingService
         });
     }
 
+    /**
+     * Post Local Purchase to ledger automatically.
+     */
+    public function postLocalPurchase($purchase)
+    {
+        return DB::transaction(function () use ($purchase) {
+            $inventoryAccount = $this->getMappedAccount('stock', 'inventory');
+            $taxAccount = $this->getMappedAccount('tax', 'payable');
+            // For local purchases, we usually credit a cash/bank clearing account
+            $clearingAccount = $this->getMappedAccount('purchase', 'clearing');
+
+            // Debit Inventory
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $inventoryAccount->id,
+                'transaction_date' => $purchase->invoice_date,
+                'reference_type' => 'local_purchase',
+                'reference_id' => $purchase->id,
+                'reference_number' => $purchase->document_number,
+                'debit' => $purchase->subtotal,
+                'credit' => 0,
+                'description' => 'Local Purchase: ' . $purchase->document_number . ' - ' . $purchase->supplier_name,
+            ]);
+
+            // Debit Tax (Input Tax)
+            if ($purchase->tax_amount > 0) {
+                $this->createLedgerEntry([
+                    'chart_of_account_id' => $taxAccount->id,
+                    'transaction_date' => $purchase->invoice_date,
+                    'reference_type' => 'local_purchase',
+                    'reference_id' => $purchase->id,
+                    'reference_number' => $purchase->document_number,
+                    'debit' => $purchase->tax_amount,
+                    'credit' => 0,
+                    'description' => 'Input Tax on Local Purchase: ' . $purchase->document_number,
+                ]);
+            }
+
+            // Credit Clearing Account
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $clearingAccount->id,
+                'transaction_date' => $purchase->invoice_date,
+                'reference_type' => 'local_purchase',
+                'reference_id' => $purchase->id,
+                'reference_number' => $purchase->document_number,
+                'debit' => 0,
+                'credit' => $purchase->total_amount,
+                'description' => 'Clearing for Local Purchase: ' . $purchase->document_number,
+            ]);
+
+            return true;
+        });
+    }
+
+    /**
+     * Unpost Local Purchase from ledger.
+     */
+    public function unpostLocalPurchase($purchase)
+    {
+        return DB::transaction(function () use ($purchase) {
+            LedgerEntry::where('reference_type', 'local_purchase')
+                ->where('reference_id', $purchase->id)
+                ->delete();
+
+            return true;
+        });
+    }
+
+    /**
+     * Post Transport Claim to ledger.
+     */
+    public function postTransportClaim($claim)
+    {
+        return DB::transaction(function () use ($claim) {
+            // 506: Fuel & Transport Expense
+            $expenseAccount = $this->getMappedAccount('transport', 'expense');
+            $clearingAccount = $this->getMappedAccount('transport', 'clearing');
+
+            $amount = $claim->settled_amount ?? $claim->claim_amount;
+
+            if ($amount <= 0) {
+                return true;
+            }
+
+            // Debit Transport Expense
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $expenseAccount->id,
+                'transaction_date' => $claim->settled_at ?? $claim->claim_date,
+                'reference_type' => 'transport_claim',
+                'reference_id' => $claim->id,
+                'reference_number' => $claim->claim_number,
+                'debit' => $amount,
+                'credit' => 0,
+                'description' => 'Transport Claim Expense: ' . $claim->claim_number . ' (Order: ' . $claim->transportOrder->document_number . ')',
+            ]);
+
+            // Credit Clearing Account
+            $this->createLedgerEntry([
+                'chart_of_account_id' => $clearingAccount->id,
+                'transaction_date' => $claim->settled_at ?? $claim->claim_date,
+                'reference_type' => 'transport_claim',
+                'reference_id' => $claim->id,
+                'reference_number' => $claim->claim_number,
+                'debit' => 0,
+                'credit' => $amount,
+                'description' => 'Clearing for Transport Claim: ' . $claim->claim_number,
+            ]);
+
+            return true;
+        });
+    }
 }

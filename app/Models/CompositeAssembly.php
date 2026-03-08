@@ -20,4 +20,69 @@ class CompositeAssembly extends Model
     {
         return $this->hasMany(CompositeAssemblyComponent::class);
     }
+
+    public function post()
+    {
+        if ($this->status === 'posted') {
+            return false;
+        }
+
+        return \Illuminate\Support\Facades\DB::transaction(function () {
+            $this->status = 'posted';
+            $this->posted_by = auth()->id();
+            $this->posted_at = now();
+            $this->save();
+
+            $stockService = app(\App\Services\StockManagementService::class);
+
+            // 1. Deduct components (outgoing)
+            foreach ($this->components as $component) {
+                $stockService->recordMovement([
+                    'product_id' => $component->component_id,
+                    'warehouse_id' => $this->warehouse_id,
+                    'movement_type' => 'out',
+                    'quantity' => $component->quantity_used,
+                    'unit_cost' => $component->unit_cost ?? 0,
+                    'reference_type' => 'composite_assembly',
+                    'reference_id' => $this->id,
+                    'reference_number' => $this->document_number,
+                    'notes' => 'Assembly Component for: ' . $this->document_number
+                ]);
+            }
+
+            // 2. Add finished product (incoming)
+            $stockService->recordMovement([
+                'product_id' => $this->product_id,
+                'warehouse_id' => $this->warehouse_id,
+                'movement_type' => 'in',
+                'quantity' => $this->quantity,
+                'unit_cost' => $this->cost_per_unit,
+                'reference_type' => 'composite_assembly',
+                'reference_id' => $this->id,
+                'reference_number' => $this->document_number,
+                'notes' => 'Assembly Finished Good: ' . $this->document_number
+            ]);
+
+            return true;
+        });
+    }
+
+    public function unpost()
+    {
+        if ($this->status !== 'posted') {
+            return false;
+        }
+
+        return \Illuminate\Support\Facades\DB::transaction(function () {
+            $stockService = app(\App\Services\StockManagementService::class);
+            $stockService->reverseMovement('composite_assembly', $this->id);
+
+            $this->status = 'draft';
+            $this->posted_by = null;
+            $this->posted_at = null;
+            $this->save();
+
+            return true;
+        });
+    }
 }

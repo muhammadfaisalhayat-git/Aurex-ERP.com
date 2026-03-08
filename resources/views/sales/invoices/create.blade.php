@@ -365,20 +365,8 @@
             if (!branchSelect) return;
 
             // 2. Data Initialization
-            const products = [
-                @foreach($products as $product)
-                {
-                    id: {{ $product->id }},
-                    name_en: "{{ addslashes($product->name_en) }}",
-                    name_ar: "{{ addslashes($product->name_ar) }}",
-                    name: "{{ addslashes($product->name) }}",
-                    code: "{{ $product->code }}", // Changed from product_code to code
-                    price: {{ $product->sale_price ?? 0 }},
-                    cost_price: {{ $product->cost_price ?? 0 }},
-                    tax: {{ $product->tax_rate ?? $taxSetting->default_tax_rate ?? 0 }} 
-                },
-                @endforeach
-            ];
+            // Products pre-loading removed in favor of AJAX search
+            const products = [];
 
             const warehousesJson = [
                 @foreach($warehouses as $warehouse)
@@ -508,27 +496,23 @@
                 const hidden = row.querySelector('.product-id-input');
 
                 input.addEventListener('input', function () {
-                    const search = this.value.toLowerCase();
+                    const search = this.value;
+                    const warehouseId = warehouseSelect.value;
+                    const branchId = branchSelect.value;
                     
-                    if (search.length === 0) {
-                        renderResults(results, products.slice(0, 10), (product) => {
-                            selectItem(product, input, hidden, row, results);
-                        }, true);
+                    if (search.length < 1) {
+                        results.style.display = 'none';
                         return;
                     }
 
-                    const transliterated = window.transliterateToArabic(search);
-                    const filtered = products.filter(p =>
-                        p.name_en.toLowerCase().includes(search) ||
-                        p.name_ar.toLowerCase().includes(search) ||
-                        p.name_ar.toLowerCase().includes(transliterated) ||
-                        (p.code && p.code.toLowerCase().includes(search)) ||
-                        p.id.toString() === search
-                    );
-
-                    renderResults(results, filtered, (product) => {
-                        selectItem(product, input, hidden, row, results);
-                    }, true);
+                    fetch(`{{ route('inventory.products.ajax-search') }}?q=${encodeURIComponent(search)}&warehouse_id=${warehouseId}&branch_id=${branchId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            renderResults(results, data, (product) => {
+                                selectItem(product, input, hidden, row, results);
+                            }, true);
+                        })
+                        .catch(err => console.error('Error fetching products:', err));
                 });
 
                 input.addEventListener('keydown', function (e) {
@@ -573,9 +557,22 @@
             }
 
             function selectItem(product, input, hidden, row, results) {
+                const stock = parseFloat(product.available_quantity) || 0;
+                if (stock <= 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '{{ __("messages.out_of_stock") ?? "Out of Stock" }}',
+                        text: '{{ __("messages.product_not_available_in_warehouse") ?? "This product is not available in the selected warehouse." }}',
+                        confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                    });
+                    results.style.display = 'none';
+                    input.value = '';
+                    return;
+                }
+
                 input.value = '{{ app()->getLocale() === 'ar' }}' === '1' ? (product.name_ar || product.name_en) : (product.name_en || product.name_ar);
                 hidden.value = product.id;
-                row.querySelector('.price-input').value = product.price;
+                row.querySelector('.price-input').value = product.sale_price || product.price;
                 row.querySelector('.tax-rate-input').value = product.tax;
                 results.style.display = 'none';
                 calculateRow(row);
@@ -597,13 +594,14 @@
                     const subName = currentLocale === 'ar' ? item.name_en : item.name_ar;
 
                     if (isProduct) {
+                        const stockColor = item.available_quantity > 0 ? '#198754' : '#dc3545';
                         div.innerHTML = `
                             <div class="item-title">${currentName}</div>
                             ${subName && subName !== currentName ? `<div class="item-subtitle text-muted" style="font-size: 0.8rem;">${subName}</div>` : ''}
                             <div class="item-subtitle">${item.code || ''}</div>
-                            <div class="item-meta d-flex gap-3">
-                                <span style="color:#198754; font-weight:600;">{{ __('messages.sale_price') }}: ${parseFloat(item.price).toFixed(2)}</span>
-                                <span style="color:#dc3545; font-weight:600;">{{ __('messages.cost_price') }}: ${parseFloat(item.cost_price).toFixed(2)}</span>
+                            <div class="item-meta d-flex justify-content-between flex-wrap mt-1">
+                                <span style="color:#198754; font-weight:600;">{{ __('messages.sale_price') }}: ${parseFloat(item.sale_price).toFixed(2)}</span>
+                                <span style="color:${stockColor}; font-weight:600;">Stock: ${parseFloat(item.available_quantity).toFixed(item.decimals_count || 2)}</span>
                             </div>
                         `;
                     } else {
@@ -751,17 +749,34 @@
 
                         tableBody.innerHTML = '';
                         itemIndex = 0;
+                        let skippedItems = [];
                         data.items.forEach(item => {
+                            const stock = parseFloat(item.available_quantity) || 0;
+                            if (stock <= 0) {
+                                skippedItems.push(item.product_name);
+                                return;
+                            }
+
                             addItem();
                             const row = tableBody.lastElementChild;
                             row.querySelector('.product-search-input').value = item.product_name;
                             row.querySelector('.product-id-input').value = item.product_id;
-                            row.querySelector('.quantity-input').value = item.quantity;
+                            row.querySelector('.quantity-input').value = Math.min(item.quantity, stock);
                             row.querySelector('.price-input').value = item.unit_price;
                             row.querySelector('.discount-input').value = item.discount_percentage;
                             row.querySelector('.tax-rate-input').value = item.tax_rate;
                             calculateRow(row);
                         });
+
+                        if (skippedItems.length > 0) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '{{ __("messages.items_skipped") ?? "Items Skipped" }}',
+                                html: '{{ __("messages.following_items_out_of_stock") ?? "The following items were skipped due to zero stock:" }}<br><br>' + 
+                                      '<ul class="text-start">' + skippedItems.map(name => `<li>${name}</li>`).join('') + '</ul>',
+                                confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                            });
+                        }
                     });
             }
 

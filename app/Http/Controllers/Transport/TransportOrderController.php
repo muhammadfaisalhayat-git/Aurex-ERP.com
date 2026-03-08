@@ -129,6 +129,9 @@ class TransportOrderController extends Controller
             'closed_at' => now(),
             'closed_by' => auth()->id(),
         ]);
+
+        $order->post(); // Trigger accounting/integration hook
+
         return back()->with('success', __('messages.order_completed_successfully'));
     }
 }

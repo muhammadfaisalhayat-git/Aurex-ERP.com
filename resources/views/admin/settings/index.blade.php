@@ -37,7 +37,7 @@
             </ul>
         </div>
         <div class="card-body">
-            <form action="{{ route('admin.settings.update') }}" method="POST">
+            <form action="{{ route('acp.system.settings.update') }}" method="POST">
                 @csrf
                 <div class="tab-content" id="settingsTabsContent">
                     <!-- General Settings -->

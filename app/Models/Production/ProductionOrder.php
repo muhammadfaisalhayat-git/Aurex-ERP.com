@@ -49,7 +49,7 @@ class ProductionOrder extends Model
 
     public function creator()
     {
-        return $this->belongsTo(User::class , 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function workOrders()
@@ -59,7 +59,7 @@ class ProductionOrder extends Model
 
     public function qualityControls()
     {
-        return $this->morphMany(QualityControl::class , 'reference');
+        return $this->morphMany(QualityControl::class, 'reference');
     }
 
     public function post()
@@ -68,13 +68,66 @@ class ProductionOrder extends Model
             return false;
         }
 
-        return \DB::transaction(function () {
+        return \Illuminate\Support\Facades\DB::transaction(function () {
             $this->status = 'completed';
             $this->end_date = now();
             $this->save();
 
+            $stockService = app(\App\Services\StockManagementService::class);
+            $warehouseId = $this->branch->warehouses()->first()?->id;
+
+            if ($warehouseId) {
+                // 1. Deduct BOM components (outgoing)
+                if ($this->product && $this->product->bomComponents) {
+                    foreach ($this->product->bomComponents as $bom) {
+                        $stockService->recordMovement([
+                            'product_id' => $bom->component_id,
+                            'warehouse_id' => $warehouseId,
+                            'movement_type' => 'out',
+                            'quantity' => (float) $bom->quantity * (float) $this->quantity,
+                            'unit_cost' => $bom->component->cost_price ?? 0,
+                            'reference_type' => 'production_order',
+                            'reference_id' => $this->id,
+                            'reference_number' => $this->document_number,
+                            'notes' => 'Production Consumption for: ' . $this->document_number
+                        ]);
+                    }
+                }
+
+                // 2. Add finished product (incoming)
+                $stockService->recordMovement([
+                    'product_id' => $this->product_id,
+                    'warehouse_id' => $warehouseId,
+                    'movement_type' => 'in',
+                    'quantity' => $this->quantity,
+                    'unit_cost' => $this->unit_cost,
+                    'reference_type' => 'production_order',
+                    'reference_id' => $this->id,
+                    'reference_number' => $this->document_number,
+                    'notes' => 'Production Output: ' . $this->document_number
+                ]);
+            }
+
             // Accounting integration
             app(\App\Services\AccountingService::class)->postProductionCompletion($this);
+
+            return true;
+        });
+    }
+
+    public function unpost()
+    {
+        if ($this->status !== 'completed') {
+            return false;
+        }
+
+        return \Illuminate\Support\Facades\DB::transaction(function () {
+            $stockService = app(\App\Services\StockManagementService::class);
+            $stockService->reverseMovement('production_order', $this->id);
+
+            $this->status = 'draft';
+            $this->end_date = null;
+            $this->save();
 
             return true;
         });

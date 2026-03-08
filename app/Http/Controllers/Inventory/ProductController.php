@@ -385,16 +385,84 @@ class ProductController extends Controller
     public function ajaxSearch(Request $request)
     {
         $search = $request->get('q');
+        $warehouseId = $request->get('warehouse_id');
+        $branchId = $request->get('branch_id');
+
         $products = Product::where('is_sellable', true)
             ->where(function ($query) use ($search) {
                 $query->where('name_en', 'like', "%$search%")
                     ->orWhere('name_ar', 'like', "%$search%")
                     ->orWhere('code', 'like', "%$search%")
-                    ->orWhere('id', $search); // Added search by ID
+                    ->orWhere('id', $search);
             })
             ->limit(10)
-            ->get(['id', 'code', 'name_en', 'name_ar', 'sale_price', 'cost_price']);
+            ->get();
 
-        return response()->json($products);
+        $results = $products->map(function ($product) use ($warehouseId, $branchId) {
+            $available = 0;
+            if ($warehouseId) {
+                $balance = $product->stockBalances()->where('warehouse_id', $warehouseId)->first();
+                $available = $balance ? $balance->available_quantity : 0;
+            } elseif ($branchId) {
+                $available = $product->stockBalances()->whereHas('warehouse', function ($q) use ($branchId) {
+                    $q->where('branch_id', $branchId);
+                })->sum('available_quantity');
+            } else {
+                $available = $product->stockBalances()->sum('available_quantity');
+            }
+
+            return [
+                'id' => $product->id,
+                'code' => $product->code,
+                'name_en' => $product->name_en,
+                'name_ar' => $product->name_ar,
+                'sale_price' => $product->sale_price,
+                'cost_price' => $product->cost_price,
+                'available_quantity' => $available,
+                'tax' => $product->tax_rate,
+                'decimals_count' => $product->decimals_count
+            ];
+        });
+
+        return response()->json($results);
+    }
+
+    /**
+     * Get stock balance for a product in a specific warehouse via AJAX.
+     */
+    public function ajaxStock(Request $request)
+    {
+        $productId = $request->get('product_id');
+        $warehouseId = $request->get('warehouse_id');
+        $branchId = $request->get('branch_id');
+
+        if (!$productId) {
+            return response()->json(['error' => 'Product ID is required'], 400);
+        }
+
+        $product = Product::find($productId);
+        if (!$product) {
+            return response()->json(['error' => 'Product not found'], 404);
+        }
+
+        $available = 0;
+        if ($warehouseId) {
+            $balance = $product->stockBalances()->where('warehouse_id', $warehouseId)->first();
+            $available = $balance ? $balance->available_quantity : 0;
+        } elseif ($branchId) {
+            $available = $product->stockBalances()->whereHas('warehouse', function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            })->sum('available_quantity');
+        } else {
+            $available = $product->stockBalances()->sum('available_quantity');
+        }
+
+        return response()->json([
+            'product_id' => $product->id,
+            'warehouse_id' => $warehouseId,
+            'branch_id' => $branchId,
+            'available_quantity' => $available,
+            'unit' => $product->unit_of_measure
+        ]);
     }
 }

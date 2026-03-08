@@ -84,10 +84,40 @@ class SalesReturn extends Model
                 $this->bankAccount->decrement('current_balance', (float) $this->total_amount);
             }
 
+            // Create stock receiving
+            $this->createStockReceiving();
+
             // Accounting integration
             app(\App\Services\AccountingService::class)->postSalesReturn($this);
 
             return true;
         });
+    }
+
+    protected function createStockReceiving()
+    {
+        $receiving = StockReceiving::create([
+            'company_id' => $this->company_id,
+            'document_number' => DocumentNumber::generate('stock_receiving'),
+            'receiving_date' => $this->return_date,
+            'warehouse_id' => $this->warehouse_id,
+            'customer_id' => $this->customer_id,
+            'reference_type' => 'sales_return',
+            'reference_id' => $this->id,
+            'status' => 'pending',
+            'notes' => 'Auto-generated from Sales Return: ' . $this->document_number,
+            'created_by' => auth()->id(),
+        ]);
+
+        foreach ($this->items as $item) {
+            $receiving->items()->create([
+                'product_id' => $item->product_id,
+                'ordered_quantity' => $item->quantity,
+                'received_quantity' => $item->quantity,
+                'notes' => null,
+            ]);
+        }
+
+        $receiving->post();
     }
 }

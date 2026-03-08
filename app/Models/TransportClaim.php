@@ -12,4 +12,26 @@ class TransportClaim extends Model
     {
         return $this->belongsTo(TransportOrder::class);
     }
+
+    /**
+     * Settle the claim and post to GL.
+     */
+    public function settle($amount, $notes = null)
+    {
+        if ($this->status === 'settled') {
+            return false;
+        }
+
+        $this->status = 'settled';
+        $this->settled_amount = $amount;
+        $this->resolution_notes = $notes;
+        $this->settled_at = now();
+        $this->settled_by = auth()->id();
+        $this->save();
+
+        // Post to Accounting
+        app(\App\Services\AccountingService::class)->postTransportClaim($this);
+
+        return true;
+    }
 }

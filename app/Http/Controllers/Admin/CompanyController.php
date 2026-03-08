@@ -12,12 +12,12 @@ class CompanyController extends Controller
     public function index()
     {
         $companies = Company::withCount(['branches', 'users'])->paginate(10);
-        return view('admin.companies.index', compact('companies'));
+        return view('acp.organization.companies.index', compact('companies'));
     }
 
     public function create()
     {
-        return view('admin.companies.create');
+        return view('acp.organization.companies.create');
     }
 
     public function store(Request $request)
@@ -38,17 +38,17 @@ class CompanyController extends Controller
 
         Company::create($validated);
 
-        return redirect()->route('admin.companies.index')->with('success', __('Company created successfully'));
+        return redirect()->route('acp.organization.companies.index')->with('success', __('Company created successfully'));
     }
 
     public function show(Company $company)
     {
-        return view('admin.companies.show', compact('company'));
+        return view('acp.organization.companies.show', compact('company'));
     }
 
     public function edit(Company $company)
     {
-        return view('admin.companies.edit', compact('company'));
+        return view('acp.organization.companies.edit', compact('company'));
     }
 
     public function update(Request $request, Company $company)
@@ -72,12 +72,12 @@ class CompanyController extends Controller
 
         $company->update($validated);
 
-        return redirect()->route('admin.companies.index')->with('success', __('Company updated successfully'));
+        return redirect()->route('acp.organization.companies.index')->with('success', __('Company updated successfully'));
     }
 
     public function destroy(Company $company)
     {
         $company->delete();
-        return redirect()->route('admin.companies.index')->with('success', __('Company deleted successfully'));
+        return redirect()->route('acp.organization.companies.index')->with('success', __('Company deleted successfully'));
     }
 }

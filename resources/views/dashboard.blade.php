@@ -184,7 +184,7 @@
                     @if($checkVisibility('sidebar_user_management'))
                         @can('view users')
                             <div class="col-6 col-md-4 col-lg-4">
-                                <a href="{{ route('admin.users.index') }}" class="menu-card card-admin">
+                                <a href="{{ route('acp.user-mgmt.users.index') }}" class="menu-card card-admin">
                                     <div class="icon-wrapper"><i class="fas fa-users-cog"></i></div>
                                     <p class="menu-label">{{ __('messages.users') }}</p>
                                 </a>
@@ -192,7 +192,7 @@
                         @endcan
                         @can('manage roles')
                             <div class="col-6 col-md-4 col-lg-4">
-                                <a href="{{ route('admin.roles.index') }}" class="menu-card card-admin">
+                                <a href="{{ route('acp.user-mgmt.roles.index') }}" class="menu-card card-admin">
                                     <div class="icon-wrapper"><i class="fas fa-id-badge"></i></div>
                                     <p class="menu-label">{{ __('messages.roles') }}</p>
                                 </a>
@@ -202,20 +202,20 @@
                     @if($checkVisibility('sidebar_organization'))
                         @if(auth()->user()->hasRole('Super Admin'))
                             <div class="col-6 col-md-4 col-lg-4">
-                                <a href="{{ route('admin.companies.index') }}" class="menu-card card-admin">
+                                <a href="{{ route('acp.organization.companies.index') }}" class="menu-card card-admin">
                                     <div class="icon-wrapper"><i class="fas fa-building"></i></div>
                                     <p class="menu-label">{{ __('messages.companies') }}</p>
                                 </a>
                             </div>
                         @endif
                         <div class="col-6 col-md-4 col-lg-4">
-                            <a href="{{ route('admin.branches.index') }}" class="menu-card card-admin">
+                            <a href="{{ route('acp.organization.branches.index') }}" class="menu-card card-admin">
                                 <div class="icon-wrapper"><i class="fas fa-code-branch"></i></div>
                                 <p class="menu-label">{{ __('messages.branches') }}</p>
                             </a>
                         </div>
                         <div class="col-6 col-md-4 col-lg-4">
-                            <a href="{{ route('admin.warehouses.index') }}" class="menu-card card-admin">
+                            <a href="{{ route('acp.organization.warehouses.index') }}" class="menu-card card-admin">
                                 <div class="icon-wrapper"><i class="fas fa-warehouse"></i></div>
                                 <p class="menu-label">{{ __('messages.warehouses') }}</p>
                             </a>
@@ -224,7 +224,7 @@
                     @if($checkVisibility('sidebar_settings'))
                         @can('manage settings')
                             <div class="col-6 col-md-4 col-lg-4">
-                                <a href="{{ route('admin.settings.index') }}" class="menu-card card-admin">
+                                <a href="{{ route('acp.system.settings.index') }}" class="menu-card card-admin">
                                     <div class="icon-wrapper"><i class="fas fa-cog"></i></div>
                                     <p class="menu-label">{{ __('messages.settings') }}</p>
                                 </a>
@@ -259,18 +259,18 @@
                                 <p class="menu-label">{{ __('messages.quotations') }}</p>
                             </a>
                         </div>
-                                 <div class="col-6 col-md-4 col-lg-4">
-                                            <a href="{{ route('sales.sales-orders.index') }}" class="menu-card card-sales">
-                                                <div class="icon-wrapper"><i class="fas fa-shopping-cart"></i></div>
-                                                <p class="menu-label">{{ __('messages.sales_orders') }}</p>
-                                            </a>
-                                        </div>
-                                        <div class="col-6 col-md-4 col-lg-4">
-                                            <a href="{{ route('sales.contracts.index') }}" class="menu-card card-sales">
-                                                <div class="icon-wrapper"><i class="fas fa-file-contract"></i></div>
-                                                <p class="menu-label">{{ __('messages.sales_contracts') }}</p>
-                                            </a>
-                                        </div>
+                        <div class="col-6 col-md-4 col-lg-4">
+                            <a href="{{ route('sales.sales-orders.index') }}" class="menu-card card-sales">
+                                <div class="icon-wrapper"><i class="fas fa-shopping-cart"></i></div>
+                                <p class="menu-label">{{ __('messages.sales_orders') }}</p>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-4">
+                            <a href="{{ route('sales.contracts.index') }}" class="menu-card card-sales">
+                                <div class="icon-wrapper"><i class="fas fa-file-contract"></i></div>
+                                <p class="menu-label">{{ __('messages.sales_contracts') }}</p>
+                            </a>
+                        </div>
                     @endif
                     @if($checkVisibility('sidebar_sales_invoices'))
                         <div class="col-6 col-md-4 col-lg-4">

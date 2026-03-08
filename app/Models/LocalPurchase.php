@@ -93,10 +93,10 @@ class LocalPurchase extends Model
             $taxAmount += $item->tax_amount;
         }
 
-        $this->subtotal = (float) $subtotal;
-        $this->discount_amount = (float) $discountAmount;
-        $this->tax_amount = (float) $taxAmount;
-        $this->total_amount = (float) $subtotal;
+        $this->subtotal = $subtotal;
+        $this->discount_amount = $discountAmount;
+        $this->tax_amount = $taxAmount;
+        $this->total_amount = $subtotal;
         $this->save();
     }
 
@@ -154,9 +154,11 @@ class LocalPurchase extends Model
                 'total_cost' => $item->unit_price * $item->quantity,
                 'balance_quantity' => $stockBalance->quantity,
                 'notes' => 'Local Purchase: ' . $this->document_number,
-                'created_by' => auth()->id(),
             ]);
         }
+
+        // GL Posting
+        app(\App\Services\AccountingService::class)->postLocalPurchase($this);
 
         return true;
     }
@@ -184,6 +186,9 @@ class LocalPurchase extends Model
         $this->posted_by = null;
         $this->posted_at = null;
         $this->save();
+
+        // GL Unposting
+        app(\App\Services\AccountingService::class)->unpostLocalPurchase($this);
 
         return true;
     }

@@ -216,13 +216,19 @@ class SalesInvoiceController extends Controller
             return response()->json(['error' => 'Document not found'], 404);
         }
 
-        // Normalize items
-        $normalizedItems = $data->items->map(function ($item) {
+        // Normalize items with stock availability
+        $normalizedItems = $data->items->map(function ($item) use ($data) {
+            $stock = \App\Models\StockBalance::where('product_id', $item->product_id)
+                ->where('warehouse_id', $data->warehouse_id)
+                ->where('branch_id', $data->branch_id)
+                ->value('available_quantity') ?? 0;
+
             return [
                 'product_id' => $item->product_id,
                 'product_name' => $item->product->name ?? 'Unknown',
                 'product_code' => $item->product->product_code ?? '',
                 'quantity' => $item->quantity,
+                'available_quantity' => $stock,
                 'unit_price' => $item->unit_price,
                 'discount_percentage' => $item->discount_percentage ?? 0,
                 'tax_rate' => $item->tax_rate ?? 0,
