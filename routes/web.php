@@ -266,6 +266,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             // Sales Returns
             Route::resource('returns', SalesReturnController::class)->parameters(['returns' => 'salesReturn']);
             Route::post('returns/{salesReturn}/post', [SalesReturnController::class, 'post'])->name('returns.post');
+            Route::post('returns/{salesReturn}/unpost', [SalesReturnController::class, 'unpost'])->name('returns.unpost');
             Route::get('returns/{salesReturn}/print', [SalesReturnController::class, 'print'])->name('returns.print');
 
             // Commissions

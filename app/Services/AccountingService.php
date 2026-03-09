@@ -1031,4 +1031,15 @@ class AccountingService
             return true;
         });
     }
+    /**
+     * Unpost/Reverse a document's ledger entries.
+     */
+    public function unpostDocument($referenceType, $referenceId)
+    {
+        return DB::transaction(function () use ($referenceType, $referenceId) {
+            return LedgerEntry::where('reference_type', $referenceType)
+                ->where('reference_id', $referenceId)
+                ->delete();
+        });
+    }
 }

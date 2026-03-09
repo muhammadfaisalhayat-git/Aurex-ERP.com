@@ -150,18 +150,18 @@
                                 <table class="table table-bordered" id="items-table">
                                     <thead>
                                         <tr>
-                                            <th>{{ __('sales.product') }}</th>
-                                            <th width="150">{{ __('sales.quantity') }}</th>
-                                            <th width="150">{{ __('sales.unit_price') }}</th>
-                                            <th width="150">{{ __('sales.discount') }} (%)</th>
-                                            <th width="150" class="d-none">{{ __('sales.vat') }}</th>
-                                            <th width="150">{{ __('sales.total') }}</th>
-                                            <th width="50"></th>
+                                            <th style="width: 45%;">{{ __('sales.product') }}</th>
+                                            <th style="width: 10%;">{{ __('sales.quantity') }}</th>
+                                            <th style="width: 15%;">{{ __('sales.unit_price') }}</th>
+                                            <th style="width: 10%;">{{ __('sales.discount') }} (%)</th>
+                                            <th style="width: 12%;" class="d-none">{{ __('sales.vat') }}</th>
+                                            <th style="width: 16%;">{{ __('sales.total') }}</th>
+                                            <th style="width: 4%;"></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach($invoice->items as $index => $item)
-                                            <tr>
+                                            <tr data-available-stock="{{ $item->available_stock ?? 0 }}">
                                                 <td>
                                                     <input type="hidden" name="items[{{ $index }}][id]" value="{{ $item->id }}">
                                                     <div class="position-relative product-search-container">
@@ -346,8 +346,21 @@
                 }
 
                 function performSearch(query) {
-                    const transliterated = window.transliterateToArabic(query);
                     const warehouseId = document.getElementById('warehouse_id')?.value;
+
+                    if (!warehouseId) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '{{ __("messages.select_warehouse_first") ?? "Select Warehouse First" }}',
+                            text: '{{ __("messages.please_select_warehouse_before_searching") ?? "Please select a warehouse before searching for items." }}',
+                            confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                        });
+                        searchInput.value = '';
+                        resultsDiv.style.display = 'none';
+                        return;
+                    }
+
+                    const transliterated = window.transliterateToArabic(query);
                     const branchId = document.getElementById('branch_id')?.value;
 
                     fetch(`{{ route('inventory.products.ajax-search') }}?q=${encodeURIComponent(query)}&warehouse_id=${warehouseId}&branch_id=${branchId}`)
@@ -362,30 +375,30 @@
                                     const stockLabel = '{{ __("messages.stock") ?? "Stock" }}';
 
                                     return `
-                                            <div class="search-result-item p-2 border-bottom" 
-                                                data-id="${p.id}" 
-                                                data-name="${currentName}" 
-                                                data-price="${p.sale_price || 0}" 
-                                                data-tax="${p.tax_rate || 15}"
-                                                data-cost="${p.cost_price || 0}"
-                                                data-stock="${p.available_quantity || 0}"
-                                                style="cursor: pointer;">
-                                                <div class="d-flex justify-content-between align-items-start">
-                                                    <div class="result-content">
-                                                        <div class="fw-bold">${currentName}</div>
-                                                        ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
-                                                        <small class="text-muted">${p.code || ''}</small>
-                                                    </div>
-                                                    <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-2 small">
-                                                        <div class="d-flex gap-2">
-                                                            <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
-                                                            <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
-                                                        </div>
-                                                        <div class="${stockColor} fw-bold">${stockLabel}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `;
+                                                                <div class="search-result-item p-2 border-bottom" 
+                                                                    data-id="${p.id}" 
+                                                                    data-name="${currentName}" 
+                                                                    data-price="${p.sale_price || 0}" 
+                                                                    data-tax="${p.tax_rate || 15}"
+                                                                    data-cost="${p.cost_price || 0}"
+                                                                    data-stock="${p.available_quantity || 0}"
+                                                                    style="cursor: pointer;">
+                                                                    <div class="d-flex justify-content-between align-items-start">
+                                                                        <div class="result-content">
+                                                                            <div class="fw-bold d-flex align-items-center gap-2 flex-wrap">
+                                                                                ${p.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.7rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;">${p.code}</span>` : ''}
+                                                                                <span>${currentName}</span>
+                                                                            </div>
+                                                                            ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                                                            <small class="${stockColor} fw-bold"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> ${stockLabel}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</small>
+                                                                        </div>
+                                                                        <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-2 small">
+                                                                            <span style="color:#198754; font-weight:600;" title="Sale Price">{{ __('messages.sale_price') }}: ${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                                                                            <span style="color:#6c757d; font-weight:600;" title="Cost Price">{{ __('messages.cost_price') }}: ${parseFloat(p.cost_price || 0).toFixed(2)}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            `;
                                 }).join('');
                                 resultsDiv.style.display = 'block';
 
@@ -406,6 +419,7 @@
 
                                         searchInput.value = this.dataset.name;
                                         idInput.value = this.dataset.id;
+                                        row.dataset.availableStock = this.dataset.stock;
                                         const priceInput = row.querySelector('.price-input');
                                         const taxRateInput = row.querySelector('.tax-rate-input');
                                         if (priceInput) priceInput.value = this.dataset.price;
@@ -472,7 +486,21 @@
             });
 
             function calculateRow(row) {
-                const quantity = parseFloat(row.find('.quantity-input').val()) || 0;
+                const qEl = row.find('.quantity-input');
+                const quantity = parseFloat(qEl.val()) || 0;
+                const availableStock = parseFloat(row.attr('data-available-stock')) || parseFloat(row.get(0).dataset.availableStock) || 0;
+
+                if (quantity > availableStock && availableStock > 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
+                        text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
+                        confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                    });
+                    qEl.val(availableStock);
+                    return calculateRow(row);
+                }
+
                 const price = parseFloat(row.find('.price-input').val()) || 0;
                 const discountPercent = parseFloat(row.find('.discount-input').val()) || 0;
                 const taxRate = parseFloat(row.find('.tax-rate-input').val()) || 0;

@@ -118,6 +118,39 @@ class PurchaseInvoice extends Model
         });
     }
 
+    public function unpost()
+    {
+        if (!$this->isPosted()) {
+            return false;
+        }
+
+        return \Illuminate\Support\Facades\DB::transaction(function () {
+            // Reverse vendor balance
+            if ($this->vendor) {
+                $this->vendor->updateBalance(-$this->total_amount);
+            }
+
+            // Unpost associated stock receiving
+            $receiving = StockReceiving::where('reference_type', 'purchase_invoice')
+                ->where('reference_id', $this->id)
+                ->first();
+
+            if ($receiving) {
+                $receiving->unpost();
+            }
+
+            // Reverse accounting entries
+            app(\App\Services\AccountingService::class)->unpostDocument('purchase_invoice', $this->id);
+
+            $this->status = 'draft';
+            $this->posted_by = null;
+            $this->posted_at = null;
+            $this->save();
+
+            return true;
+        });
+    }
+
     protected function createStockReceiving()
     {
         $receiving = StockReceiving::create([

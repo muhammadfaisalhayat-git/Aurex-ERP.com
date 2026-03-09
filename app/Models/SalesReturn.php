@@ -94,6 +94,44 @@ class SalesReturn extends Model
         });
     }
 
+    public function unpost()
+    {
+        if (!$this->isPosted()) {
+            return false;
+        }
+
+        return \DB::transaction(function () {
+            // Reverse customer balance
+            if ($this->return_type === 'credit' && $this->customer) {
+                $this->customer->updateBalance($this->total_amount); // Add back (Return reduces, so reversal adds)
+            }
+
+            // Reverse bank balance
+            if ($this->return_type === 'cash' && $this->bankAccount) {
+                $this->bankAccount->increment('current_balance', (float) $this->total_amount);
+            }
+
+            // Unpost associated stock receiving
+            $receiving = StockReceiving::where('reference_type', 'sales_return')
+                ->where('reference_id', $this->id)
+                ->first();
+
+            if ($receiving) {
+                $receiving->unpost();
+            }
+
+            // Reverse accounting entries
+            app(\App\Services\AccountingService::class)->unpostDocument('sales_return', $this->id);
+
+            $this->status = 'draft';
+            $this->posted_by = null;
+            $this->posted_at = null;
+            $this->save();
+
+            return true;
+        });
+    }
+
     protected function createStockReceiving()
     {
         $receiving = StockReceiving::create([

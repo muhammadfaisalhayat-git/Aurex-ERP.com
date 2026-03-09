@@ -187,6 +187,14 @@ class SalesOrderController extends Controller
 
         $salesOrder->load('items.product');
 
+        // Add available stock for each item based on current warehouse/branch
+        foreach ($salesOrder->items as $item) {
+            $item->available_stock = \App\Models\StockBalance::where('product_id', $item->product_id)
+                ->where('warehouse_id', $salesOrder->warehouse_id)
+                ->where('branch_id', $salesOrder->branch_id)
+                ->value('available_quantity') ?? 0;
+        }
+
         return view('sales.sales-orders.edit', compact(
             'salesOrder',
             'customers',

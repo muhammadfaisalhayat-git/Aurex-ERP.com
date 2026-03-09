@@ -131,12 +131,12 @@
                                 <table class="table table-bordered mb-0" id="items-table">
                                     <thead class="table-light">
                                         <tr>
-                                            <th style="width: 40%">{{ __('messages.product') }}</th>
-                                            <th style="width: 15%">{{ __('messages.quantity') }}</th>
-                                            <th style="width: 15%">{{ __('messages.unit_price') }}</th>
-                                            <th style="width: 10%">{{ __('messages.tax') }} %</th>
-                                            <th style="width: 15%">{{ __('messages.total') }}</th>
-                                            <th style="width: 5%"></th>
+                                            <th style="width: 55%">{{ __('messages.product') }}</th>
+                                            <th style="width: 11%">{{ __('messages.quantity') }}</th>
+                                            <th style="width: 11%">{{ __('messages.unit_price') }}</th>
+                                            <th style="width: 9%">{{ __('messages.tax') }} %</th>
+                                            <th style="width: 12%">{{ __('messages.total') }}</th>
+                                            <th style="width: 2%"></th>
                                         </tr>
                                     </thead>
                                     <tbody>

@@ -181,12 +181,12 @@
                                 <table class="table table-bordered table-striped" id="items-table">
                                     <thead class="table-light">
                                         <tr>
-                                            <th style="width: 30%;">{{ __('sales.product') }}</th>
-                                            <th style="width: 12%;">{{ __('sales.quantity') }}</th>
+                                            <th style="width: 45%;">{{ __('sales.product') }}</th>
+                                            <th style="width: 10%;">{{ __('sales.quantity') }}</th>
                                             <th style="width: 15%;">{{ __('sales.unit_price') }}</th>
-                                            <th style="width: 12%;">{{ __('sales.discount') }} (%)</th>
+                                            <th style="width: 10%;">{{ __('sales.discount') }} (%)</th>
                                             <th style="width: 12%;" class="d-none">{{ __('sales.vat') }}</th>
-                                            <th style="width: 15%;">{{ __('sales.total') }}</th>
+                                            <th style="width: 16%;">{{ __('sales.total') }}</th>
                                             <th style="width: 4%;"></th>
                                         </tr>
                                     </thead>
@@ -500,6 +500,18 @@
                     const warehouseId = warehouseSelect.value;
                     const branchId = branchSelect.value;
                     
+                    if (!warehouseId) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '{{ __("messages.select_warehouse_first") ?? "Select Warehouse First" }}',
+                            text: '{{ __("messages.please_select_warehouse_before_searching") ?? "Please select a warehouse before searching for items." }}',
+                            confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                        });
+                        this.value = '';
+                        results.style.display = 'none';
+                        return;
+                    }
+                    
                     if (search.length < 1) {
                         results.style.display = 'none';
                         return;
@@ -572,6 +584,7 @@
 
                 input.value = '{{ app()->getLocale() === 'ar' }}' === '1' ? (product.name_ar || product.name_en) : (product.name_en || product.name_ar);
                 hidden.value = product.id;
+                row.dataset.availableStock = product.available_quantity;
                 row.querySelector('.price-input').value = product.sale_price || product.price;
                 row.querySelector('.tax-rate-input').value = product.tax;
                 results.style.display = 'none';
@@ -595,13 +608,19 @@
 
                     if (isProduct) {
                         const stockColor = item.available_quantity > 0 ? '#198754' : '#dc3545';
+                        const costPrice = parseFloat(item.cost_price || 0).toFixed(2);
                         div.innerHTML = `
-                            <div class="item-title">${currentName}</div>
+                            <div class="item-title d-flex align-items-center gap-2">
+                                ${item.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.72rem;font-weight:700;padding:1px 7px;border-radius:10px;letter-spacing:0.3px;flex-shrink:0;">${item.code}</span>` : ''}
+                                <span>${currentName}</span>
+                            </div>
                             ${subName && subName !== currentName ? `<div class="item-subtitle text-muted" style="font-size: 0.8rem;">${subName}</div>` : ''}
-                            <div class="item-subtitle">${item.code || ''}</div>
-                            <div class="item-meta d-flex justify-content-between flex-wrap mt-1">
+                            <div class="item-subtitle" style="color:${stockColor};font-weight:600;font-size:0.8rem;">
+                                <i class="fas fa-boxes" style="font-size:0.7rem;"></i> {{ __('messages.stock') }}: ${parseFloat(item.available_quantity).toFixed(item.decimals_count || 2)}
+                            </div>
+                            <div class="item-meta d-flex flex-column mt-1" style="gap:2px;">
                                 <span style="color:#198754; font-weight:600;">{{ __('messages.sale_price') }}: ${parseFloat(item.sale_price).toFixed(2)}</span>
-                                <span style="color:${stockColor}; font-weight:600;">Stock: ${parseFloat(item.available_quantity).toFixed(item.decimals_count || 2)}</span>
+                                <span style="color:#6c757d; font-weight:600;">{{ __('messages.cost_price') }}: ${costPrice}</span>
                             </div>
                         `;
                     } else {
@@ -628,9 +647,21 @@
                 if (!qEl || !pEl) return;
 
                 const quantity = parseFloat(qEl.value) || 0;
+                const availableStock = parseFloat(row.dataset.availableStock) || 0;
                 const price = parseFloat(pEl.value) || 0;
                 const discountPercent = parseFloat(dEl ? dEl.value : 0) || 0;
                 const taxRate = parseFloat(trEl ? trEl.value : 0) || 0;
+
+                if (quantity > availableStock && availableStock > 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
+                        text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
+                        confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                    });
+                    qEl.value = availableStock;
+                    return calculateRow(row); // Recalculate with corrected value
+                }
 
                 const gross = quantity * price * (1 - discountPercent / 100);
                 const net = taxRate > 0 ? gross / (1 + taxRate / 100) : gross;

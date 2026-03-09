@@ -150,13 +150,13 @@
                         <table class="table table-hover mb-0" id="itemsTable">
                             <thead>
                                 <tr class="bg-light">
-                                    <th style="width: 35%">{{ __('messages.product') }}</th>
+                                    <th style="width: 50%">{{ __('messages.product') }}</th>
                                     <th style="width: 10%">{{ __('messages.quantity') }}</th>
-                                    <th style="width: 15%">{{ __('messages.unit_price') }}</th>
-                                    <th style="width: 10%">{{ __('messages.tax') }} (%)</th>
-                                    <th style="width: 12%">{{ __('messages.tax_amount') }}</th>
-                                    <th style="width: 13%">{{ __('messages.total') }}</th>
-                                    <th style="width: 5%"></th>
+                                    <th style="width: 14%">{{ __('messages.unit_price') }}</th>
+                                    <th style="width: 9%">{{ __('messages.tax') }} (%)</th>
+                                    <th style="width: 9%">{{ __('messages.tax_amount') }}</th>
+                                    <th style="width: 6%">{{ __('messages.total') }}</th>
+                                    <th style="width: 2%"></th>
                                 </tr>
                             </thead>
                             <tbody id="itemsBody">
@@ -431,9 +431,22 @@
             }
 
             function performProductSearch(query, resultsDiv, idInput, searchInput, tr) {
-                const transliterated = window.transliterateToArabic(query);
                 const warehouseId = document.getElementById('warehouse_id')?.value;
                 const branchId = document.getElementById('branch_id')?.value;
+
+                if (!warehouseId) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '{{ __("messages.select_warehouse_first") ?? "Select Warehouse First" }}',
+                        text: '{{ __("messages.please_select_warehouse_before_searching") ?? "Please select a warehouse before searching for items." }}',
+                        confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                    });
+                    searchInput.value = '';
+                    resultsDiv.style.display = 'none';
+                    return;
+                }
+
+                const transliterated = window.transliterateToArabic(query);
                 
                 fetch(`{{ route('inventory.products.ajax-search') }}?q=${encodeURIComponent(query)}&warehouse_id=${warehouseId}&branch_id=${branchId}`)
                     .then(response => response.json())
@@ -455,16 +468,16 @@
                                         style="cursor: pointer;">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div class="result-content">
-                                                <div class="fw-bold">${currentName}</div>
+                                                <div class="fw-bold d-flex align-items-center gap-2 flex-wrap">
+                                                    ${p.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.7rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;">${p.code}</span>` : ''}
+                                                    <span>${currentName}</span>
+                                                </div>
                                                 ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
-                                                <small class="text-muted">${p.code || ''}</small>
+                                                <small class="${stockColor} fw-bold mt-1 d-block"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> {{ __('messages.stock') }}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</small>
                                             </div>
                                             <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-2 small">
-                                                <div class="d-flex gap-2">
-                                                    <span style="color:#dc3545; font-weight:600;" title="Cost">${parseFloat(p.cost_price || 0).toFixed(2)}</span>
-                                                    <span style="color:#198754; font-weight:600;" title="Price">${parseFloat(p.sale_price || 0).toFixed(2)}</span>
-                                                </div>
-                                                <div class="${stockColor} fw-bold">${stockLabel}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</div>
+                                                <span style="color:#198754; font-weight:600;" title="Sale Price">{{ __('messages.sale_price') }}: ${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                                                <span style="color:#6c757d; font-weight:600;" title="Cost Price">{{ __('messages.cost_price') }}: ${parseFloat(p.cost_price || 0).toFixed(2)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -489,6 +502,7 @@
 
                                     searchInput.value = this.dataset.name;
                                     idInput.value = this.dataset.id;
+                                    tr.dataset.availableStock = this.dataset.stock;
                                     tr.querySelector('.price-input').value = this.dataset.price;
                                     resultsDiv.style.display = 'none';
                                     calculateRow(tr);
@@ -507,7 +521,21 @@
             }
 
             function calculateRow(tr) {
-                const qty = parseFloat(tr.querySelector('.quantity-input').value) || 0;
+                const qEl = tr.querySelector('.quantity-input');
+                const qty = parseFloat(qEl.value) || 0;
+                const availableStock = parseFloat(tr.dataset.availableStock) || 0;
+
+                if (qty > availableStock && availableStock > 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
+                        text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
+                        confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                    });
+                    qEl.value = availableStock;
+                    return calculateRow(tr);
+                }
+
                 const price = parseFloat(tr.querySelector('.price-input').value) || 0;
                 const taxRate = parseFloat(tr.querySelector('.tax-rate-input').value) || 0;
 

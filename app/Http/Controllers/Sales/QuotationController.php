@@ -138,7 +138,15 @@ class QuotationController extends Controller
 
     public function edit(Quotation $quotation)
     {
-        $quotation->load('items');
+        $quotation->load('items.product');
+
+        // Add available stock for each item based on current warehouse/branch
+        foreach ($quotation->items as $item) {
+            $item->available_stock = \App\Models\StockBalance::where('product_id', $item->product_id)
+                ->where('warehouse_id', $quotation->warehouse_id)
+                ->where('branch_id', $quotation->branch_id)
+                ->value('available_quantity') ?? 0;
+        }
         $customers = Customer::active()->get();
         $branches = Branch::active()->get();
         $warehouses = Warehouse::active()->get();

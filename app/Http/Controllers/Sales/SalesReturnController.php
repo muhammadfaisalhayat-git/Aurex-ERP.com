@@ -180,6 +180,21 @@ class SalesReturnController extends Controller
         return back()->with('error', __('messages.return_post_failed') ?? 'Return posting failed.');
     }
 
+    public function unpost(SalesReturn $salesReturn)
+    {
+        if (!auth()->user()->can('unpost returns')) {
+            return back()->with('error', __('messages.no_permission_to_unpost') ?? 'No permission to unpost.');
+        }
+
+        if ($salesReturn->unpost()) {
+            AuditLog::log('unpost', 'sales_return', $salesReturn->id);
+
+            return back()->with('success', __('messages.return_unposted') ?? 'Return unposted successfully.');
+        }
+
+        return back()->with('error', __('messages.return_unpost_failed') ?? 'Return unposting failed.');
+    }
+
     public function show(SalesReturn $salesReturn)
     {
         $salesReturn->load(['customer', 'branch', 'warehouse', 'items.product', 'salesInvoice', 'creator']);

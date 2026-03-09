@@ -32,12 +32,12 @@ class DocumentNumber extends Model
 
         $sequence = self::firstOrCreate(
             $criteria,
-        [
-            'prefix' => $prefix ?? self::getDefaultPrefix($entityType),
-            'current_number' => 0,
-            'padding' => 5,
-            'year' => date('Y'),
-        ]
+            [
+                'prefix' => $prefix ?? self::getDefaultPrefix($entityType),
+                'current_number' => 0,
+                'padding' => 5,
+                'year' => date('Y'),
+            ]
         );
 
         // Reset if year changed
@@ -62,8 +62,7 @@ class DocumentNumber extends Model
                 $exists = $modelClass::where('document_number', $finalNumber)
                     ->orWhere('invoice_number', $finalNumber) // Special case for invoices
                     ->exists();
-            }
-            else {
+            } else {
                 $exists = false;
             }
         } while ($exists);
@@ -74,16 +73,16 @@ class DocumentNumber extends Model
     protected static function getModelForEntity($entityType)
     {
         $map = [
-            'sales_invoice' => \App\Models\SalesInvoice::class ,
-            'sales_order' => \App\Models\SalesOrder::class ,
-            'quotation' => \App\Models\Quotation::class ,
-            'customer_request' => \App\Models\CustomerRequest::class ,
-            'purchase_invoice' => \App\Models\PurchaseInvoice::class ,
-            'supply_order' => \App\Models\Purchases\SupplyOrder::class ,
-            'stock_issue' => \App\Models\StockIssueOrder::class ,
-            'stock_receiving' => \App\Models\StockReceivingOrder::class ,
-            'stock_transfer' => \App\Models\StockTransfer::class ,
-            'transport_order' => \App\Models\TransportOrder::class ,
+            'sales_invoice' => \App\Models\SalesInvoice::class,
+            'sales_order' => \App\Models\SalesOrder::class,
+            'quotation' => \App\Models\Quotation::class,
+            'customer_request' => \App\Models\CustomerRequest::class,
+            'purchase_invoice' => \App\Models\PurchaseInvoice::class,
+            'supply_order' => \App\Models\SupplyOrder::class,
+            'stock_issue' => \App\Models\StockIssueOrder::class,
+            'stock_receiving' => \App\Models\StockReceiving::class,
+            'stock_transfer' => \App\Models\StockTransfer::class,
+            'transport_order' => \App\Models\TransportOrder::class,
         ];
 
         return $map[$entityType] ?? null;

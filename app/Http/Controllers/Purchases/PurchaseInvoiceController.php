@@ -358,8 +358,29 @@ class PurchaseInvoiceController extends Controller
 
     public function unpost($id)
     {
-        // Add unposting logic if allowed
-        return back()->with('info', __('messages.feature_coming_soon'));
+        $invoice = PurchaseInvoice::findOrFail($id);
+
+        if (!auth()->user()->can('unpost purchase invoices')) {
+            return back()->with('error', __('messages.no_permission_to_unpost') ?? 'No permission to unpost.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            if (!$invoice->unpost()) {
+                throw new \Exception(__('messages.invoice_unpost_failed') ?? 'Invoice unposting failed.');
+            }
+
+            AuditLog::log('unpost', 'purchase_invoice', $invoice->id);
+
+            DB::commit();
+
+            return redirect()->route('purchases.invoices.show', $invoice->id)
+                ->with('success', __('messages.invoice_unposted') ?? 'Invoice unposted successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function getWarehouses($branch_id)

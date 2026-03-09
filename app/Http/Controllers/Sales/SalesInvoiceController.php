@@ -374,6 +374,14 @@ class SalesInvoiceController extends Controller
 
         $invoice->load('items.product');
 
+        // Add available stock for each item based on current warehouse/branch
+        foreach ($invoice->items as $item) {
+            $item->available_stock = \App\Models\StockBalance::where('product_id', $item->product_id)
+                ->where('warehouse_id', $invoice->warehouse_id)
+                ->where('branch_id', $invoice->branch_id)
+                ->value('available_quantity') ?? 0;
+        }
+
         return view('sales.invoices.edit', compact(
             'invoice',
             'customers',

@@ -103,6 +103,9 @@ class StockReceiving extends Model
                 'received_by' => null,
             ]);
 
+            // Reverse accounting entries
+            app(\App\Services\AccountingService::class)->unpostDocument('stock_receiving', $this->id);
+
             return true;
         });
     }
