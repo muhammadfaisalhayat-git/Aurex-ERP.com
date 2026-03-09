@@ -610,17 +610,19 @@
                         const stockColor = item.available_quantity > 0 ? '#198754' : '#dc3545';
                         const costPrice = parseFloat(item.cost_price || 0).toFixed(2);
                         div.innerHTML = `
-                            <div class="item-title d-flex align-items-center gap-2">
-                                ${item.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.72rem;font-weight:700;padding:1px 7px;border-radius:10px;letter-spacing:0.3px;flex-shrink:0;">${item.code}</span>` : ''}
-                                <span>${currentName}</span>
-                            </div>
-                            ${subName && subName !== currentName ? `<div class="item-subtitle text-muted" style="font-size: 0.8rem;">${subName}</div>` : ''}
-                            <div class="item-subtitle" style="color:${stockColor};font-weight:600;font-size:0.8rem;">
-                                <i class="fas fa-boxes" style="font-size:0.7rem;"></i> {{ __('messages.stock') }}: ${parseFloat(item.available_quantity).toFixed(item.decimals_count || 2)}
-                            </div>
-                            <div class="item-meta d-flex flex-column mt-1" style="gap:2px;">
-                                <span style="color:#198754; font-weight:600;">{{ __('messages.sale_price') }}: ${parseFloat(item.sale_price).toFixed(2)}</span>
-                                <span style="color:#6c757d; font-weight:600;">{{ __('messages.cost_price') }}: ${costPrice}</span>
+                            <div class="d-flex justify-content-between align-items-start w-100">
+                                <div class="result-content pe-3 d-flex flex-column gap-1 flex-grow-1">
+                                    <div class="fw-bold d-flex align-items-center gap-2 flex-wrap">
+                                        ${item.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.7rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;">${item.code}</span>` : ''}
+                                        <span>${currentName}</span>
+                                    </div>
+                                    ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                    <small class="fw-bold d-block" style="color:${stockColor};"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> {{ __('messages.stock') }}: ${parseFloat(item.available_quantity).toFixed(item.decimals_count || 2)}</small>
+                                </div>
+                                <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-auto small text-nowrap">
+                                    <span style="color:#198754; font-weight:600;" title="Sale Price">{{ __('messages.sale_price') }}: ${parseFloat(item.sale_price).toFixed(2)}</span>
+                                    <span style="color:#6c757d; font-weight:600;" title="Cost Price">{{ __('messages.cost_price') }}: ${costPrice}</span>
+                                </div>
                             </div>
                         `;
                     } else {
