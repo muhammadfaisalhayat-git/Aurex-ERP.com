@@ -48,7 +48,8 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>{{ __('messages.product') }}</th>
-                                        <th class="text-center">{{ __('messages.quantity') }}</th>
+                                        <th class="text-center">{{ __('messages.quantity') }} /
+                                            {{ __('messages.unit') ?? 'Unit' }}</th>
                                         <th>{{ __('messages.notes') }}</th>
                                     </tr>
                                 </thead>
@@ -56,7 +57,8 @@
                                     @foreach($transfer->items as $item)
                                         <tr>
                                             <td>{{ $item->product->name }}</td>
-                                            <td class="text-center">{{ number_format($item->quantity, 3) }}</td>
+                                            <td class="text-center">{{ number_format($item->quantity, 3) }}
+                                                {{ $item->measurementUnit->name ?? '' }}</td>
                                             <td>{{ $item->notes ?? '-' }}</td>
                                         </tr>
                                     @endforeach

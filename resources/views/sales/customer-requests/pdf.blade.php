@@ -122,7 +122,7 @@
         <thead>
             <tr>
                 <th width="35%">Product</th>
-                <th width="10%">Quantity</th>
+                <th width="15%">Quantity / Unit</th>
                 <th width="15%">Unit Price</th>
                 <th width="10%">Tax %</th>
                 <th width="15%">Tax Amount</th>
@@ -134,7 +134,10 @@
                 <tr>
                     <td>{{ $item->product_name_ar ?? (app()->getLocale() == 'ar' ? ($item->product->name_ar ?? $item->product->name_en) : ($item->product->name_en ?? 'Unknown Product')) }}
                     </td>
-                    <td style="text-align: center;">{{ number_format($item->quantity, 2) }}</td>
+                    <td style="text-align: center;">
+                        {{ number_format($item->quantity, 2) }}
+                        <span style="font-size: 0.8em; color: #666;">{{ $item->measurementUnit->name ?? '' }}</span>
+                    </td>
                     <td style="text-align: right;">{{ number_format($item->unit_price, 2) }}</td>
                     <td style="text-align: center;">{{ number_format($item->tax_rate, 2) }}%</td>
                     <td style="text-align: right;">{{ number_format($item->tax_amount, 2) }}</td>

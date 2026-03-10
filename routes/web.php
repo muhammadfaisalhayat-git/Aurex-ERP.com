@@ -98,7 +98,8 @@ Route::middleware(['auth'])->group(function () {
         function () {
             return view('test_turbo');
         }
-        )->name('test.turbo');    });
+        )->name('test.turbo');
+    });
 
 /* |-------------------------------------------------------------------------- | Language Switcher |-------------------------------------------------------------------------- */
 
@@ -401,6 +402,7 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             Route::resource('measurement-units', \App\Http\Controllers\Inventory\MeasurementUnitController::class)->names('measurement.units');
             Route::get('products/{product}/bom', [ProductController::class , 'bom'])->name('products.bom');
             Route::post('products/{product}/bom', [ProductController::class , 'updateBom'])->name('products.bom.update');
+            Route::delete('products/{product}/bom/{bom}', [ProductController::class , 'destroyBom'])->name('products.bom.destroy');
 
             // Barcodes
             Route::get('barcodes', [BarcodeController::class , 'index'])->name('barcodes.index');
@@ -689,4 +691,5 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             Route::post('appointments/{appointment}/invoice', [\App\Http\Controllers\Healthcare\AppointmentController::class , 'invoice'])->name('appointments.invoice');
             Route::resource('appointments', \App\Http\Controllers\Healthcare\AppointmentController::class);
         }
-        );    });
+        );
+    });

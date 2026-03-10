@@ -84,6 +84,7 @@ class CustomerRequestController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.notes' => 'nullable|string',
@@ -124,6 +125,7 @@ class CustomerRequestController extends Controller
                 \App\Models\CustomerRequestItem::create([
                     'customer_request_id' => $customerRequest->id,
                     'product_id' => $item['product_id'],
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'tax_rate' => $item['tax_rate'],
@@ -145,7 +147,7 @@ class CustomerRequestController extends Controller
 
     public function show(CustomerRequest $customerRequest)
     {
-        $customerRequest->load(['customer', 'branch', 'creator', 'items.product']);
+        $customerRequest->load(['customer', 'branch', 'creator', 'items.product', 'items.measurementUnit']);
         return view('sales.customer-requests.show', compact('customerRequest'));
     }
 
@@ -172,6 +174,7 @@ class CustomerRequestController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.notes' => 'nullable|string',
@@ -212,6 +215,7 @@ class CustomerRequestController extends Controller
                 \App\Models\CustomerRequestItem::create([
                     'customer_request_id' => $customerRequest->id,
                     'product_id' => $item['product_id'],
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'tax_rate' => $item['tax_rate'],
@@ -252,7 +256,7 @@ class CustomerRequestController extends Controller
 
     public function exportPdf(CustomerRequest $customerRequest)
     {
-        $customerRequest->load(['customer', 'branch', 'creator', 'items.product', 'company']);
+        $customerRequest->load(['customer', 'branch', 'creator', 'items.product', 'items.measurementUnit', 'company']);
 
         // Reshape Arabic text for PDF
         if ($customerRequest->company) {

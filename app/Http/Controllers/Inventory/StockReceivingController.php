@@ -54,6 +54,7 @@ class StockReceivingController extends Controller
             'vendor_id' => 'required|exists:vendors,id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
         ]);
 
@@ -80,6 +81,7 @@ class StockReceivingController extends Controller
                 StockReceivingItem::create([
                     'stock_receiving_id' => $receiving->id,
                     'product_id' => $item['product_id'],
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'ordered_quantity' => $item['quantity'],
                     'received_quantity' => 0,
                     'notes' => $item['notes'] ?? null,
@@ -97,7 +99,7 @@ class StockReceivingController extends Controller
 
     public function show($id)
     {
-        $receiving = StockReceiving::with(['items.product', 'warehouse', 'vendor', 'creator', 'receiver'])->findOrFail($id);
+        $receiving = StockReceiving::with(['items.product', 'items.measurementUnit', 'warehouse', 'vendor', 'creator', 'receiver'])->findOrFail($id);
         return view('inventory.stock-receiving.show', compact('receiving'));
     }
 
@@ -119,7 +121,7 @@ class StockReceivingController extends Controller
     public function downloadPdf($id)
     {
         try {
-            $receiving = StockReceiving::with(['items.product', 'warehouse', 'vendor', 'creator', 'company'])->findOrFail($id);
+            $receiving = StockReceiving::with(['items.product', 'items.measurementUnit', 'warehouse', 'vendor', 'creator', 'company'])->findOrFail($id);
 
             // Base64 logo for PDF
             $logoBase64 = null;

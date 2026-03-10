@@ -101,8 +101,10 @@
                                 <table class="table table-bordered mb-0" id="items-table">
                                     <thead class="table-light">
                                         <tr>
-                                            <th style="width: 55%">{{ __('messages.product') }}</th>
-                                            <th style="width: 11%">{{ __('messages.quantity') }}</th>
+                                            <th style="width: 48%">{{ __('messages.product') }}</th>
+                                            <th style="width: 18%">{{ __('messages.quantity') }} /
+                                                {{ __('messages.unit') ?? 'Unit' }}
+                                            </th>
                                             <th style="width: 11%">{{ __('messages.unit_price') }}</th>
                                             <th style="width: 9%">{{ __('messages.tax') }} %</th>
                                             <th style="width: 12%">{{ __('messages.total') }}</th>
@@ -127,10 +129,32 @@
                                                     </select>
                                                 </td>
                                                 <td>
-                                                    <input type="number" name="items[{{ $index }}][quantity]"
-                                                        class="form-control quantity" step="0.01" min="0.01"
-                                                        value="{{ is_array($item) ? $item['quantity'] : $item->quantity }}"
-                                                        required>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text p-0" style="width: 40%">
+                                                            <select
+                                                                class="form-select border-0 bg-transparent item-unit-dropdown"
+                                                                name="items[{{ $index }}][measurement_unit_id]" required
+                                                                style="box-shadow: none; cursor: pointer;">
+                                                                @if($product && $product->units)
+                                                                    @foreach($product->units as $unit)
+                                                                        @php
+                                                                            $unitId = is_array($item) ? ($item['measurement_unit_id'] ?? '') : $item->measurement_unit_id;
+                                                                            $unitName = $unit->measurementUnit ? $unit->measurementUnit->name : $unit->name;
+                                                                        @endphp
+                                                                        <option value="{{ $unit->measurement_unit_id }}" {{ $unit->measurement_unit_id == $unitId ? 'selected' : '' }}>
+                                                                            {{ $unitName }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                @else
+                                                                    <option value="">-</option>
+                                                                @endif
+                                                            </select>
+                                                        </span>
+                                                        <input type="number" name="items[{{ $index }}][quantity]"
+                                                            class="form-control quantity" step="0.01" min="0.01"
+                                                            value="{{ is_array($item) ? $item['quantity'] : $item->quantity }}"
+                                                            required>
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     <input type="number" name="items[{{ $index }}][unit_price]"
@@ -259,8 +283,16 @@
                 </select>
             </td>
             <td>
-                <input type="number" name="items[INDEX][quantity]" class="form-control quantity" step="0.01" min="0.01"
-                    value="1" required>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text p-0" style="width: 40%">
+                        <select class="form-select border-0 bg-transparent item-unit-dropdown"
+                            name="items[INDEX][measurement_unit_id]" required style="box-shadow: none; cursor: pointer;">
+                            <option value="">-</option>
+                        </select>
+                    </span>
+                    <input type="number" name="items[INDEX][quantity]" class="form-control quantity" step="0.01" min="0.01"
+                        value="1" required>
+                </div>
             </td>
             <td>
                 <input type="number" name="items[INDEX][unit_price]" class="form-control unit-price" step="0.01" min="0"
@@ -318,7 +350,8 @@
                                     return {
                                         id: item.id,
                                         text: item.code + ' - ' + item.name_en,
-                                        price: item.cost_price || item.sale_price
+                                        price: item.cost_price || item.sale_price,
+                                        units: item.units || []
                                     };
                                 })
                             };
@@ -326,8 +359,33 @@
                     }
                 }).on('select2:select', function (e) {
                     const data = e.params.data;
-                    $(this).closest('tr').find('.unit-price').val(data.price);
+                    const $row = $(this).closest('tr');
+                    $row.find('.unit-price').val(data.price);
+
+                    const $unitDropdown = $row.find('.item-unit-dropdown');
+                    $unitDropdown.empty();
+                    if (data.units && data.units.length > 0) {
+                        data.units.forEach(u => {
+                            const unitName = u.measurement_unit ? u.measurement_unit.name : (u.name || (u.measurementUnit ? u.measurementUnit.name : ''));
+                            const option = new Option(unitName, u.measurement_unit_id);
+                            $(option).attr('data-price', u.price);
+                            $unitDropdown.append(option);
+                        });
+                    } else {
+                        $unitDropdown.append(new Option('-', ''));
+                    }
+
                     calculateTotals();
+                });
+
+                $(document).on('change', '.item-unit-dropdown', function () {
+                    const $row = $(this).closest('tr');
+                    const $option = $(this).find('option:selected');
+                    const price = $option.attr('data-price');
+                    if (price !== undefined && price !== null && price !== '') {
+                        $row.find('.unit-price').val(price);
+                        calculateTotals();
+                    }
                 });
             }
 

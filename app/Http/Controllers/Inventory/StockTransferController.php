@@ -50,6 +50,7 @@ class StockTransferController extends Controller
             'to_warehouse_id' => 'required|exists:warehouses,id|different:from_warehouse_id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
         ]);
 
@@ -73,6 +74,7 @@ class StockTransferController extends Controller
                 StockTransferItem::create([
                     'stock_transfer_id' => $transfer->id,
                     'product_id' => $item['product_id'],
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'quantity' => $item['quantity'],
                     'notes' => $item['notes'] ?? null,
                 ]);
@@ -89,7 +91,7 @@ class StockTransferController extends Controller
 
     public function show($id)
     {
-        $transfer = StockTransfer::with(['items.product', 'fromWarehouse', 'toWarehouse', 'requestedBy', 'approvedBy', 'receivedBy'])->findOrFail($id);
+        $transfer = StockTransfer::with(['items.product', 'items.measurementUnit', 'fromWarehouse', 'toWarehouse', 'requestedBy', 'approvedBy', 'receivedBy'])->findOrFail($id);
         return view('inventory.stock-transfers.show', compact('transfer'));
     }
 
@@ -122,6 +124,7 @@ class StockTransferController extends Controller
                 // Out from source
                 $this->stockService->recordMovement([
                     'product_id' => $item->product_id,
+                    'measurement_unit_id' => $item->measurement_unit_id,
                     'warehouse_id' => $transfer->from_warehouse_id,
                     'movement_type' => 'out',
                     'quantity' => $item->quantity,
@@ -135,6 +138,7 @@ class StockTransferController extends Controller
                 // In to destination
                 $this->stockService->recordMovement([
                     'product_id' => $item->product_id,
+                    'measurement_unit_id' => $item->measurement_unit_id,
                     'warehouse_id' => $transfer->to_warehouse_id,
                     'movement_type' => 'in',
                     'quantity' => $item->quantity,
@@ -163,7 +167,7 @@ class StockTransferController extends Controller
     public function downloadPdf($id)
     {
         try {
-            $transfer = StockTransfer::with(['items.product', 'fromWarehouse', 'toWarehouse', 'requestedBy', 'company'])->findOrFail($id);
+            $transfer = StockTransfer::with(['items.product', 'items.measurementUnit', 'fromWarehouse', 'toWarehouse', 'requestedBy', 'company'])->findOrFail($id);
 
             // Base64 logo for PDF
             $logoBase64 = null;

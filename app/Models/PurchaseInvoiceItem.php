@@ -12,6 +12,7 @@ class PurchaseInvoiceItem extends Model
     protected $fillable = [
         'purchase_invoice_id',
         'product_id',
+        'measurement_unit_id',
         'description',
         'quantity',
         'unit_price',
@@ -43,5 +44,10 @@ class PurchaseInvoiceItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function measurementUnit()
+    {
+        return $this->belongsTo(MeasurementUnit::class);
     }
 }

@@ -164,8 +164,10 @@
                                 <table class="table table-bordered table-striped" id="items-table">
                                     <thead class="table-light">
                                         <tr>
-                                            <th style="width: 55%;">{{ __('messages.product') }}</th>
-                                            <th style="width: 13%;">{{ __('messages.quantity') }}</th>
+                                            <th style="width: 48%;">{{ __('messages.product') }}</th>
+                                            <th style="width: 20%;">{{ __('messages.quantity') }} /
+                                                {{ __('messages.unit') ?? 'Unit' }}
+                                            </th>
                                             <th style="width: 16%;">{{ __('messages.unit_price') }}</th>
                                             <th style="width: 14%;">{{ __('messages.total') }}</th>
                                             <th style="width: 2%;"></th>
@@ -210,32 +212,38 @@
     </div>
 
     <script type="text/template" id="item-row-template">
-                                                                    <tr>
-                                                                        <td>
-                                                                            <div class="position-relative product-search-container">
-                                                                                <input type="text" class="form-control product-search-input"
-                                                                                    placeholder="{{ __('messages.select_product') ?? 'Search product...' }}"
-                                                                                    autocomplete="off" required>
-                                                                                <input type="hidden" name="items[INDEX][product_id]" class="product-id-input" required>
-                                                                                <div class="product-results" style="display: none; position: absolute; z-index: 1000; width: 100%; background: white; border: 1px solid #ddd; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
-                                                                            </div>
-                                                                        </td>
-                                                                        <td>
-                                                                            <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
-                                                                        </td>
-                                                                        <td>
-                                                                            <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
-                                                                        </td>
-                                                                        <td class="text-end">
-                                                                            <span class="row-total">0.00</span>
-                                                                        </td>
-                                                                        <td class="text-center">
-                                                                            <button type="button" class="btn btn-sm btn-danger remove-item">
-                                                                                <i class="fas fa-trash"></i>
-                                                                            </button>
-                                                                        </td>
-                                                                    </tr>
-                                                                </script>
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <div class="position-relative product-search-container">
+                                                                                        <input type="text" class="form-control product-search-input"
+                                                                                            placeholder="{{ __('messages.select_product') ?? 'Search product...' }}"
+                                                                                            autocomplete="off" required>
+                                                                                        <input type="hidden" name="items[INDEX][product_id]" class="product-id-input" required>
+                                                                                        <div class="product-results" style="display: none; position: absolute; z-index: 1000; width: 100%; background: white; border: 1px solid #ddd; max-height: 250px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <div class="input-group input-group-sm">
+                                                                                        <span class="input-group-text p-0" style="width: 35%">
+                                                                                            <select class="form-select border-0 bg-transparent item-unit-dropdown" name="items[INDEX][measurement_unit_id]" required style="box-shadow: none; cursor: pointer;">
+                                                                                                <option value="">-</option>
+                                                                                            </select>
+                                                                                        </span>
+                                                                                        <input type="number" name="items[INDEX][quantity]" class="form-control quantity-input" step="0.001" min="0.001" value="1" required>
+                                                                                    </div>
+                                                                                </td>                                               <td>
+                                                                                    <input type="number" name="items[INDEX][unit_price]" class="form-control price-input" step="0.01" min="0" required>
+                                                                                </td>
+                                                                                <td class="text-end">
+                                                                                    <span class="row-total">0.00</span>
+                                                                                </td>
+                                                                                <td class="text-center">
+                                                                                    <button type="button" class="btn btn-sm btn-danger remove-item">
+                                                                                        <i class="fas fa-trash"></i>
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </script>
 @endsection
 
 @push('scripts')
@@ -258,17 +266,18 @@
 
             const productData = [
                 @foreach($products as $product)
-                                                {
-                    id: {{ $product->id }},
-                    name_en: "{{ addslashes($product->name_en) }}",
-                    name_ar: "{{ addslashes($product->name_ar) }}",
-                    name: "{{ addslashes($product->name) }}",
-                    code: "{{ $product->product_code ?? '' }}",
-                    price: {{ $product->sale_price ?? 0 }},
-                    cost: {{ $product->cost_price ?? 0 }}
-                                                },
+                                                                {
+                        id: {{ $product->id }},
+                        name_en: "{{ addslashes($product->name_en) }}",
+                        name_ar: "{{ addslashes($product->name_ar) }}",
+                        name: "{{ addslashes($product->name) }}",
+                        code: "{{ $product->product_code ?? '' }}",
+                        price: {{ $product->sale_price ?? 0 }},
+                        cost: {{ $product->cost_price ?? 0 }},
+                        units: @json($product->units)
+                    },
                 @endforeach
-                                        ];
+                                                ];
 
             function initProductSearch(row) {
                 const searchInput = row.querySelector('.product-search-input');
@@ -328,24 +337,24 @@
                             const currentName = currentLocale === 'ar' ? p.name_ar || p.name_en : p.name_en || p.name_ar;
                             const subName = currentLocale === 'ar' ? p.name_en : p.name_ar;
                             return `
-                                                            <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.price}" 
-                                                                 data-cost="${p.cost}" style="cursor:pointer;">
-                                                                <div class="d-flex justify-content-between align-items-start w-100">
-                                                                <div class="result-content pe-3 d-flex flex-column gap-1 flex-grow-1">
-                                                                    <div class="fw-bold d-flex align-items-center gap-2 flex-wrap">
-                                                                        ${p.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.7rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;">${p.code}</span>` : ''}
-                                                                        <span>${currentName}</span>
+                                                                    <div class="search-result-item p-2 border-bottom" data-id="${p.id}" data-name="${currentName}" data-price="${p.price}" 
+                                                                         data-cost="${p.cost}" data-units='${JSON.stringify(p.units || []).replace(/'/g, "&apos;")}' style="cursor:pointer;">
+                                                                        <div class="d-flex justify-content-between align-items-start w-100">
+                                                                        <div class="result-content pe-3 d-flex flex-column gap-1 flex-grow-1">
+                                                                            <div class="fw-bold d-flex align-items-center gap-2 flex-wrap">
+                                                                                ${p.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.7rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;">${p.code}</span>` : ''}
+                                                                                <span>${currentName}</span>
+                                                                            </div>
+                                                                            ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                                                            <small class="text-success fw-bold d-block"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> {{ __('messages.stock') }}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</small>
+                                                                        </div>
+                                                                        <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-auto small text-nowrap">
+                                                                            <span style="color:#198754; font-weight:600;" title="Sale Price">{{ __('messages.sale_price') }}: ${parseFloat(p.price || 0).toFixed(2)}</span>
+                                                                            <span style="color:#6c757d; font-weight:600;" title="Cost Price">{{ __('messages.cost_price') }}: ${parseFloat(p.cost || 0).toFixed(2)}</span>
+                                                                        </div>
                                                                     </div>
-                                                                    ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
-                                                                    <small class="text-success fw-bold d-block"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> {{ __('messages.stock') }}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</small>
-                                                                </div>
-                                                                <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-auto small text-nowrap">
-                                                                    <span style="color:#198754; font-weight:600;" title="Sale Price">{{ __('messages.sale_price') }}: ${parseFloat(p.price || 0).toFixed(2)}</span>
-                                                                    <span style="color:#6c757d; font-weight:600;" title="Cost Price">{{ __('messages.cost_price') }}: ${parseFloat(p.cost || 0).toFixed(2)}</span>
-                                                                </div>
-                                                            </div>
-                                                            </div>
-                                                        `;
+                                                                    </div>
+                                                                `;
                         }).join('');
                         resultsDiv.style.display = 'block';
 
@@ -353,6 +362,25 @@
                             item.addEventListener('click', function () {
                                 searchInput.value = this.dataset.name;
                                 idInput.value = this.dataset.id;
+                                const row = searchInput.closest('tr');
+                                if (row) {
+                                    const unitDropdown = row.querySelector('.item-unit-dropdown');
+                                    if (unitDropdown) {
+                                        unitDropdown.innerHTML = '';
+                                        const units = JSON.parse(this.dataset.units || '[]');
+                                        if (units && units.length > 0) {
+                                            units.forEach(u => {
+                                                const option = new Option(u.name, u.measurement_unit_id);
+                                                option.dataset.package = u.package;
+                                                option.dataset.price = u.price;
+                                                unitDropdown.add(option);
+                                            });
+                                        } else {
+                                            unitDropdown.add(new Option('-', ''));
+                                        }
+                                    }
+                                }
+
                                 row.querySelector('.price-input').value = this.dataset.price;
                                 resultsDiv.style.display = 'none';
                                 calculateRow(row);
@@ -364,6 +392,18 @@
                     }
                 }
             }
+
+            tableBody.addEventListener('change', function (e) {
+                if (e.target.classList.contains('item-unit-dropdown')) {
+                    const tr = e.target.closest('tr');
+                    const selectedOption = e.target.options[e.target.selectedIndex];
+                    const unitPrice = selectedOption.dataset.price;
+                    if (unitPrice !== undefined && unitPrice !== null && unitPrice !== '') {
+                        tr.querySelector('.price-input').value = parseFloat(unitPrice).toFixed(2);
+                        calculateRow(tr);
+                    }
+                }
+            });
 
             function addItem(data = null) {
                 const html = template.replace(/INDEX/g, itemIndex++);
@@ -377,8 +417,23 @@
                     const idInput = row.querySelector('.product-id-input');
                     const quantityInput = row.querySelector('.quantity-input');
                     const priceInput = row.querySelector('.price-input');
+                    const unitDropdown = row.querySelector('.item-unit-dropdown');
 
-                    if (product) searchInput.value = product.name;
+                    if (product) {
+                        searchInput.value = product.name;
+                        if (unitDropdown) {
+                            unitDropdown.innerHTML = '';
+                            if (product.units && product.units.length > 0) {
+                                product.units.forEach(u => {
+                                    const selected = u.measurement_unit_id == data.measurement_unit_id ? 'selected' : '';
+                                    unitDropdown.insertAdjacentHTML('beforeend', `<option value="${u.measurement_unit_id}" ${selected}>${u.name || (u.measurementUnit ? u.measurementUnit.name : '')}</option>`);
+                                });
+                            } else {
+                                unitDropdown.insertAdjacentHTML('beforeend', '<option value="">-</option>');
+                            }
+                        }
+                    }
+
                     idInput.value = data.product_id;
                     quantityInput.value = data.quantity;
                     priceInput.value = data.unit_price;

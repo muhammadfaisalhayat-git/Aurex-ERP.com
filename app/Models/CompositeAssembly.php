@@ -6,8 +6,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class CompositeAssembly extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $fillable = ['company_id', 'document_number', 'assembly_date', 'warehouse_id', 'product_id', 'quantity', 'cost_per_unit', 'total_cost', 'status', 'notes', 'created_by', 'posted_by', 'posted_at'];
+    protected $fillable = ['company_id', 'document_number', 'assembly_date', 'warehouse_id', 'product_id', 'measurement_unit_id', 'quantity', 'cost_per_unit', 'total_cost', 'status', 'notes', 'created_by', 'posted_by', 'posted_at'];
     protected $casts = ['assembly_date' => 'date', 'posted_at' => 'datetime', 'quantity' => 'decimal:3', 'cost_per_unit' => 'decimal:4', 'total_cost' => 'decimal:2'];
+
+    public function measurementUnit()
+    {
+        return $this->belongsTo(MeasurementUnit::class);
+    }
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class);
@@ -39,6 +44,7 @@ class CompositeAssembly extends Model
             foreach ($this->components as $component) {
                 $stockService->recordMovement([
                     'product_id' => $component->component_id,
+                    'measurement_unit_id' => $component->measurement_unit_id,
                     'warehouse_id' => $this->warehouse_id,
                     'movement_type' => 'out',
                     'quantity' => $component->quantity_used,
@@ -53,6 +59,7 @@ class CompositeAssembly extends Model
             // 2. Add finished product (incoming)
             $stockService->recordMovement([
                 'product_id' => $this->product_id,
+                'measurement_unit_id' => $this->measurement_unit_id,
                 'warehouse_id' => $this->warehouse_id,
                 'movement_type' => 'in',
                 'quantity' => $this->quantity,

@@ -47,6 +47,7 @@ class StockManagementService
                 'company_id' => $companyId,
                 'branch_id' => $branchId,
                 'product_id' => $data['product_id'],
+                'measurement_unit_id' => $data['measurement_unit_id'] ?? null,
                 'warehouse_id' => $data['warehouse_id'],
                 'transaction_date' => $data['transaction_date'] ?? now(),
                 'reference_type' => $data['reference_type'],

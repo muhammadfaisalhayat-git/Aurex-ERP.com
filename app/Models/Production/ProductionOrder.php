@@ -19,6 +19,7 @@ class ProductionOrder extends Model
         'branch_id',
         'document_number',
         'product_id',
+        'measurement_unit_id',
         'quantity',
         'start_date',
         'end_date',
@@ -45,6 +46,11 @@ class ProductionOrder extends Model
     public function branch()
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function measurementUnit()
+    {
+        return $this->belongsTo(\App\Models\MeasurementUnit::class);
     }
 
     public function creator()
@@ -82,6 +88,7 @@ class ProductionOrder extends Model
                     foreach ($this->product->bomComponents as $bom) {
                         $stockService->recordMovement([
                             'product_id' => $bom->component_id,
+                            'measurement_unit_id' => $bom->measurement_unit_id,
                             'warehouse_id' => $warehouseId,
                             'movement_type' => 'out',
                             'quantity' => (float) $bom->quantity * (float) $this->quantity,
@@ -97,6 +104,7 @@ class ProductionOrder extends Model
                 // 2. Add finished product (incoming)
                 $stockService->recordMovement([
                     'product_id' => $this->product_id,
+                    'measurement_unit_id' => $this->measurement_unit_id,
                     'warehouse_id' => $warehouseId,
                     'movement_type' => 'in',
                     'quantity' => $this->quantity,

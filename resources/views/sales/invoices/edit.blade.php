@@ -150,8 +150,10 @@
                                 <table class="table table-bordered" id="items-table">
                                     <thead>
                                         <tr>
-                                            <th style="width: 45%;">{{ __('sales.product') }}</th>
-                                            <th style="width: 10%;">{{ __('sales.quantity') }}</th>
+                                            <th style="width: 40%;">{{ __('sales.product') }}</th>
+                                            <th style="width: 15%;">{{ __('sales.quantity') }} /
+                                                {{ __('messages.unit') ?? 'Unit' }}
+                                            </th>
                                             <th style="width: 15%;">{{ __('sales.unit_price') }}</th>
                                             <th style="width: 10%;">{{ __('sales.discount') }} (%)</th>
                                             <th style="width: 12%;" class="d-none">{{ __('sales.vat') }}</th>
@@ -176,9 +178,26 @@
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <input type="number" class="form-control quantity-input"
-                                                        name="items[{{ $index }}][quantity]" step="0.001" min="0.001"
-                                                        value="{{ $item->quantity }}" required>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text p-0" style="width: 45%">
+                                                            <select
+                                                                class="form-select form-select-sm border-0 bg-transparent item-unit-dropdown"
+                                                                name="items[{{ $index }}][measurement_unit_id]" required
+                                                                style="box-shadow: none; cursor: pointer;">
+                                                                <option value="">-</option>
+                                                                @if($item->product && $item->product->units)
+                                                                    @foreach($item->product->units as $unit)
+                                                                        <option value="{{ $unit->measurement_unit_id }}" {{ $item->measurement_unit_id == $unit->measurement_unit_id ? 'selected' : '' }}>
+                                                                            {{ $unit->measurementUnit->name ?? '' }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                @endif
+                                                            </select>
+                                                        </span>
+                                                        <input type="number" class="form-control quantity-input form-control-sm"
+                                                            name="items[{{ $index }}][quantity]" step="0.001" min="0.001"
+                                                            value="{{ $item->quantity }}" required>
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     <input type="number" class="form-control price-input"
@@ -276,8 +295,16 @@
                 </div>
             </td>
             <td>
-                <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001"
-                    min="0.001" value="1" required>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text p-0" style="width: 45%">
+                        <select class="form-select form-select-sm border-0 bg-transparent item-unit-dropdown"
+                            name="items[INDEX][measurement_unit_id]" required style="box-shadow: none; cursor: pointer;">
+                            <option value="">-</option>
+                        </select>
+                    </span>
+                    <input type="number" class="form-control quantity-input form-control-sm" name="items[INDEX][quantity]"
+                        step="0.001" min="0.001" value="1" required>
+                </div>
             </td>
             <td>
                 <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0"
@@ -349,14 +376,19 @@
                     const warehouseId = document.getElementById('warehouse_id')?.value;
 
                     if (!warehouseId) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: '{{ __("messages.select_warehouse_first") ?? "Select Warehouse First" }}',
-                            text: '{{ __("messages.please_select_warehouse_before_searching") ?? "Please select a warehouse before searching for items." }}',
-                            confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
-                        });
-                        searchInput.value = '';
-                        resultsDiv.style.display = 'none';
+                        if (!searchInput._isAlerting) {
+                            searchInput._isAlerting = true;
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '{{ __("messages.select_warehouse_first") ?? "Select Warehouse First" }}',
+                                text: '{{ __("messages.please_select_warehouse_before_searching") ?? "Please select a warehouse before searching for items." }}',
+                                confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                            }).then(() => {
+                                searchInput._isAlerting = false;
+                            });
+                            searchInput.value = '';
+                            resultsDiv.style.display = 'none';
+                        }
                         return;
                     }
 
@@ -375,30 +407,32 @@
                                     const stockLabel = '{{ __("messages.stock") ?? "Stock" }}';
 
                                     return `
-                                                                <div class="search-result-item p-2 border-bottom" 
-                                                                    data-id="${p.id}" 
-                                                                    data-name="${currentName}" 
-                                                                    data-price="${p.sale_price || 0}" 
-                                                                    data-tax="${p.tax_rate || 15}"
-                                                                    data-cost="${p.cost_price || 0}"
-                                                                    data-stock="${p.available_quantity || 0}"
-                                                                    style="cursor: pointer;">
-                                                                    <div class="d-flex justify-content-between align-items-start w-100">
-                                                                        <div class="result-content pe-3 d-flex flex-column gap-1 flex-grow-1">
-                                                                            <div class="fw-bold d-flex align-items-center gap-2 flex-wrap">
-                                                                                ${p.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.7rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;">${p.code}</span>` : ''}
-                                                                                <span>${currentName}</span>
-                                                                            </div>
-                                                                            ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
-                                                                            <small class="${stockColor} fw-bold d-block"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> ${stockLabel}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</small>
-                                                                        </div>
-                                                                        <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-auto small text-nowrap">
-                                                                            <span style="color:#198754; font-weight:600;" title="Sale Price">{{ __('messages.sale_price') }}: ${parseFloat(p.sale_price || 0).toFixed(2)}</span>
-                                                                            <span style="color:#6c757d; font-weight:600;" title="Cost Price">{{ __('messages.cost_price') }}: ${parseFloat(p.cost_price || 0).toFixed(2)}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            `;
+                                    return `
+                                        <div class="search-result-item p-2 border-bottom" 
+                                            data-id="${p.id}" 
+                                            data-name="${currentName}" 
+                                            data-price="${p.sale_price || 0}" 
+                                            data-tax="${p.tax_rate || 15}"
+                                            data-cost="${p.cost_price || 0}"
+                                            data-stock="${p.available_quantity || 0}"
+                                            data-units='${JSON.stringify(p.units || []).replace(/'/g, "&apos;")}'
+                                            style="cursor: pointer;">
+                                            <div class="d-flex justify-content-between align-items-start w-100">
+                                                <div class="result-content pe-3 d-flex flex-column gap-1 flex-grow-1">
+                                                    <div class="fw-bold d-flex align-items-center gap-2 flex-wrap">
+                                                        ${p.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.7rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;">${p.code}</span>` : ''}
+                                                        <span>${currentName}</span>
+                                                    </div>
+                                                    ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                                    <small class="${stockColor} fw-bold d-block"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> ${stockLabel}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</small>
+                                                </div>
+                                                <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-auto small text-nowrap">
+                                                    <span style="color:#198754; font-weight:600;" title="Sale Price">{{ __('messages.sale_price') }}: ${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                                                    <span style="color:#6c757d; font-weight:600;" title="Cost Price">{{ __('messages.cost_price') }}: ${parseFloat(p.cost_price || 0).toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
                                 }).join('');
                                 resultsDiv.style.display = 'block';
 
@@ -406,14 +440,19 @@
                                     item.addEventListener('click', function () {
                                         const stock = parseFloat(this.dataset.stock) || 0;
                                         if (stock <= 0) {
-                                            Swal.fire({
-                                                icon: 'error',
-                                                title: '{{ __("messages.out_of_stock") ?? "Out of Stock" }}',
-                                                text: '{{ __("messages.product_not_available") ?? "This product is currently out of stock." }}',
-                                                confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
-                                            });
-                                            resultsDiv.style.display = 'none';
-                                            searchInput.value = '';
+                                            if (!tr._isAlerting) {
+                                                tr._isAlerting = true;
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: '{{ __("messages.out_of_stock") ?? "Out of Stock" }}',
+                                                    text: '{{ __("messages.product_not_available") ?? "This product is currently out of stock." }}',
+                                                    confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                                                }).then(() => {
+                                                    tr._isAlerting = false;
+                                                });
+                                                resultsDiv.style.display = 'none';
+                                                searchInput.value = '';
+                                            }
                                             return;
                                         }
 
@@ -427,6 +466,23 @@
                                         if (!row.querySelector('.quantity-input').value) {
                                             row.querySelector('.quantity-input').value = 1;
                                         }
+
+                                        const unitDropdown = row.querySelector('.item-unit-dropdown');
+                                        if (unitDropdown) {
+                                            unitDropdown.innerHTML = '';
+                                            const units = JSON.parse(this.dataset.units || '[]');
+                                            if (units && units.length > 0) {
+                                                units.forEach(u => {
+                                                    const option = new Option(u.name, u.measurement_unit_id);
+                                                    option.dataset.package = u.package;
+                                                    option.dataset.price = u.price;
+                                                    unitDropdown.add(option);
+                                                });
+                                            } else {
+                                                unitDropdown.add(new Option('-', ''));
+                                            }
+                                        }
+
                                         resultsDiv.style.display = 'none';
                                         calculateRow($(row));
                                     });
@@ -485,19 +541,39 @@
                 calculateRow($(this).closest('tr'));
             });
 
+            $(document).on('change', '.item-unit-dropdown', function () {
+                const row = $(this).closest('tr');
+                const selectedOption = this.options[this.selectedIndex];
+                const unitPrice = selectedOption.dataset.price;
+
+                if (unitPrice !== undefined && unitPrice !== null && unitPrice !== '') {
+                    const priceInput = row.find('.price-input');
+                    if (priceInput.length) {
+                        priceInput.val(parseFloat(unitPrice).toFixed(2));
+                        calculateRow(row);
+                    }
+                }
+            });
+
             function calculateRow(row) {
                 const qEl = row.find('.quantity-input');
                 const quantity = parseFloat(qEl.val()) || 0;
                 const availableStock = parseFloat(row.attr('data-available-stock')) || parseFloat(row.get(0).dataset.availableStock) || 0;
 
                 if (quantity > availableStock && availableStock > 0) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
-                        text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
-                        confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
-                    });
-                    qEl.val(availableStock);
+                    const tr = row.get(0);
+                    if (!tr._isAlerting) {
+                        tr._isAlerting = true;
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
+                            text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
+                            confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                        }).then(() => {
+                            tr._isAlerting = false;
+                        });
+                        qEl.val(availableStock);
+                    }
                     return calculateRow(row);
                 }
 

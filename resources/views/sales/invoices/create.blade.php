@@ -181,8 +181,8 @@
                                 <table class="table table-bordered table-striped" id="items-table">
                                     <thead class="table-light">
                                         <tr>
-                                            <th style="width: 45%;">{{ __('sales.product') }}</th>
-                                            <th style="width: 10%;">{{ __('sales.quantity') }}</th>
+                                            <th style="width: 40%;">{{ __('sales.product') }}</th>
+                                            <th style="width: 15%;">{{ __('sales.quantity') }} / {{ __('messages.unit') ?? 'Unit' }}</th>
                                             <th style="width: 15%;">{{ __('sales.unit_price') }}</th>
                                             <th style="width: 10%;">{{ __('sales.discount') }} (%)</th>
                                             <th style="width: 12%;" class="d-none">{{ __('sales.vat') }}</th>
@@ -252,7 +252,14 @@
                                                                                                                  <div class="search-results-container glassy product-results"></div>
                                                                                                              </td>
                                                                                                             <td>
-                                                                                                                <input type="number" class="form-control quantity-input" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
+                                                                                                                <div class="input-group input-group-sm">
+                                                                                                                    <span class="input-group-text p-0" style="width: 45%">
+                                                                                                                        <select class="form-select form-select-sm border-0 bg-transparent item-unit-dropdown" name="items[INDEX][measurement_unit_id]" required style="box-shadow: none; cursor: pointer;">
+                                                                                                                            <option value="">-</option>
+                                                                                                                        </select>
+                                                                                                                    </span>
+                                                                                                                    <input type="number" class="form-control quantity-input form-control-sm" name="items[INDEX][quantity]" step="0.001" min="0.001" value="1" required>
+                                                                                                                </div>
                                                                                                             </td>
                                                                                                             <td>
                                                                                                                 <input type="number" class="form-control price-input" name="items[INDEX][unit_price]" step="0.01" min="0" required>
@@ -501,14 +508,19 @@
                     const branchId = branchSelect.value;
                     
                     if (!warehouseId) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: '{{ __("messages.select_warehouse_first") ?? "Select Warehouse First" }}',
-                            text: '{{ __("messages.please_select_warehouse_before_searching") ?? "Please select a warehouse before searching for items." }}',
-                            confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
-                        });
-                        this.value = '';
-                        results.style.display = 'none';
+                        if (!row._isAlerting) {
+                            row._isAlerting = true;
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '{{ __("messages.select_warehouse_first") ?? "Select Warehouse First" }}',
+                                text: '{{ __("messages.please_select_warehouse_before_searching") ?? "Please select a warehouse before searching for items." }}',
+                                confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                            }).then(() => {
+                                row._isAlerting = false;
+                            });
+                            this.value = '';
+                            results.style.display = 'none';
+                        }
                         return;
                     }
 
@@ -550,8 +562,10 @@
                             items[activeIndex - 1].scrollIntoView({ block: 'nearest' });
                         }
                     } else if (e.key === 'Enter') {
-                        e.preventDefault();
                         if (results.style.display !== 'none' && activeIndex >= 0) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
                             items[activeIndex].click();
                         }
                     } else if (e.key === 'Escape') {
@@ -571,14 +585,19 @@
             function selectItem(product, input, hidden, row, results) {
                 const stock = parseFloat(product.available_quantity) || 0;
                 if (stock <= 0) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: '{{ __("messages.out_of_stock") ?? "Out of Stock" }}',
-                        text: '{{ __("messages.product_not_available_in_warehouse") ?? "This product is not available in the selected warehouse." }}',
-                        confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
-                    });
-                    results.style.display = 'none';
-                    input.value = '';
+                    if (!row._isAlerting) {
+                        row._isAlerting = true;
+                        Swal.fire({
+                            icon: 'error',
+                            title: '{{ __("messages.out_of_stock") ?? "Out of Stock" }}',
+                            text: '{{ __("messages.product_not_available_in_warehouse") ?? "This product is not available in the selected warehouse." }}',
+                            confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                        }).then(() => {
+                            row._isAlerting = false;
+                        });
+                        results.style.display = 'none';
+                        input.value = '';
+                    }
                     return;
                 }
 
@@ -587,6 +606,21 @@
                 row.dataset.availableStock = product.available_quantity;
                 row.querySelector('.price-input').value = product.sale_price || product.price;
                 row.querySelector('.tax-rate-input').value = product.tax;
+
+                const unitDropdown = row.querySelector('.item-unit-dropdown');
+                if (unitDropdown) {
+                    unitDropdown.innerHTML = '';
+                    if (product.units && product.units.length > 0) {
+                        product.units.forEach(u => {
+                            const option = new Option(u.name, u.measurement_unit_id);
+                            option.dataset.package = u.package;
+                            option.dataset.price = u.price;
+                            unitDropdown.add(option);
+                        });
+                    } else {
+                        unitDropdown.add(new Option('-', ''));
+                    }
+                }
                 results.style.display = 'none';
                 calculateRow(row);
             }
@@ -655,13 +689,18 @@
                 const taxRate = parseFloat(trEl ? trEl.value : 0) || 0;
 
                 if (quantity > availableStock && availableStock > 0) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
-                        text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
-                        confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
-                    });
-                    qEl.value = availableStock;
+                    if (!row._isAlerting) {
+                        row._isAlerting = true;
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
+                            text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
+                            confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                        }).then(() => {
+                            row._isAlerting = false;
+                        });
+                        qEl.value = availableStock;
+                    }
                     return calculateRow(row); // Recalculate with corrected value
                 }
 
@@ -792,12 +831,28 @@
 
                             addItem();
                             const row = tableBody.lastElementChild;
-                            row.querySelector('.product-search-input').value = item.product_name;
-                            row.querySelector('.product-id-input').value = item.product_id;
+                            const input = row.querySelector('.product-search-input');
+                            const hidden = row.querySelector('.product-id-input');
+                            const unitDropdown = row.querySelector('.item-unit-dropdown');
+
+                            input.value = item.product_name;
+                            hidden.value = item.product_id;
+                            row.dataset.availableStock = item.available_quantity;
                             row.querySelector('.quantity-input').value = Math.min(item.quantity, stock);
                             row.querySelector('.price-input').value = item.unit_price;
                             row.querySelector('.discount-input').value = item.discount_percentage;
                             row.querySelector('.tax-rate-input').value = item.tax_rate;
+
+                            // Populate units and select the correct one
+                            if (unitDropdown && item.units) {
+                                unitDropdown.innerHTML = '';
+                                item.units.forEach(u => {
+                                    const option = new Option(u.name, u.measurement_unit_id);
+                                    if (u.measurement_unit_id == item.measurement_unit_id) option.selected = true;
+                                    unitDropdown.add(option);
+                                });
+                            }
+
                             calculateRow(row);
                         });
 
@@ -855,16 +910,11 @@
                     // Don't prevent if it's a button (let them click via Enter if they want)
                     if (e.target.tagName === 'BUTTON' || e.target.type === 'submit') return;
                     
-                    // Specific handling for product search input to avoid double processing
+                    // Product search input Enter key is handled locally in initProductSearch
                     if (e.target.classList.contains('product-search-input')) {
                         const results = e.target.closest('td').querySelector('.product-results');
                         if (results && results.style.display !== 'none') {
-                            const active = results.querySelector('.search-result-item.active');
-                            if (active) {
-                                e.preventDefault();
-                                active.click();
-                                return;
-                            }
+                            return; // Let local handler manage it
                         }
                     }
 
@@ -932,6 +982,22 @@
             tableBody.addEventListener('input', function (e) {
                 if (e.target.matches('.quantity-input, .price-input, .discount-input')) {
                     calculateRow(e.target.closest('tr'));
+                }
+            });
+
+            tableBody.addEventListener('change', function (e) {
+                if (e.target.classList.contains('item-unit-dropdown')) {
+                    const row = e.target.closest('tr');
+                    const selectedOption = e.target.options[e.target.selectedIndex];
+                    const unitPrice = selectedOption.dataset.price;
+                    
+                    if (unitPrice !== undefined && unitPrice !== null && unitPrice !== '') {
+                        const priceInput = row.querySelector('.price-input');
+                        if (priceInput) {
+                            priceInput.value = parseFloat(unitPrice).toFixed(2);
+                            calculateRow(row);
+                        }
+                    }
                 }
             });
 

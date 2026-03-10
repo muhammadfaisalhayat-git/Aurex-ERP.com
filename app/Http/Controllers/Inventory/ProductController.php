@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\MeasurementUnit;
+use App\Models\ProductBom;
 use App\Models\StockLedger;
 use App\Models\Warehouse;
 use Carbon\Carbon;
@@ -141,8 +142,42 @@ class ProductController extends Controller
 
     public function bom(Product $product)
     {
-        $product->load('bomComponents.component');
-        return view('inventory.products.bom', compact('product'));
+        $product->load('bomComponents.component', 'bomComponents.measurementUnit');
+        $measurementUnits = MeasurementUnit::active()->orderBy('name')->get();
+        return view('inventory.products.bom', compact('product', 'measurementUnits'));
+    }
+
+    public function destroyBom(Product $product, ProductBom $bom)
+    {
+        if ($bom->product_id !== $product->id) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $bom->delete();
+        return redirect()->back()->with('success', __('messages.component_deleted'));
+    }
+
+    public function updateBom(Request $request, Product $product)
+    {
+        $validated = $request->validate([
+            'component_id' => 'required|exists:products,id',
+            'measurement_unit_id' => 'required|exists:measurement_units,id',
+            'quantity' => 'required|numeric|min:0.0001',
+            'waste_percentage' => 'nullable|numeric|min:0|max:100',
+            'notes' => 'nullable|string'
+        ]);
+
+        $product->bomComponents()->updateOrCreate(
+            ['component_id' => $validated['component_id']],
+            [
+                'measurement_unit_id' => $validated['measurement_unit_id'],
+                'quantity' => $validated['quantity'],
+                'waste_percentage' => $validated['waste_percentage'] ?? 0,
+                'notes' => $validated['notes'] ?? null
+            ]
+        );
+
+        return redirect()->back()->with('success', __('messages.bom_updated'));
     }
 
     public function store(Request $request)
@@ -391,6 +426,7 @@ class ProductController extends Controller
         $branchId = $request->get('branch_id');
 
         $products = Product::where('is_sellable', true)
+            ->with(['units.measurementUnit'])
             ->where(function ($query) use ($search) {
                 $query->where('name_en', 'like', "%$search%")
                     ->orWhere('name_ar', 'like', "%$search%")
@@ -422,7 +458,15 @@ class ProductController extends Controller
                 'cost_price' => $product->cost_price,
                 'available_quantity' => $available,
                 'tax' => $product->tax_rate,
-                'decimals_count' => $product->decimals_count
+                'decimals_count' => $product->decimals_count,
+                'units' => $product->units->map(function ($unit) {
+                    return [
+                        'measurement_unit_id' => $unit->measurement_unit_id,
+                        'name' => $unit->measurementUnit->name ?? '',
+                        'package' => $unit->package,
+                        'price' => $unit->price
+                    ];
+                })->toArray()
             ];
         });
 

@@ -136,7 +136,8 @@
                                 <thead>
                                     <tr>
                                         <th>{{ __('sales.product') }}</th>
-                                        <th class="text-end">{{ __('sales.quantity') }}</th>
+                                        <th class="text-end">{{ __('sales.quantity') }} /
+                                            {{ __('messages.unit') ?? 'Unit' }}</th>
                                         <th class="text-end">{{ __('sales.unit_price') }}</th>
                                         <th class="text-end">{{ __('sales.discount') }}</th>
                                         <th class="text-end d-none">{{ __('sales.vat') }}</th>
@@ -152,7 +153,10 @@
                                                     <div class="small text-muted">{{ $item->description }}</div>
                                                 @endif
                                             </td>
-                                            <td class="text-end">{{ number_format($item->quantity, 3) }}</td>
+                                            <td class="text-end">
+                                                {{ number_format($item->quantity, 3) }}
+                                                <small class="text-muted">{{ $item->measurementUnit->name ?? '' }}</small>
+                                            </td>
                                             <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
                                             <td class="text-end">
                                                 {{ number_format($item->discount_amount, 2) }}
@@ -217,10 +221,15 @@
 @endsection
 
 @push('scripts')
-    <script>     function promptWhatsApp(baseRoute, existingPhone) {         if (existingPhone && existingPhone.trim() !== '') {             // If phone exists, just navigate to the route             window.location.href = baseRoute;             return;         }
-             Swal.fire({             title: '{{ __('messages.enter_whatsapp_number') ?? 'Enter WhatsApp Number' }}',             text: '{{ __('messages.whatsapp_number_required') ?? 'This customer does not have a saved phone number. Please enter a valid number (e.g., +966123456789) to send the invoice.' }}',             input: 'text',             inputPlaceholder: '+966...',             showCancelButton: true,             confirmButtonText: '{{ __('messages.send') ?? 'Send' }}',             cancelButtonText: '{{ __('common.cancel') ?? 'Cancel' }}',             inputValidator: (value) => {                 if (!value) {                     return '{{ __('messages.whatsapp_number_required') ?? 'Phone number is required.' }}';                 }             }         }).then((result) => {             if (result.isConfirmed && result.value) {                 // Submit via POST                 const form = document.createElement('form');                 form.method = 'POST';                 form.action = baseRoute;
-                     const csrfInput = document.createElement('input');                 csrfInput.type = 'hidden';                 csrfInput.name = '_token';                 csrfInput.value = '{{ csrf_token() }}';                 form.appendChild(csrfInput);
-                     const phoneInput = document.createElement('input');                 phoneInput.type = 'hidden';                 phoneInput.name = 'phone';                 phoneInput.value = result.value;                 form.appendChild(phoneInput);
-                     document.body.appendChild(form);                 form.submit();             }         });     }
+    <script>     function promptWhatsApp(baseRoute, existingPhone) {
+            if (existingPhone && existingPhone.trim() !== '') {             // If phone exists, just navigate to the route             window.location.href = baseRoute;             return;         }
+                Swal.fire({ title: '{{ __('messages.enter_whatsapp_number') ?? 'Enter WhatsApp Number' }}', text: '{{ __('messages.whatsapp_number_required') ?? 'This customer does not have a saved phone number. Please enter a valid number (e.g., +966123456789) to send the invoice.' }}', input: 'text', inputPlaceholder: '+966...', showCancelButton: true, confirmButtonText: '{{ __('messages.send') ?? 'Send' }}', cancelButtonText: '{{ __('common.cancel') ?? 'Cancel' }}', inputValidator: (value) => { if (!value) { return '{{ __('messages.whatsapp_number_required') ?? 'Phone number is required.' }}'; } } }).then((result) => {
+                    if (result.isConfirmed && result.value) {                 // Submit via POST                 const form = document.createElement('form');                 form.method = 'POST';                 form.action = baseRoute;
+                        const csrfInput = document.createElement('input'); csrfInput.type = 'hidden'; csrfInput.name = '_token'; csrfInput.value = '{{ csrf_token() }}'; form.appendChild(csrfInput);
+                        const phoneInput = document.createElement('input'); phoneInput.type = 'hidden'; phoneInput.name = 'phone'; phoneInput.value = result.value; form.appendChild(phoneInput);
+                        document.body.appendChild(form); form.submit();
+                    }
+                });
+            }
     </script>
 @endpush

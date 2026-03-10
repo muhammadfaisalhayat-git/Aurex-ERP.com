@@ -48,6 +48,7 @@ class StockTransferRequestController extends Controller
             'to_warehouse_id' => 'required|exists:warehouses,id|different:from_warehouse_id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
         ]);
 
@@ -70,6 +71,7 @@ class StockTransferRequestController extends Controller
                 StockTransferRequestItem::create([
                     'stock_transfer_request_id' => $transferRequest->id,
                     'product_id' => $item['product_id'],
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'quantity' => $item['quantity'],
                     'notes' => $item['notes'] ?? null,
                 ]);
@@ -86,7 +88,7 @@ class StockTransferRequestController extends Controller
 
     public function show($id)
     {
-        $request = StockTransferRequest::with(['items.product', 'fromWarehouse', 'toWarehouse', 'requestedBy', 'approvedBy'])->findOrFail($id);
+        $request = StockTransferRequest::with(['items.product', 'items.measurementUnit', 'fromWarehouse', 'toWarehouse', 'requestedBy', 'approvedBy'])->findOrFail($id);
         return view('inventory.transfer-requests.show', compact('request'));
     }
 
@@ -141,6 +143,7 @@ class StockTransferRequestController extends Controller
                 StockTransferItem::create([
                     'stock_transfer_id' => $transfer->id,
                     'product_id' => $item->product_id,
+                    'measurement_unit_id' => $item->measurement_unit_id,
                     'quantity' => $item->quantity,
                     'notes' => $item->notes,
                 ]);
@@ -160,7 +163,7 @@ class StockTransferRequestController extends Controller
     public function downloadPdf($id)
     {
         try {
-            $request = StockTransferRequest::with(['items.product', 'fromWarehouse', 'toWarehouse', 'requestedBy', 'company'])->findOrFail($id);
+            $request = StockTransferRequest::with(['items.product', 'items.measurementUnit', 'fromWarehouse', 'toWarehouse', 'requestedBy', 'company'])->findOrFail($id);
 
             // Base64 logo for PDF
             $logoBase64 = null;

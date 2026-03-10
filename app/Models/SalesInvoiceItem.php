@@ -12,6 +12,7 @@ class SalesInvoiceItem extends Model
     protected $fillable = [
         'sales_invoice_id',
         'product_id',
+        'measurement_unit_id',
         'description',
         'quantity',
         'unit_price',
@@ -43,6 +44,11 @@ class SalesInvoiceItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function measurementUnit()
+    {
+        return $this->belongsTo(MeasurementUnit::class);
     }
 
     public static function calculateLineTotals($quantity, $unitPrice, $discountPercentage, $taxRate)

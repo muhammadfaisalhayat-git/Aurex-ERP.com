@@ -196,19 +196,19 @@ class SalesInvoiceController extends Controller
         $data = null;
         switch ($type) {
             case 'quotation':
-                $data = Quotation::with('items.product')->find($id);
+                $data = Quotation::with('items.product.units.measurementUnit')->find($id);
                 break;
             case 'customer_request':
-                $data = \App\Models\CustomerRequest::with('items.product')->find($id);
+                $data = \App\Models\CustomerRequest::with('items.product.units.measurementUnit')->find($id);
                 break;
             case 'sales_return':
-                $data = \App\Models\SalesReturn::with('items.product')->find($id);
+                $data = \App\Models\SalesReturn::with('items.product.units.measurementUnit')->find($id);
                 break;
             case 'sales_order':
-                $data = \App\Models\SalesOrder::with('items.product')->find($id);
+                $data = \App\Models\SalesOrder::with('items.product.units.measurementUnit')->find($id);
                 break;
             case 'sales_invoice':
-                $data = \App\Models\SalesInvoice::with('items.product', 'customer')->find($id);
+                $data = \App\Models\SalesInvoice::with(['items.product.units.measurementUnit', 'customer'])->find($id);
                 break;
         }
 
@@ -229,9 +229,16 @@ class SalesInvoiceController extends Controller
                 'product_code' => $item->product->product_code ?? '',
                 'quantity' => $item->quantity,
                 'available_quantity' => $stock,
+                'measurement_unit_id' => $item->measurement_unit_id ?? null,
                 'unit_price' => $item->unit_price,
                 'discount_percentage' => $item->discount_percentage ?? 0,
                 'tax_rate' => $item->tax_rate ?? 0,
+                'units' => $item->product->units->map(function ($u) {
+                    return [
+                        'measurement_unit_id' => $u->measurement_unit_id,
+                        'name' => $u->measurement_unit->name ?? $u->name,
+                    ];
+                }),
             ];
         });
 
@@ -291,6 +298,7 @@ class SalesInvoiceController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
@@ -331,6 +339,7 @@ class SalesInvoiceController extends Controller
 
             $invoice->items()->create([
                 'product_id' => $item['product_id'],
+                'measurement_unit_id' => $item['measurement_unit_id'],
                 'description' => $product->name,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
@@ -356,7 +365,7 @@ class SalesInvoiceController extends Controller
 
     public function show(SalesInvoice $invoice)
     {
-        $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator', 'poster']);
+        $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'items.measurementUnit', 'creator', 'poster']);
         return view('sales.invoices.show', compact('invoice'));
     }
 
@@ -372,7 +381,7 @@ class SalesInvoiceController extends Controller
         $products = Product::sellable()->active()->get();
         $taxSetting = TaxSetting::first();
 
-        $invoice->load('items.product');
+        $invoice->load(['items.product', 'items.measurementUnit']);
 
         // Add available stock for each item based on current warehouse/branch
         foreach ($invoice->items as $item) {
@@ -411,6 +420,7 @@ class SalesInvoiceController extends Controller
             'items' => 'required|array|min:1',
             'items.*.id' => 'nullable|exists:sales_invoice_items',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
@@ -450,6 +460,7 @@ class SalesInvoiceController extends Controller
 
             $invoice->items()->create([
                 'product_id' => $item['product_id'],
+                'measurement_unit_id' => $item['measurement_unit_id'],
                 'description' => $product->name,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
@@ -526,7 +537,7 @@ class SalesInvoiceController extends Controller
     public function downloadPdf(SalesInvoice $invoice)
     {
         try {
-            $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator', 'company']);
+            $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'items.measurementUnit', 'creator', 'company']);
 
             // Base64 logo for PDF
             $logoBase64 = null;
@@ -566,7 +577,7 @@ class SalesInvoiceController extends Controller
 
     public function print(SalesInvoice $invoice)
     {
-        $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator', 'company']);
+        $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'items.measurementUnit', 'creator', 'company']);
 
         // Reshape Arabic text for PDF
         if ($invoice->company) {
@@ -635,6 +646,7 @@ class SalesInvoiceController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
@@ -677,6 +689,7 @@ class SalesInvoiceController extends Controller
 
             $invoice->items()->create([
                 'product_id' => $item['product_id'],
+                'measurement_unit_id' => $item['measurement_unit_id'],
                 'description' => $product->name,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
@@ -739,7 +752,7 @@ class SalesInvoiceController extends Controller
 
             try {
                 // Generate PDF
-                $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator', 'company']);
+                $invoice->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'items.measurementUnit', 'creator', 'company']);
 
                 // Reshape Arabic text for PDF
                 if ($invoice->company) {

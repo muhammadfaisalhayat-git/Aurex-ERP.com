@@ -45,8 +45,10 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>{{ __('messages.product') }}</th>
-                                        <th class="text-end">{{ __('messages.ordered_quantity') }}</th>
-                                        <th class="text-end">{{ __('messages.received_quantity') }}</th>
+                                        <th class="text-end">{{ __('messages.ordered_quantity') }} /
+                                            {{ __('messages.unit') ?? 'Unit' }}</th>
+                                        <th class="text-end">{{ __('messages.received_quantity') }} /
+                                            {{ __('messages.unit') ?? 'Unit' }}</th>
                                         <th>{{ __('messages.notes') }}</th>
                                     </tr>
                                 </thead>
@@ -54,8 +56,10 @@
                                     @foreach($receiving->items as $item)
                                         <tr>
                                             <td>{{ $item->product->name }}</td>
-                                            <td class="text-end">{{ number_format($item->ordered_quantity, 3) }}</td>
-                                            <td class="text-end">{{ number_format($item->received_quantity, 3) }}</td>
+                                            <td class="text-end">{{ number_format($item->ordered_quantity, 3) }}
+                                                {{ $item->measurementUnit->name ?? '' }}</td>
+                                            <td class="text-end">{{ number_format($item->received_quantity, 3) }}
+                                                {{ $item->measurementUnit->name ?? '' }}</td>
                                             <td>{{ $item->notes ?? '-' }}</td>
                                         </tr>
                                     @endforeach

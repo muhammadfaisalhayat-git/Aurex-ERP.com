@@ -345,7 +345,9 @@
                 <thead>
                     <tr>
                         <th width="40%">{{ __('messages.product') }}</th>
-                        <th class="text-right" width="10%">{{ __('messages.quantity') }}</th>
+                        <th class="text-right" width="15%">{{ __('messages.quantity') }} /
+                            {{ __('messages.unit') ?? 'Unit' }}
+                        </th>
                         <th class="text-right" width="15%">{{ __('messages.unit_price') }}</th>
                         <th class="text-right" width="10%">{{ __('messages.tax') }} (%)</th>
                         <th class="text-right" width="25%">{{ __('messages.total') }}</th>
@@ -360,7 +362,12 @@
                                     <div class="product-desc">{{ $item->description_ar_reshaped ?? $item->description }}</div>
                                 @endif
                             </td>
-                            <td class="text-right">{{ number_format($item->quantity, 2) }}</td>
+                            <td class="text-right">
+                                {{ number_format($item->quantity, 2) }}
+                                @if($item->measurementUnit)
+                                    <div style="font-size: 8px; color: #64748b;">{{ $item->measurementUnit->name }}</div>
+                                @endif
+                            </td>
                             <td class="text-right">{{ number_format($item->unit_price, 2) }}</td>
                             <td class="text-right">{{ number_format($item->tax_rate, 2) }}</td>
                             <td class="text-right">{{ number_format($item->gross_amount, 2) }}</td>

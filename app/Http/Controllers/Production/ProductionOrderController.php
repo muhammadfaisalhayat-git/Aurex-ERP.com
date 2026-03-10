@@ -27,6 +27,7 @@ class ProductionOrderController extends Controller
         $validated = $request->validate([
             'document_number' => 'required|unique:production_orders,document_number',
             'product_id' => 'required|exists:products,id',
+            'measurement_unit_id' => 'required|exists:measurement_units,id',
             'quantity' => 'required|numeric|min:0.001',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',

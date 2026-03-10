@@ -12,6 +12,7 @@ class SalesOrderItem extends Model
     protected $fillable = [
         'sales_order_id',
         'product_id',
+        'measurement_unit_id',
         'description',
         'quantity',
         'delivered_quantity',
@@ -47,6 +48,11 @@ class SalesOrderItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function measurementUnit()
+    {
+        return $this->belongsTo(MeasurementUnit::class);
     }
 
     public function getPendingQuantity()

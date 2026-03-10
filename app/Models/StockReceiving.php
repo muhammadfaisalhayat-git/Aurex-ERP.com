@@ -69,6 +69,7 @@ class StockReceiving extends Model
             foreach ($this->items as $item) {
                 $stockService->recordMovement([
                     'product_id' => $item->product_id,
+                    'measurement_unit_id' => $item->measurement_unit_id,
                     'warehouse_id' => $this->warehouse_id,
                     'movement_type' => 'in',
                     'quantity' => $item->received_quantity,
