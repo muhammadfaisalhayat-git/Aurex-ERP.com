@@ -188,7 +188,8 @@
         <thead>
             <tr>
                 <th width="40%">{{ __('messages.product') }}</th>
-                <th width="15%" class="text-end">{{ __('messages.quantity') }}</th>
+                <th width="15%" class="text-end">{{ __('messages.quantity') }} / {{ __('messages.unit') ?? 'Unit' }}
+                </th>
                 <th width="15%" class="text-end">{{ __('messages.unit_price') }}</th>
                 <th width="15%" class="text-end">{{ __('messages.discount') }}</th>
                 <th width="15%" class="text-end">{{ __('messages.total') }}</th>
@@ -201,7 +202,10 @@
                         <strong>{{ $item->product->name ?? '-' }}</strong><br>
                         <small>{{ $item->product->code ?? '-' }}</small>
                     </td>
-                    <td class="text-end">{{ number_format($item->quantity, 2) }}</td>
+                    <td class="text-end">
+                        {{ number_format($item->quantity, 2) }}
+                        <small style="color: #64748b; font-size: 0.8em;">{{ $item->measurementUnit->name ?? '' }}</small>
+                    </td>
                     <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
                     <td class="text-end">{{ number_format($item->discount_amount, 2) }}
                         ({{ number_format($item->discount_percentage, 2) }}%)</td>

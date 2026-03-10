@@ -120,7 +120,7 @@
                                 <thead>
                                     <tr>
                                         <th>{{ __('messages.product') }}</th>
-                                        <th class="text-end">{{ __('messages.quantity') }}</th>
+                                        <th class="text-end">{{ __('messages.quantity') }} / {{ __('messages.unit') ?? 'Unit' }}</th>
                                         <th class="text-end">{{ __('messages.unit_price') }}</th>
                                         <th class="text-end">{{ __('messages.tax') }}</th>
                                         <th class="text-end">{{ __('messages.total') }}</th>
@@ -130,7 +130,10 @@
                                     @foreach($salesReturn->items as $item)
                                         <tr>
                                             <td>{{ $item->product->name }}</td>
-                                            <td class="text-end">{{ number_format($item->quantity, 3) }}</td>
+                                            <td class="text-end">
+                                                {{ number_format($item->quantity, 3) }}
+                                                <small class="text-muted">{{ $item->measurementUnit->name ?? '' }}</small>
+                                            </td>
                                             <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
                                             <td class="text-end">{{ number_format($item->tax_amount, 2) }}</td>
                                             <td class="text-end">{{ number_format($item->total_amount, 2) }}</td>

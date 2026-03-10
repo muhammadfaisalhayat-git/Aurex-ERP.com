@@ -25,7 +25,7 @@ class LocalPurchaseController extends Controller
 
     public function index()
     {
-        $purchases = LocalPurchase::with(['items', 'creator', 'branch'])
+        $purchases = LocalPurchase::with(['items.measurementUnit', 'creator', 'branch'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
@@ -55,6 +55,7 @@ class LocalPurchaseController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_amount' => 'nullable|numeric|min:0',
@@ -90,6 +91,7 @@ class LocalPurchaseController extends Controller
                 LocalPurchaseItem::create([
                     'local_purchase_id' => $purchase->id,
                     'product_id' => $item['product_id'],
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'discount_amount' => $discount,
@@ -114,7 +116,7 @@ class LocalPurchaseController extends Controller
 
     public function show(LocalPurchase $localPurchase)
     {
-        $localPurchase->load(['items.item', 'creator', 'branch', 'warehouse']);
+        $localPurchase->load(['items.product', 'items.measurementUnit', 'creator', 'branch', 'warehouse']);
         return view('purchases.local.show', compact('localPurchase'));
     }
 
@@ -151,6 +153,7 @@ class LocalPurchaseController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_amount' => 'nullable|numeric|min:0',
@@ -185,6 +188,7 @@ class LocalPurchaseController extends Controller
                 LocalPurchaseItem::create([
                     'local_purchase_id' => $localPurchase->id,
                     'product_id' => $item['product_id'],
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'discount_amount' => $discount,

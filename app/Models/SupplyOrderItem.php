@@ -12,6 +12,7 @@ class SupplyOrderItem extends Model
     protected $fillable = [
         'supply_order_id',
         'product_id',
+        'measurement_unit_id',
         'description',
         'quantity',
         'received_quantity',
@@ -43,6 +44,11 @@ class SupplyOrderItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function measurementUnit()
+    {
+        return $this->belongsTo(MeasurementUnit::class);
     }
 
     public function getPendingQuantity()

@@ -182,7 +182,8 @@
         <thead>
             <tr>
                 <th width="50%">{{ __('messages.product') }}</th>
-                <th width="10%" class="text-end">{{ __('messages.quantity') }}</th>
+                <th width="15%" class="text-end">{{ __('messages.quantity') }} / {{ __('messages.unit') ?? 'Unit' }}
+                </th>
                 <th width="20%" class="text-end">{{ __('messages.unit_price') }}</th>
                 <th width="20%" class="text-end">{{ __('messages.total') }}</th>
             </tr>
@@ -193,7 +194,10 @@
                     <td>
                         <strong>{{ $item->product_name_ar_reshaped ?? $item->product->name }}</strong>
                     </td>
-                    <td class="text-end">{{ number_format($item->quantity, 2) }}</td>
+                    <td class="text-end">
+                        {{ number_format($item->quantity, 2) }}
+                        <small style="color: #64748b; font-size: 0.8em;">{{ $item->measurementUnit->name ?? '' }}</small>
+                    </td>
                     <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
                     <td class="text-end">{{ number_format($item->total_amount, 2) }}</td>
                 </tr>

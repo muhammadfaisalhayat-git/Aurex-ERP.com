@@ -59,7 +59,7 @@
                                 <thead class="bg-light">
                                     <tr>
                                         <th>{{ __('messages.product') }}</th>
-                                        <th>{{ __('messages.quantity') }}</th>
+                                        <th>{{ __('messages.quantity') }} / {{ __('messages.unit') ?? 'Unit' }}</th>
                                         <th>{{ __('messages.unit_price') }}</th>
                                         <th>{{ __('messages.tax') }} (%)</th>
                                         <th>{{ __('messages.tax_amount') }}</th>
@@ -70,7 +70,12 @@
                                     @foreach($salesOrder->items as $item)
                                         <tr>
                                             <td>{{ $item->product ? $item->product->name_en : '-' }}</td>
-                                            <td>{{ number_format($item->quantity, 2) }}</td>
+                                            <td>
+                                                {{ number_format($item->quantity, 2) }}
+                                                @if($item->measurementUnit)
+                                                    <small class="text-muted">({{ $item->measurementUnit->name }})</small>
+                                                @endif
+                                            </td>
                                             <td>{{ number_format($item->unit_price, 2) }}</td>
                                             <td>{{ number_format($item->tax_rate, 2) }}</td>
                                             <td>{{ number_format($item->tax_amount, 2) }}</td>

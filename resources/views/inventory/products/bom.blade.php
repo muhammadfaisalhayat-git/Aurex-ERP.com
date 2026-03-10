@@ -10,7 +10,8 @@
                     <ol class="breadcrumb mb-1">
                         <li class="breadcrumb-item"><a
                                 href="{{ route('inventory.products.index') }}">{{ __('messages.products') }}</a></li>
-                        <li class="breadcrumb-item active">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</li>
+                        <li class="breadcrumb-item active">{{ $product->name }} ({{ __('messages.stock') }}:
+                            {{ $product->available_stock }})</li>
                     </ol>
                 </nav>
                 <h1 class="h3 mb-0">{{ __('messages.bill_of_materials') }}</h1>
@@ -29,7 +30,8 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="text-muted small d-block">{{ __('messages.name') }}</label>
-                            <span class="fw-bold">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</span>
+                            <span class="fw-bold">{{ $product->name }} ({{ __('messages.stock') }}:
+                                {{ $product->available_stock }})</span>
                         </div>
                         <div class="mb-3">
                             <label class="text-muted small d-block">{{ __('messages.code') }}</label>
@@ -71,12 +73,23 @@
                                                 <div class="fw-bold">{{ $bom->component->name }}</div>
                                                 <small class="text-muted">{{ $bom->component->code }}</small>
                                             </td>
-                                            <td>{{ $bom->quantity }} {{ $bom->component->unit_of_measure }}</td>
+                                            <td>
+                                                {{ $bom->quantity }}
+                                                <span class="badge bg-light text-dark">
+                                                    {{ $bom->measurementUnit->name ?? $bom->component->unit_of_measure }}
+                                                </span>
+                                            </td>
                                             <td>{{ $bom->waste_percentage }}%</td>
                                             <td>
-                                                <button class="btn btn-sm btn-outline-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                                <form action="{{ route('inventory.products.bom.destroy', [$product, $bom]) }}"
+                                                    method="POST" class="d-inline"
+                                                    onsubmit="return confirm('{{ __('messages.are_you_sure') }}')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
                                             </td>
                                         </tr>
                                     @empty
@@ -100,4 +113,110 @@
             </div>
         </div>
     </div>
+
+    @if($product->isComposite())
+        <!-- Add Component Modal -->
+        <div class="modal fade" id="addComponentModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <form action="{{ route('inventory.products.bom.update', $product) }}" method="POST">
+                    @csrf
+                    <div class="modal-content glassy">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ __('messages.add_component') }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">{{ __('messages.component') }}</label>
+                                <select name="component_id" class="form-select select2-products" required style="width: 100%">
+                                    <option value="">{{ __('messages.select_product') }}</option>
+                                </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">{{ __('messages.quantity') }}</label>
+                                    <input type="number" name="quantity" class="form-control" step="0.001" min="0.001" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">{{ __('messages.unit') }}</label>
+                                    <select name="measurement_unit_id" class="form-select" required>
+                                        <option value="">{{ __('messages.select_unit') }}</option>
+                                        @foreach($measurementUnits as $unit)
+                                            <option value="{{ $unit->id }}">{{ $unit->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{{ __('messages.waste_percentage') }} (%)</label>
+                                <input type="number" name="waste_percentage" class="form-control" step="0.01" min="0" max="100"
+                                    value="0">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{{ __('messages.notes') }}</label>
+                                <textarea name="notes" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">{{ __('messages.cancel') }}</button>
+                            <button type="submit" class="btn btn-primary">{{ __('messages.save') }}</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function () {
+            $('.select2-products').select2({
+                dropdownParent: $('#addComponentModal'),
+                ajax: {
+                    url: '{{ route("inventory.products.ajax-search") }}',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.map(function (item) {
+                                return {
+                                    id: item.id,
+                                    text: (item.code ? '[' + item.code + '] ' : '') + ({{ app()->getLocale() == 'ar' }} ? item.name_ar : item.name_en),
+                                    units: item.units
+                                };
+                            })
+                        };
+                    },
+                    cache: true
+                },
+                placeholder: '{{ __('messages.select_product') }}',
+                minimumInputLength: 1
+            });
+
+            $('.select2-products').on('select2:select', function (e) {
+                var data = e.params.data;
+                var unitSelect = $('select[name="measurement_unit_id"]');
+                unitSelect.empty();
+                unitSelect.append('<option value="">{{ __('messages.select_unit') }}</option>');
+
+                if (data.units && data.units.length > 0) {
+                    data.units.forEach(function (unit) {
+                        unitSelect.append('<option value="' + unit.measurement_unit_id + '">' + unit.name + '</option>');
+                    });
+                } else {
+                    // Fallback to all units if product has no specific units defined (unlikely but safe)
+                    @foreach($measurementUnits as $unit)
+                        unitSelect.append('<option value="{{ $unit->id }}">{{ $unit->name }}</option>');
+                    @endforeach
+            }
+            });
+        });
+    </script>
+@endpush

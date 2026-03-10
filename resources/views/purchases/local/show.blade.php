@@ -116,7 +116,8 @@
                                     <tr>
                                         <th>#</th>
                                         <th>{{ __('local_purchase.item') }}</th>
-                                        <th class="text-end">{{ __('local_purchase.quantity') }}</th>
+                                        <th class="text-end">{{ __('local_purchase.quantity') }} /
+                                            {{ __('messages.unit') ?? 'Unit' }}</th>
                                         <th class="text-end">{{ __('local_purchase.unit_price') }}</th>
                                         <th class="text-end">{{ __('local_purchase.discount') }}</th>
                                         <th class="text-end">{{ __('local_purchase.tax') }}</th>
@@ -127,8 +128,11 @@
                                     @foreach($localPurchase->items as $index => $item)
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
-                                            <td>{{ $item->item->code }} - {{ $item->item->name }}</td>
-                                            <td class="text-end">{{ number_format($item->quantity, 2) }}</td>
+                                            <td>{{ $item->product->code ?? '' }} - {{ $item->product->name ?? '' }}</td>
+                                            <td class="text-end">
+                                                {{ number_format($item->quantity, 2) }}
+                                                <small class="text-muted">{{ $item->measurementUnit->name ?? '' }}</small>
+                                            </td>
                                             <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
                                             <td class="text-end">{{ number_format($item->discount_amount, 2) }}</td>
                                             <td class="text-end">{{ number_format($item->tax_amount, 2) }}

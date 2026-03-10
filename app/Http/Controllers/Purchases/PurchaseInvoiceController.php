@@ -76,6 +76,7 @@ class PurchaseInvoiceController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.tax_rate' => 'nullable|numeric|min:0',
@@ -185,6 +186,7 @@ class PurchaseInvoiceController extends Controller
 
                 $items[] = [
                     'product_id' => $productId,
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'tax_rate' => $item['tax_rate'] ?? 0,
@@ -218,7 +220,7 @@ class PurchaseInvoiceController extends Controller
 
     public function show($id)
     {
-        $invoice = PurchaseInvoice::with(['vendor', 'branch', 'warehouse', 'items.product', 'creator'])->findOrFail($id);
+        $invoice = PurchaseInvoice::with(['vendor', 'branch', 'warehouse', 'items.product', 'items.measurementUnit', 'creator'])->findOrFail($id);
         return view('purchases.invoices.show', compact('invoice'));
     }
 
@@ -253,6 +255,7 @@ class PurchaseInvoiceController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.tax_rate' => 'nullable|numeric|min:0',
@@ -292,6 +295,7 @@ class PurchaseInvoiceController extends Controller
                 PurchaseInvoiceItem::create([
                     'purchase_invoice_id' => $invoice->id,
                     'product_id' => $item['product_id'],
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'tax_rate' => $item['tax_rate'] ?? 0,
@@ -391,7 +395,7 @@ class PurchaseInvoiceController extends Controller
 
     public function print($id)
     {
-        $invoice = PurchaseInvoice::with(['vendor', 'branch', 'warehouse', 'items.product', 'creator', 'company'])->findOrFail($id);
+        $invoice = PurchaseInvoice::with(['vendor', 'branch', 'warehouse', 'items.product', 'items.measurementUnit', 'creator', 'company'])->findOrFail($id);
 
         // Reshape Arabic text for Print
         if ($invoice->company) {

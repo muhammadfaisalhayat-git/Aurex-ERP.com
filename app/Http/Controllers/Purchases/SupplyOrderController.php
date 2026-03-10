@@ -21,7 +21,7 @@ class SupplyOrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = SupplyOrder::with(['vendor', 'branch', 'warehouse']);
+        $query = SupplyOrder::with(['vendor', 'branch', 'warehouse', 'items.measurementUnit']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -83,6 +83,7 @@ class SupplyOrderController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
@@ -119,6 +120,7 @@ class SupplyOrderController extends Controller
 
             $supplyOrder->items()->create([
                 'product_id' => $item['product_id'],
+                'measurement_unit_id' => $item['measurement_unit_id'],
                 'description' => $product->name,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
@@ -152,6 +154,7 @@ class SupplyOrderController extends Controller
             'items.product' => function ($query) {
                 $query->withoutGlobalScope('tenant');
             },
+            'items.measurementUnit',
             'creator',
             'statusHistory.changer'
         ]);
@@ -198,6 +201,7 @@ class SupplyOrderController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
@@ -233,6 +237,7 @@ class SupplyOrderController extends Controller
 
             $supplyOrder->items()->create([
                 'product_id' => $item['product_id'],
+                'measurement_unit_id' => $item['measurement_unit_id'],
                 'description' => $product->name,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
@@ -328,6 +333,7 @@ class SupplyOrderController extends Controller
             PurchaseInvoiceItem::create([
                 'purchase_invoice_id' => $invoice->id,
                 'product_id' => $orderItem->product_id,
+                'measurement_unit_id' => $orderItem->measurement_unit_id,
                 'description' => $orderItem->description,
                 'quantity' => $orderItem->quantity,
                 'unit_price' => $orderItem->unit_price,
@@ -362,7 +368,8 @@ class SupplyOrderController extends Controller
             },
             'items.product' => function ($query) {
                 $query->withoutGlobalScope('tenant');
-            }
+            },
+            'items.measurementUnit'
         ]);
         return view('purchases.supply-orders.print', compact('supplyOrder'));
     }

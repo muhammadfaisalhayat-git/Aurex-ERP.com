@@ -69,7 +69,9 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th style="width: 50%">{{ __('messages.product') }}</th>
-                                            <th style="width: 20%">{{ __('messages.quantity') }}</th>
+                                            <th style="width: 25%">{{ __('messages.quantity') }} /
+                                                {{ __('messages.unit') ?? 'Unit' }}
+                                            </th>
                                             <th style="width: 20%">{{ __('messages.notes') }}</th>
                                             <th style="width: 10%"></th>
                                         </tr>
@@ -80,16 +82,28 @@
                                                 <select name="items[0][product_id]" class="form-select product-select"
                                                     required>
                                                     <option value="">{{ __('messages.select_product') }}</option>
-                                                    @foreach(\App\Models\Product::withSum('stockBalances', 'available_quantity')->get() as $product)
-                                                        <option value="{{ $product->id }}">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})
-                                                            ({{ __('messages.stock') }}:
-                                                            {{ $product->stock_balances_sum_available_quantity ?? 0 }})</option>
+                                                    @foreach(\App\Models\Product::with('units.measurementUnit')->withSum('stockBalances', 'available_quantity')->get() as $product)
+                                                        <option value="{{ $product->id }}"
+                                                            data-units="{{ json_encode($product->units) }}">
+                                                            {{ $product->name }} ({{ __('messages.stock') }}:
+                                                            {{ $product->available_stock }})
+                                                        </option>
                                                     @endforeach
                                                 </select>
                                             </td>
                                             <td>
-                                                <input type="number" name="items[0][quantity]" class="form-control"
-                                                    step="0.001" min="0.001" required>
+                                                <div class="input-group">
+                                                    <span class="input-group-text p-0" style="width: 35%">
+                                                        <select
+                                                            class="form-select border-0 bg-transparent item-unit-dropdown"
+                                                            name="items[0][measurement_unit_id]" required
+                                                            style="box-shadow: none; cursor: pointer;">
+                                                            <option value="">-</option>
+                                                        </select>
+                                                    </span>
+                                                    <input type="number" name="items[0][quantity]" class="form-control"
+                                                        step="0.001" min="0.001" required>
+                                                </div>
                                             </td>
                                             <td>
                                                 <input type="text" name="items[0][notes]" class="form-control">
@@ -143,26 +157,35 @@
                 const newRow = document.createElement('tr');
                 newRow.className = 'item-row';
                 newRow.innerHTML = `
-                                        <td>
-                                            <select name="items[${rowCount}][product_id]" class="form-select" required>
-                                                <option value="">{{ __('messages.select_product') }}</option>
-                                                @foreach(\App\Models\Product::withSum('stockBalances', 'available_quantity')->get() as $product)
-                                                    <option value="{{ $product->id }}">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->stock_balances_sum_available_quantity ?? 0 }})</option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <input type="number" name="items[${rowCount}][quantity]" class="form-control" step="0.001" min="0.001" required>
-                                        </td>
-                                        <td>
-                                            <input type="text" name="items[${rowCount}][notes]" class="form-control">
-                                        </td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeRow(this)">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    `;
+                                                                <td>
+                                                                    <select name="items[${rowCount}][product_id]" class="form-select product-select" required>
+                                                                        <option value="">{{ __('messages.select_product') }}</option>
+                                                                        @foreach(\App\Models\Product::with('units.measurementUnit')->withSum('stockBalances', 'available_quantity')->get() as $product)
+                                                                            <option value="{{ $product->id }}" data-units="{{ json_encode($product->units) }}">
+                                                                                {{ $product->name }} ({{ __('messages.stock') }}: {{ $product->stock_balances_sum_available_quantity }})
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </td>
+                                                                <td>
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-text p-0" style="width: 35%">
+                                                                            <select class="form-select border-0 bg-transparent item-unit-dropdown" name="items[${rowCount}][measurement_unit_id]" required style="box-shadow: none; cursor: pointer;">
+                                                                                <option value="">-</option>
+                                                                            </select>
+                                                                        </span>
+                                                                        <input type="number" name="items[${rowCount}][quantity]" class="form-control" step="0.001" min="0.001" required>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="text" name="items[${rowCount}][notes]" class="form-control">
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeRow(this)">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </button>
+                                                                </td>
+                                                            `;
                 tbody.appendChild(newRow);
                 if (window.initGlobalSelect2) window.initGlobalSelect2(newRow);
                 rowCount++;
@@ -176,6 +199,27 @@
                     alert('At least one item is required.');
                 }
             }
+
+            document.addEventListener('change', function (e) {
+                if (e.target && e.target.classList.contains('product-select')) {
+                    const selectedOption = e.target.options[e.target.selectedIndex];
+                    const unitsStr = selectedOption.getAttribute('data-units');
+                    const units = unitsStr ? JSON.parse(unitsStr) : [];
+
+                    const row = e.target.closest('tr');
+                    const unitDropdown = row.querySelector('.item-unit-dropdown');
+                    unitDropdown.innerHTML = '';
+
+                    if (units && units.length > 0) {
+                        units.forEach(u => {
+                            const unitName = u.measurement_unit ? u.measurement_unit.name : (u.name || (u.measurementUnit ? u.measurementUnit.name : ''));
+                            unitDropdown.add(new Option(unitName, u.measurement_unit_id));
+                        });
+                    } else {
+                        unitDropdown.add(new Option('-', ''));
+                    }
+                }
+            });
         </script>
     @endpush
 @endsection

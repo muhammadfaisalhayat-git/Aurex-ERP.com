@@ -14,6 +14,7 @@ class StockSupplyItem extends Model
     protected $fillable = [
         'stock_supply_id',
         'product_id',
+        'measurement_unit_id',
         'quantity',
         'unit_cost',
         'total_cost',
@@ -25,6 +26,11 @@ class StockSupplyItem extends Model
         'unit_cost' => 'decimal:4',
         'total_cost' => 'decimal:2',
     ];
+
+    public function measurementUnit()
+    {
+        return $this->belongsTo(MeasurementUnit::class);
+    }
 
     public function stockSupply()
     {

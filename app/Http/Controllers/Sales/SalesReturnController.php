@@ -93,6 +93,7 @@ class SalesReturnController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
@@ -151,6 +152,7 @@ class SalesReturnController extends Controller
 
             $salesReturn->items()->create([
                 'product_id' => $item['product_id'],
+                'measurement_unit_id' => $item['measurement_unit_id'],
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
                 'tax_amount' => $lineTax,
@@ -197,20 +199,20 @@ class SalesReturnController extends Controller
 
     public function show(SalesReturn $salesReturn)
     {
-        $salesReturn->load(['customer', 'branch', 'warehouse', 'items.product', 'salesInvoice', 'creator']);
+        $salesReturn->load(['customer', 'branch', 'warehouse', 'items.product', 'items.measurementUnit', 'salesInvoice', 'creator']);
         return view('sales.returns.show', compact('salesReturn'));
     }
 
     public function print(SalesReturn $salesReturn)
     {
-        $salesReturn->load(['customer', 'branch', 'warehouse', 'items.product', 'salesInvoice', 'creator', 'company']);
+        $salesReturn->load(['customer', 'branch', 'warehouse', 'items.product', 'items.measurementUnit', 'salesInvoice', 'creator', 'company']);
         return view('sales.returns.print', compact('salesReturn'));
     }
 
     public function pdf(SalesReturn $salesReturn)
     {
         try {
-            $salesReturn->load(['customer', 'branch', 'warehouse', 'items.product', 'salesInvoice', 'creator', 'company']);
+            $salesReturn->load(['customer', 'branch', 'warehouse', 'items.product', 'items.measurementUnit', 'salesInvoice', 'creator', 'company']);
 
             // Base64 logo for PDF
             $logoBase64 = null;

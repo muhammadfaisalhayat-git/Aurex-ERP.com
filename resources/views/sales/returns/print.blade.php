@@ -598,7 +598,7 @@
                 <tr>
                     <th style="width: 15%;">Item Code #</th>
                     <th style="width: 45%;">Item Description</th>
-                    <th style="width: 10%; text-align: center;">Qty</th>
+                    <th style="width: 15%; text-align: center;">Qty / Unit</th>
                     <th style="width: 15%; text-align: right;">Unit Price</th>
                     <th style="width: 15%; text-align: right;">Total</th>
                 </tr>
@@ -613,7 +613,10 @@
                                 <div style="font-size: 9pt; color: #64748b; margin-top: 2px;">{{ $item->notes }}</div>
                             @endif
                         </td>
-                        <td style="text-align: center;">{{ number_format($item->quantity, 2) }}</td>
+                        <td style="text-align: center;">
+                            {{ number_format($item->quantity, 2) }}
+                            <div style="font-size: 8pt; color: #64748b;">{{ $item->measurementUnit->name ?? '' }}</div>
+                        </td>
                         <td style="text-align: right;">{{ number_format($item->unit_price, 2) }}</td>
                         <td style="text-align: right;">{{ number_format($item->total_amount, 2) }}</td>
                     </tr>

@@ -56,6 +56,7 @@ class StockIssueOrderController extends Controller
             'issue_type' => 'required|in:sale,wastage,adjustment,return',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
         ]);
 
@@ -80,6 +81,7 @@ class StockIssueOrderController extends Controller
                 StockIssueOrderItem::create([
                     'stock_issue_order_id' => $issueOrder->id,
                     'product_id' => $item['product_id'],
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'quantity' => $item['quantity'],
                     'notes' => $item['notes'] ?? null,
                 ]);
@@ -96,7 +98,7 @@ class StockIssueOrderController extends Controller
 
     public function show($id)
     {
-        $issueOrder = StockIssueOrder::with(['items.product', 'warehouse', 'customer', 'vendor', 'creator', 'poster'])->findOrFail($id);
+        $issueOrder = StockIssueOrder::with(['items.product', 'items.measurementUnit', 'warehouse', 'customer', 'vendor', 'creator', 'poster'])->findOrFail($id);
         return view('inventory.stock-issue-orders.show', compact('issueOrder'));
     }
 
@@ -125,7 +127,7 @@ class StockIssueOrderController extends Controller
     public function downloadPdf($id)
     {
         try {
-            $issueOrder = StockIssueOrder::with(['items.product', 'warehouse', 'company'])->findOrFail($id);
+            $issueOrder = StockIssueOrder::with(['items.product', 'items.measurementUnit', 'warehouse', 'company'])->findOrFail($id);
 
             // Base64 logo for PDF
             $logoBase64 = null;

@@ -75,6 +75,7 @@ class QuotationController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.tax_rate' => 'nullable|numeric|min:0',
@@ -107,6 +108,7 @@ class QuotationController extends Controller
                 QuotationItem::create([
                     'quotation_id' => $quotation->id,
                     'product_id' => $item['product_id'],
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'tax_rate' => $item['tax_rate'] ?? 0,
@@ -132,13 +134,13 @@ class QuotationController extends Controller
 
     public function show(Quotation $quotation)
     {
-        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product']);
+        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'items.measurementUnit']);
         return view('sales.quotations.show', compact('quotation'));
     }
 
     public function edit(Quotation $quotation)
     {
-        $quotation->load('items.product');
+        $quotation->load(['items.product', 'items.measurementUnit']);
 
         // Add available stock for each item based on current warehouse/branch
         foreach ($quotation->items as $item) {
@@ -177,6 +179,7 @@ class QuotationController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.tax_rate' => 'nullable|numeric|min:0',
@@ -212,6 +215,7 @@ class QuotationController extends Controller
                 QuotationItem::create([
                     'quotation_id' => $quotation->id,
                     'product_id' => $item['product_id'],
+                    'measurement_unit_id' => $item['measurement_unit_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'tax_rate' => $item['tax_rate'] ?? 0,
@@ -254,7 +258,7 @@ class QuotationController extends Controller
 
     public function downloadPdf(Quotation $quotation)
     {
-        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'company']);
+        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'items.measurementUnit', 'company']);
 
         // Base64 logo for PDF
         $logoBase64 = null;
@@ -304,7 +308,7 @@ class QuotationController extends Controller
 
     public function print(Quotation $quotation)
     {
-        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'creator', 'company']);
+        $quotation->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'items.measurementUnit', 'creator', 'company']);
 
         // Reshape Arabic text for PDF
         if ($quotation->company) {

@@ -104,7 +104,8 @@
         @endif
         <div class="company-info" style="float: right;">
             <p style="margin:0;">
-                <strong>{{ $request->company_name_ar ?? $request->company->name ?? 'Aurex ERP' }}</strong></p>
+                <strong>{{ $request->company_name_ar ?? $request->company->name ?? 'Aurex ERP' }}</strong>
+            </p>
             <p style="margin:0;">{{ $request->company->address ?? '' }}</p>
             <p style="margin:0;">{{ $request->company->phone ?? '' }}</p>
         </div>
@@ -145,7 +146,11 @@
                 <tr>
                     <td style="text-align: center;">{{ $index + 1 }}</td>
                     <td>{{ $item->product_name_ar ?? $item->product->name }}</td>
-                    <td style="text-align: center;">{{ number_format($item->quantity, 3) }}</td>
+                    <td style="text-align: center;">
+                        {{ number_format($item->quantity, 3) }}
+                        <span
+                            style="font-size: 10px;">{{ $item->measurementUnit->name ?? $item->product->unit_of_measure ?? '' }}</span>
+                    </td>
                     <td>{{ $item->notes ?? '-' }}</td>
                 </tr>
             @endforeach

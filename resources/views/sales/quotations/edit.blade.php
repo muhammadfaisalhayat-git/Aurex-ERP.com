@@ -161,8 +161,10 @@
                         <table class="table table-hover mb-0" id="itemsTable">
                             <thead>
                                 <tr class="bg-light">
-                                    <th style="width: 50%">{{ __('messages.product') }}</th>
-                                    <th style="width: 10%">{{ __('messages.quantity') }}</th>
+                                    <th style="width: 45%">{{ __('messages.product') }}</th>
+                                    <th style="width: 15%">{{ __('messages.quantity') }} /
+                                        {{ __('messages.unit') ?? 'Unit' }}
+                                    </th>
                                     <th style="width: 14%">{{ __('messages.unit_price') }}</th>
                                     <th style="width: 9%">{{ __('messages.tax') }} (%)</th>
                                     <th style="width: 9%">{{ __('messages.tax_amount') }}</th>
@@ -253,7 +255,8 @@
                         'product_code' => $p->product_code,
                         'sale_price' => $p->sale_price,
                         'cost_price' => $p->cost_price,
-                        'tax_rate' => $p->tax_rate
+                        'tax_rate' => $p->tax_rate,
+                        'units' => $p->units
                     ];
                 }));
                 const customers = @json($customers->map(function ($c) {
@@ -305,11 +308,11 @@
                     customerHighlightIndex = -1;
                     if (results.length > 0) {
                         customerResults.innerHTML = results.map(c => `
-                                                                                                                                <div class="search-result-item p-2 border-bottom" data-id="${c.id}" data-name="${c.name}" style="cursor: pointer;">
-                                                                                                                                    <div class="fw-bold">${c.name}</div>
-                                                                                                                                    <small class="text-muted">${c.code || ''}</small>
-                                                                                                                                </div>
-                                                                                                                            `).join('');
+                                                                                                                                                        <div class="search-result-item p-2 border-bottom" data-id="${c.id}" data-name="${c.name}" style="cursor: pointer;">
+                                                                                                                                                            <div class="fw-bold">${c.name}</div>
+                                                                                                                                                            <small class="text-muted">${c.code || ''}</small>
+                                                                                                                                                        </div>
+                                                                                                                                                    `).join('');
                         customerResults.style.display = 'block';
                     } else {
                         customerResults.innerHTML = '<div class="p-2 text-muted">No customer found</div>';
@@ -365,36 +368,54 @@
                     const productId = data ? data.product_id : '';
                     const taxRate = data ? data.tax_rate : (taxSetting.tax_enabled ? taxSetting.default_tax_rate : 0);
 
+                    const unitId = data ? data.measurement_unit_id : '';
+                    let unitsHtml = '<option value="">-</option>';
+                    const productUnits = product ? product.units : (data && data.product ? data.product.units : []);
+                    if (productUnits) {
+                        productUnits.forEach(u => {
+                            const selected = u.measurement_unit_id == unitId ? 'selected' : '';
+                            const unitName = u.measurement_unit ? u.measurement_unit.name : (u.name || (u.measurementUnit ? u.measurementUnit.name : ''));
+                            unitsHtml += `<option value="${u.measurement_unit_id}" ${selected}>${unitName}</option>`;
+                        });
+                    }
+
                     tr.innerHTML = `
-                                                                                                                            <td>
-                                                                                                                                <div class="position-relative product-search-container">
-                                                                                                                                    <input type="text" class="form-control form-control-sm bg-white product-search-input" 
-                                                                                                                                        placeholder="{{ __('messages.select_product') }}" autocomplete="off" value="${productName}" required>
-                                                                                                                                    <input type="hidden" name="items[${index}][product_id]" class="product-id-input" value="${productId}" required>
-                                                                                                                                    <div class="product-results search-results-container glassy" style="display: none; position: absolute; z-index: 1000; width: 100%;"></div>
-                                                                                                                                </div>
-                                                                                                                            </td>
-                                                                                                                            <td>
-                                                                                                                                <input type="number" step="0.001" class="form-control form-control-sm bg-white quantity-input" name="items[${index}][quantity]" value="${data ? data.quantity : 1}" required min="0.001">
-                                                                                                                            </td>
-                                                                                                                            <td>
-                                                                                                                                <input type="number" step="0.01" class="form-control form-control-sm bg-white price-input" name="items[${index}][unit_price]" value="${data ? data.unit_price : 0}" required min="0">
-                                                                                                                            </td>
-                                                                                                                            <td>
-                                                                                                                                <input type="number" step="0.01" class="form-control form-control-sm bg-light tax-rate-input" name="items[${index}][tax_rate]" value="${taxRate}" readonly tabindex="-1">
-                                                                                                                            </td>
-                                                                                                                            <td>
-                                                                                                                                <input type="number" step="0.01" class="form-control form-control-sm bg-light tax-amount-input" name="items[${index}][tax_amount]" value="${data ? data.tax_amount : '0.00'}" readonly tabindex="-1">
-                                                                                                                            </td>
-                                                                                                                            <td>
-                                                                                                                                <input type="number" step="0.01" class="form-control form-control-sm bg-light row-total-input" name="items[${index}][net_amount]" value="${data ? data.net_amount : '0.00'}" readonly tabindex="-1">
-                                                                                                                            </td>
-                                                                                                                            <td class="text-center">
-                                                                                                                                <button type="button" class="btn btn-sm btn-link text-danger remove-item p-0">
-                                                                                                                                    <i class="fas fa-trash"></i>
-                                                                                                                                </button>
-                                                                                                                            </td>
-                                                                                                                        `;
+                                                                                                                                                    <td>
+                                                                                                                                                        <div class="position-relative product-search-container">
+                                                                                                                                                            <input type="text" class="form-control form-control-sm bg-white product-search-input" 
+                                                                                                                                                                placeholder="{{ __('messages.select_product') }}" autocomplete="off" value="${productName}" required>
+                                                                                                                                                            <input type="hidden" name="items[${index}][product_id]" class="product-id-input" value="${productId}" required>
+                                                                                                                                                            <div class="product-results search-results-container glassy" style="display: none; position: absolute; z-index: 1000; width: 100%;"></div>
+                                                                                                                                                        </div>
+                                                                                                                                                    </td>
+                                                                                                                                                        <td>
+                                                                                                                                                            <div class="input-group input-group-sm">
+                                                                                                                                                                <span class="input-group-text p-0" style="width: 45%">
+                                                                                                                                                                    <select class="form-select form-select-sm border-0 bg-transparent item-unit-dropdown" name="items[${index}][measurement_unit_id]" required style="box-shadow: none; cursor: pointer;">
+                                                                                                                                                                        ${unitsHtml}
+                                                                                                                                                                    </select>
+                                                                                                                                                                </span>
+                                                                                                                                                                <input type="number" step="0.001" class="form-control form-control-sm bg-white quantity-input" name="items[${index}][quantity]" value="${data ? data.quantity : 1}" required min="0.001">
+                                                                                                                                                            </div>
+                                                                                                                                                        </td>
+                                                                                                                                                    <td>
+                                                                                                                                                        <input type="number" step="0.01" class="form-control form-control-sm bg-white price-input" name="items[${index}][unit_price]" value="${data ? data.unit_price : 0}" required min="0">
+                                                                                                                                                    </td>
+                                                                                                                                                    <td>
+                                                                                                                                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light tax-rate-input" name="items[${index}][tax_rate]" value="${taxRate}" readonly tabindex="-1">
+                                                                                                                                                    </td>
+                                                                                                                                                    <td>
+                                                                                                                                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light tax-amount-input" name="items[${index}][tax_amount]" value="${data ? data.tax_amount : '0.00'}" readonly tabindex="-1">
+                                                                                                                                                    </td>
+                                                                                                                                                    <td>
+                                                                                                                                                        <input type="number" step="0.01" class="form-control form-control-sm bg-light row-total-input" name="items[${index}][net_amount]" value="${data ? data.net_amount : '0.00'}" readonly tabindex="-1">
+                                                                                                                                                    </td>
+                                                                                                                                                    <td class="text-center">
+                                                                                                                                                        <button type="button" class="btn btn-sm btn-link text-danger remove-item p-0">
+                                                                                                                                                            <i class="fas fa-trash"></i>
+                                                                                                                                                        </button>
+                                                                                                                                                    </td>
+                                                                                                                                                `;
 
                     itemsBody.appendChild(tr);
                     if (window.initGlobalSelect2) window.initGlobalSelect2(tr);
@@ -482,28 +503,29 @@
                                     const stockLabel = '{{ __("messages.stock") ?? "Stock" }}';
 
                                     return `
-                                                                                <div class="search-result-item p-2 border-bottom" 
-                                                                                    data-id="${p.id}" 
-                                                                                    data-name="${currentName}" 
-                                                                                    data-price="${p.sale_price}" 
-                                                                                    data-stock="${p.available_quantity || 0}"
-                                                                                    style="cursor: pointer;">
-                                                                                    <div class="d-flex justify-content-between align-items-start w-100">
-                                                                                        <div class="result-content pe-3 d-flex flex-column gap-1 flex-grow-1">
-                                                                                            <div class="fw-bold d-flex align-items-center gap-2 flex-wrap">
-                                                                                                ${p.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.7rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;">${p.code}</span>` : ''}
-                                                                                                <span>${currentName}</span>
-                                                                                            </div>
-                                                                                            ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
-                                                                                            <small class="${stockColor} fw-bold d-block"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> {{ __('messages.stock') }}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</small>
-                                                                                        </div>
-                                                                                        <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-auto small text-nowrap">
-                                                                                            <span style="color:#198754; font-weight:600;" title="Sale Price">{{ __('messages.sale_price') }}: ${parseFloat(p.sale_price || 0).toFixed(2)}</span>
-                                                                                            <span style="color:#6c757d; font-weight:600;" title="Cost Price">{{ __('messages.cost_price') }}: ${parseFloat(p.cost_price || 0).toFixed(2)}</span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            `;
+                                                                                                        <div class="search-result-item p-2 border-bottom" 
+                                                                                                            data-id="${p.id}" 
+                                                                                                            data-name="${currentName}" 
+                                                                                                            data-price="${p.sale_price}" 
+                                                                                                            data-stock="${p.available_quantity || 0}"
+                                                                                                            data-units='${JSON.stringify(p.units || []).replace(/'/g, "&apos;")}'
+                                                                                                            style="cursor: pointer;">
+                                                                                                            <div class="d-flex justify-content-between align-items-start w-100">
+                                                                                                                <div class="result-content pe-3 d-flex flex-column gap-1 flex-grow-1">
+                                                                                                                    <div class="fw-bold d-flex align-items-center gap-2 flex-wrap">
+                                                                                                                        ${p.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.7rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;">${p.code}</span>` : ''}
+                                                                                                                        <span>${currentName}</span>
+                                                                                                                    </div>
+                                                                                                                    ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                                                                                                    <small class="${stockColor} fw-bold d-block"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> {{ __('messages.stock') }}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</small>
+                                                                                                                </div>
+                                                                                                                <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-auto small text-nowrap">
+                                                                                                                    <span style="color:#198754; font-weight:600;" title="Sale Price">{{ __('messages.sale_price') }}: ${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                                                                                                                    <span style="color:#6c757d; font-weight:600;" title="Cost Price">{{ __('messages.cost_price') }}: ${parseFloat(p.cost_price || 0).toFixed(2)}</span>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    `;
                                 }).join('');
                                 resultsDiv.style.display = 'block';
 
@@ -526,6 +548,23 @@
                                         idInput.value = this.dataset.id;
                                         tr.dataset.availableStock = this.dataset.stock;
                                         tr.querySelector('.price-input').value = this.dataset.price;
+
+                                        const unitDropdown = tr.querySelector('.item-unit-dropdown');
+                                        if (unitDropdown) {
+                                            unitDropdown.innerHTML = '';
+                                            const units = JSON.parse(this.dataset.units || '[]');
+                                            if (units && units.length > 0) {
+                                                units.forEach(u => {
+                                                    const option = new Option(u.name, u.measurement_unit_id);
+                                                    option.dataset.package = u.package;
+                                                    option.dataset.price = u.price;
+                                                    unitDropdown.add(option);
+                                                });
+                                            } else {
+                                                unitDropdown.add(new Option('-', ''));
+                                            }
+                                        }
+
                                         resultsDiv.style.display = 'none';
                                         calculateRow(tr);
                                     });
@@ -542,19 +581,36 @@
                         });
                 }
 
+                itemsBody.addEventListener('change', function (e) {
+                    if (e.target.classList.contains('item-unit-dropdown')) {
+                        const tr = e.target.closest('tr');
+                        const selectedOption = e.target.options[e.target.selectedIndex];
+                        const unitPrice = selectedOption.dataset.price;
+                        if (unitPrice !== undefined && unitPrice !== null && unitPrice !== '') {
+                            tr.querySelector('.price-input').value = parseFloat(unitPrice).toFixed(2);
+                            calculateRow(tr);
+                        }
+                    }
+                });
+
                 function calculateRow(tr) {
                     const qEl = tr.querySelector('.quantity-input');
                     const qty = parseFloat(qEl.value) || 0;
                     const availableStock = parseFloat(tr.dataset.availableStock) || 0;
 
                     if (qty > availableStock && availableStock > 0) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
-                            text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
-                            confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
-                        });
-                        qEl.value = availableStock;
+                        if (!tr._isAlerting) {
+                            tr._isAlerting = true;
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
+                                text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
+                                confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                            }).then(() => {
+                                tr._isAlerting = false;
+                            });
+                            qEl.value = availableStock;
+                        }
                         return calculateRow(tr);
                     }
 

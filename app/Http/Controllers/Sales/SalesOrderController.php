@@ -96,6 +96,7 @@ class SalesOrderController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
@@ -135,6 +136,7 @@ class SalesOrderController extends Controller
             SalesOrderItem::create([
                 'sales_order_id' => $salesOrder->id,
                 'product_id' => $item['product_id'],
+                'measurement_unit_id' => $item['measurement_unit_id'],
                 'description' => $product->name,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
@@ -169,7 +171,7 @@ class SalesOrderController extends Controller
 
     public function show(SalesOrder $salesOrder)
     {
-        $salesOrder->load(['customer', 'branch', 'warehouse', 'salesman', 'quotation', 'items.product', 'statusHistory.changer', 'salesInvoices']);
+        $salesOrder->load(['customer', 'branch', 'warehouse', 'salesman', 'quotation', 'items.product', 'items.measurementUnit', 'statusHistory.changer', 'salesInvoices']);
         return view('sales.sales-orders.show', compact('salesOrder'));
     }
 
@@ -185,7 +187,7 @@ class SalesOrderController extends Controller
         $products = Product::sellable()->active()->get();
         $taxSetting = TaxSetting::first();
 
-        $salesOrder->load('items.product');
+        $salesOrder->load(['items.product', 'items.measurementUnit']);
 
         // Add available stock for each item based on current warehouse/branch
         foreach ($salesOrder->items as $item) {
@@ -223,6 +225,7 @@ class SalesOrderController extends Controller
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.measurement_unit_id' => 'required|exists:measurement_units,id',
             'items.*.quantity' => 'required|numeric|min:0.001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
@@ -259,6 +262,7 @@ class SalesOrderController extends Controller
             SalesOrderItem::create([
                 'sales_order_id' => $salesOrder->id,
                 'product_id' => $item['product_id'],
+                'measurement_unit_id' => $item['measurement_unit_id'],
                 'description' => $product->name,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
@@ -467,7 +471,7 @@ class SalesOrderController extends Controller
 
     public function print(SalesOrder $salesOrder)
     {
-        $salesOrder->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product']);
+        $salesOrder->load(['customer', 'branch', 'warehouse', 'salesman', 'items.product', 'items.measurementUnit']);
         return view('sales.sales-orders.print', compact('salesOrder'));
     }
 }

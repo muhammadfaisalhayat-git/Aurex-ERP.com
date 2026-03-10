@@ -117,9 +117,8 @@
                                 <table class="table table-flush align-middle mb-0" id="itemsTable">
                                     <thead class="bg-light text-muted small text-uppercase fw-bold">
                                         <tr>
-                                            <th class="px-4 py-3" style="width: 35%;">{{ __('messages.product') }}</th>
-                                            <th class="py-3 text-center" style="width: 15%;">{{ __('messages.quantity') }}
-                                            </th>
+                                            <th class="px-4 py-3" style="width: 25%;">{{ __('messages.product') }}</th>
+                                            <th class="py-3 text-center" style="width: 25%;">{{ __('messages.quantity') }} / {{ __('messages.unit') ?? 'Unit' }}</th>
                                             <th class="py-3 text-center" style="width: 15%;">{{ __('messages.unit_price') }}
                                             </th>
                                             <th class="py-3 text-center" style="width: 10%;">{{ __('messages.discount') }} %
@@ -139,6 +138,7 @@
                                                             <option value="{{ $product->id }}"
                                                                 data-price="{{ $product->purchase_price }}"
                                                                 data-tax="{{ $product->tax_rate ?? $taxSetting->default_tax_rate }}"
+                                                                data-units="{{ json_encode($product->units) }}"
                                                                 {{ $item->product_id == $product->id ? 'selected' : '' }}>
                                                                 {{ $product->code }} - {{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})
                                                             </option>
@@ -146,9 +146,32 @@
                                                     </select>
                                                 </td>
                                                 <td>
-                                                    <input type="number" name="items[{{ $index }}][quantity]"
-                                                        class="form-control text-center qty-input" step="0.001" min="0.001"
-                                                        required value="{{ $item->quantity }}">
+                                                    <div class="input-group input-group-sm w-100">
+                                                        <span class="input-group-text p-0" style="width: 40%">
+                                                            <select class="form-select border-0 bg-transparent item-unit-dropdown" name="items[{{ $index }}][measurement_unit_id]" required style="box-shadow: none; cursor: pointer;">
+                                                                @php
+                                                                    $selectedProduct = $products->firstWhere('id', $item->product_id);
+                                                                    $units = $selectedProduct ? $selectedProduct->units : collect();
+                                                                @endphp
+                                                                @if($units->count() > 0)
+                                                                    @foreach($units as $unit)
+                                                                        @php
+                                                                            $unitId = is_array($item) ? ($item['measurement_unit_id'] ?? '') : $item->measurement_unit_id;
+                                                                            $unitName = $unit->measurementUnit ? $unit->measurementUnit->name : $unit->name;
+                                                                        @endphp
+                                                                        <option value="{{ $unit->measurement_unit_id }}" {{ $unit->measurement_unit_id == $unitId ? 'selected' : '' }}>
+                                                                            {{ $unitName }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                @else
+                                                                    <option value="">-</option>
+                                                                @endif
+                                                            </select>
+                                                        </span>
+                                                        <input type="number" name="items[{{ $index }}][quantity]"
+                                                            class="form-control text-center qty-input" step="0.001" min="0.001"
+                                                            required value="{{ $item->quantity }}">
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     <input type="number" name="items[{{ $index }}][unit_price]"
@@ -279,6 +302,7 @@
                 newRow.find('.row-total').text('0.00');
                 newRow.find('.btn-remove').prop('disabled', false);
                 newRow.find('.select2-container').remove();
+                newRow.find('.item-unit-dropdown').attr('name', `items[${rowCount}][measurement_unit_id]`).empty().append('<option value="">-</option>');
 
                 $('#itemsBody').append(newRow);
                 if (window.initGlobalSelect2) window.initGlobalSelect2(newRow[0] || newRow);
@@ -298,8 +322,35 @@
             $(document).on('change', '.select2-product', function () {
                 let selected = $(this).find(':selected');
                 let price = selected.data('price') || 0;
-                $(this).closest('tr').find('.price-input').val(parseFloat(price).toFixed(2));
+                let unitsArr = selected.data('units');
+                let $row = $(this).closest('tr');
+                
+                $row.find('.price-input').val(parseFloat(price).toFixed(2));
+                
+                let $unitDropdown = $row.find('.item-unit-dropdown');
+                $unitDropdown.empty();
+                if (unitsArr && Array.isArray(unitsArr) && unitsArr.length > 0) {
+                    unitsArr.forEach(u => {
+                        const unitName = u.measurement_unit ? u.measurement_unit.name : (u.name || (u.measurementUnit ? u.measurementUnit.name : ''));
+                        const option = new Option(unitName, u.measurement_unit_id);
+                        $(option).attr('data-price', u.price);
+                        $unitDropdown.append(option);
+                    });
+                } else {
+                    $unitDropdown.append(new Option('-', ''));
+                }
+                
                 calculateTotals();
+            });
+
+            $(document).on('change', '.item-unit-dropdown', function() {
+                const $row = $(this).closest('tr');
+                const $option = $(this).find('option:selected');
+                const price = $option.attr('data-price');
+                if (price !== undefined && price !== null && price !== '') {
+                    $row.find('.price-input').val(parseFloat(price).toFixed(2));
+                    calculateTotals();
+                }
             });
 
             $(document).on('input', '.qty-input, .price-input, .discount-input, #shipping_amount', function () {

@@ -97,7 +97,8 @@
                                     <tr>
                                         <th>#</th>
                                         <th>{{ __('messages.product') }}</th>
-                                        <th class="text-end">{{ __('messages.quantity') }}</th>
+                                        <th class="text-end">{{ __('messages.quantity') }} /
+                                            {{ __('messages.unit') ?? 'Unit' }}</th>
                                         <th class="text-end">{{ __('messages.unit_price') }}</th>
                                         <th class="text-end">{{ __('messages.tax') }} %</th>
                                         <th class="text-end">{{ __('messages.tax_amount') }}</th>
@@ -112,7 +113,10 @@
                                                 <strong>{{ $item->product->code }}</strong><br>
                                                 {{ $item->product->name_en }}
                                             </td>
-                                            <td class="text-end">{{ number_format($item->quantity, 2) }}</td>
+                                            <td class="text-end">
+                                                {{ number_format($item->quantity, 2) }}
+                                                <small class="text-muted">{{ $item->measurementUnit->name ?? '' }}</small>
+                                            </td>
                                             <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
                                             <td class="text-end">{{ number_format($item->tax_rate, 2) }}%</td>
                                             <td class="text-end">{{ number_format($item->tax_amount, 2) }}</td>

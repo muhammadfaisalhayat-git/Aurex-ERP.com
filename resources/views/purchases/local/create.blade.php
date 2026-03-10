@@ -99,8 +99,8 @@
                                 <table class="table" id="itemsTable">
                                     <thead>
                                         <tr>
-                                            <th>{{ __('local_purchase.item') }}</th>
-                                            <th>{{ __('local_purchase.quantity') }}</th>
+                                            <th style="width: 30%">{{ __('local_purchase.item') }}</th>
+                                            <th style="width: 25%">{{ __('local_purchase.quantity') }} / {{ __('messages.unit') ?? 'Unit' }}</th>
                                             <th>{{ __('local_purchase.unit_price') }}</th>
                                             <th>{{ __('local_purchase.discount') }}</th>
                                             <th>{{ __('local_purchase.tax_rate') }}</th>
@@ -204,15 +204,24 @@
                 <select class="form-select item-select" name="items[INDEX][product_id]" required>
                     <option value="">{{ __('messages.select_item') }}</option>
                     @foreach($products as $product)
-                        <option value="{{ $product->id }}" data-price="{{ $product->purchase_price ?? $product->sale_price }}">
+                        <option value="{{ $product->id }}" 
+                                data-price="{{ $product->purchase_price ?? $product->sale_price }}"
+                                data-units="{{ json_encode($product->units) }}">
                             {{ $product->code }} - {{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})
                         </option>
                     @endforeach
                 </select>
             </td>
             <td>
-                <input type="number" class="form-control quantity" name="items[INDEX][quantity]" value="1" min="0.01"
-                    step="0.01" required>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text p-0" style="width: 40%">
+                        <select class="form-select border-0 bg-transparent item-unit-dropdown" name="items[INDEX][measurement_unit_id]" required style="box-shadow: none; cursor: pointer;">
+                            <option value="">-</option>
+                        </select>
+                    </span>
+                    <input type="number" class="form-control quantity" name="items[INDEX][quantity]" value="1" min="0.01"
+                        step="0.01" required>
+                </div>
             </td>
             <td>
                 <input type="number" class="form-control unit-price" name="items[INDEX][unit_price]" value="0" min="0"
@@ -265,9 +274,35 @@
                     placeholder: '{{ __("messages.select_item") }}',
                     allowClear: true,
                 }).on('change', function () {
-                    const price = productPrices[$(this).val()] || 0;
+                    const selected = $(this).find(':selected');
+                    const price = selected.data('price') || 0;
+                    const unitsArr = selected.data('units');
+                    
                     $(row).find('.unit-price').val(price);
+                    
+                    let $unitDropdown = $(row).find('.item-unit-dropdown');
+                    $unitDropdown.empty();
+                    if (unitsArr && Array.isArray(unitsArr) && unitsArr.length > 0) {
+                        unitsArr.forEach(u => {
+                            const unitName = u.measurement_unit ? u.measurement_unit.name : (u.name || (u.measurementUnit ? u.measurementUnit.name : ''));
+                            const option = new Option(unitName, u.measurement_unit_id);
+                            $(option).attr('data-price', u.price);
+                            $unitDropdown.append(option);
+                        });
+                    } else {
+                        $unitDropdown.append(new Option('-', ''));
+                    }
+                    
                     calculateRowTotal(row);
+                });
+
+                $(row).find('.item-unit-dropdown').on('change', function() {
+                    const $option = $(this).find('option:selected');
+                    const price = $option.attr('data-price');
+                    if (price !== undefined && price !== null && price !== '') {
+                        $(row).find('.unit-price').val(price);
+                        calculateRowTotal(row);
+                    }
                 });
             }
 

@@ -15,6 +15,7 @@ class StockLedger extends Model
     protected $fillable = [
         'company_id',
         'product_id',
+        'measurement_unit_id',
         'warehouse_id',
         'transaction_date',
         'reference_type',
@@ -40,6 +41,11 @@ class StockLedger extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function measurementUnit()
+    {
+        return $this->belongsTo(MeasurementUnit::class);
     }
 
     public function warehouse()

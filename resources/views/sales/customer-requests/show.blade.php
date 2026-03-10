@@ -136,7 +136,7 @@
                         <thead>
                             <tr class="bg-light">
                                 <th>Product</th>
-                                <th class="text-center">Quantity</th>
+                                <th class="text-center">Quantity / Unit</th>
                                 <th class="text-end">Unit Price</th>
                                 <th class="text-center">Tax %</th>
                                 <th class="text-end">Tax Amount</th>
@@ -148,7 +148,10 @@
                             @forelse($customerRequest->items as $item)
                                 <tr>
                                     <td>{{ $item->product->name_en ?? 'Unknown Product' }}</td>
-                                    <td class="text-center">{{ number_format($item->quantity, 2) }}</td>
+                                    <td class="text-center">
+                                        {{ number_format($item->quantity, 2) }}
+                                        <small class="text-muted">{{ $item->measurementUnit->name ?? '' }}</small>
+                                    </td>
                                     <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
                                     <td class="text-center">{{ number_format($item->tax_rate, 2) }}%</td>
                                     <td class="text-end">{{ number_format($item->tax_amount, 2) }}</td>
