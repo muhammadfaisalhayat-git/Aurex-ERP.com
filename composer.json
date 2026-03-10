@@ -10,9 +10,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "maatwebsite/excel": "^3.1",
-        "masbug/flysystem-google-drive-ext": "2.4",
         "simplesoftwareio/simple-qrcode": "4.2",
-        "spatie/laravel-backup": "9.0",
         "spatie/laravel-permission": "^6.0",
         "thiagoalessio/tesseract_ocr": "^2.13"
     },

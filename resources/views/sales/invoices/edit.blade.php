@@ -383,16 +383,16 @@
                                                                     data-cost="${p.cost_price || 0}"
                                                                     data-stock="${p.available_quantity || 0}"
                                                                     style="cursor: pointer;">
-                                                                    <div class="d-flex justify-content-between align-items-start">
-                                                                        <div class="result-content">
+                                                                    <div class="d-flex justify-content-between align-items-start w-100">
+                                                                        <div class="result-content pe-3 d-flex flex-column gap-1 flex-grow-1">
                                                                             <div class="fw-bold d-flex align-items-center gap-2 flex-wrap">
                                                                                 ${p.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.7rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;">${p.code}</span>` : ''}
                                                                                 <span>${currentName}</span>
                                                                             </div>
                                                                             ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
-                                                                            <small class="${stockColor} fw-bold"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> ${stockLabel}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</small>
+                                                                            <small class="${stockColor} fw-bold d-block"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> ${stockLabel}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</small>
                                                                         </div>
-                                                                        <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-2 small">
+                                                                        <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-auto small text-nowrap">
                                                                             <span style="color:#198754; font-weight:600;" title="Sale Price">{{ __('messages.sale_price') }}: ${parseFloat(p.sale_price || 0).toFixed(2)}</span>
                                                                             <span style="color:#6c757d; font-weight:600;" title="Cost Price">{{ __('messages.cost_price') }}: ${parseFloat(p.cost_price || 0).toFixed(2)}</span>
                                                                         </div>

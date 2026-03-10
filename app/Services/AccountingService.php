@@ -49,7 +49,7 @@ class AccountingService
             $code = $prefix . str_pad($nextSeq, 2, '0', STR_PAD_LEFT);
             $exists = ChartOfAccount::where('code', $code)
                 ->where('company_id', session('active_company_id'))
-                ->exists();
+                exists();
             if (!$exists) {
                 break;
             }
@@ -1031,6 +1031,7 @@ class AccountingService
             return true;
         });
     }
+
     /**
      * Unpost/Reverse a document's ledger entries.
      */

@@ -68,12 +68,12 @@ class PurchaseInvoice extends Model
 
     public function creator()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class , 'created_by');
     }
 
     public function poster()
     {
-        return $this->belongsTo(User::class, 'posted_by');
+        return $this->belongsTo(User::class , 'posted_by');
     }
 
     public function items()

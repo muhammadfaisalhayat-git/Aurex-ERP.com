@@ -511,7 +511,7 @@
                         results.style.display = 'none';
                         return;
                     }
-                    
+
                     if (search.length < 1) {
                         results.style.display = 'none';
                         return;

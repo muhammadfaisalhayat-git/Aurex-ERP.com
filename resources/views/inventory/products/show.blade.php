@@ -155,7 +155,7 @@
                                         {{ __('messages.product_image') }}</h6>
                                     @if($product->image_path)
                                         <img src="{{ asset('storage/' . $product->image_path) }}"
-                                            class="img-fluid rounded border shadow-sm" alt="{{ $product->name }}">
+                                            class="img-fluid rounded border shadow-sm" alt="{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})">
                                     @else
                                         <div class="text-center py-5 bg-light rounded border border-dashed">
                                             <i class="fas fa-box-open fa-4x text-muted mb-2"></i>
