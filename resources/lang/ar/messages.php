@@ -59,6 +59,8 @@ return [
     'instance_name' => 'اسم المثيل',
     'deployment_url' => 'رابط النشر',
     'deployment_type' => 'نوع النشر',
+    'location' => 'الموقع',
+    'notes' => 'ملاحظات',
     'instance_tracker' => 'تتبع المثيلات',
     'online' => 'متصل (أونلاين)',
     'offline' => 'غير متصل (أوفلاين)',

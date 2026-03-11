@@ -292,6 +292,14 @@
                                                     <option value="offline">{{ __('messages.offline') }}</option>
                                                 </select>
                                             </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small mb-1">{{ __('messages.location') ?? 'Location' }}</label>
+                                                <input type="text" name="location" class="form-control form-control-sm" placeholder="e.g. AWS us-east-1, Local Server">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small mb-1">{{ __('messages.notes') ?? 'Notes' }}</label>
+                                                <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Environment details..."></textarea>
+                                            </div>
                                             <button type="submit" class="btn btn-primary btn-sm w-100">{{ __('messages.save') }}</button>
                                         </form>
                                     </div>
@@ -311,8 +319,8 @@
 
                                         @if($deployments->isEmpty())
                                             <div class="text-center py-5">
-                                                <img src="https://illustrations.popsy.co/amber/setup.svg" alt="Empty" style="width: 150px;" class="mb-3 opacity-50">
-                                                <p class="text-muted">{{ __('messages.no_data_found') }}</p>
+                                                <i class="fas fa-server fa-4x text-muted mb-3 opacity-25"></i>
+                                                <p class="text-muted fw-semibold">{{ __('messages.no_data_found') }}</p>
                                             </div>
                                         @else
                                             <div class="table-responsive">

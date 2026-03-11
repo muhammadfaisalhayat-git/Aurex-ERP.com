@@ -59,6 +59,8 @@ return [
     'instance_name' => 'Instance Name',
     'deployment_url' => 'Deployment URL',
     'deployment_type' => 'Deployment Type',
+    'location' => 'Location',
+    'notes' => 'Notes',
     'instance_tracker' => 'Instance Tracker',
     'online' => 'Online',
     'offline' => 'Offline',
