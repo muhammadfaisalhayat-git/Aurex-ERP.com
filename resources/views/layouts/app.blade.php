@@ -135,15 +135,33 @@
 
         // Cleanup Bootstrap state before Turbo caches/replaces the body
         document.addEventListener('turbo:before-cache', function () {
+            // Hide Bootstrap Dropdowns
             document.querySelectorAll('.dropdown-toggle.show').forEach(function (el) {
                 const dropdown = bootstrap.Dropdown.getOrCreateInstance(el);
                 if (dropdown) dropdown.hide();
             });
 
-            // Also ensure tooltips/popovers are hidden if any
+            // Ensure tooltips/popovers are hidden
             document.querySelectorAll('.tooltip.show, .popover.show').forEach(function (el) {
                 el.remove();
             });
+
+            // Cleanup SweetAlert
+            if (typeof Swal !== 'undefined') {
+                Swal.close();
+            }
+            document.querySelectorAll('.swal2-container').forEach(el => el.remove());
+            document.body.classList.remove('swal2-shown', 'swal2-height-auto');
+
+            // Cleanup Bootstrap Modals and Backdrops
+            document.querySelectorAll('.modal.show').forEach(function (el) {
+                const modal = bootstrap.Modal.getInstance(el);
+                if (modal) modal.hide();
+            });
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
         });
 
         // Global Turbo Error Handling

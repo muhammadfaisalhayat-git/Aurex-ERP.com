@@ -131,6 +131,12 @@
                             class="menu-link {{ request()->routeIs('acp.system.mandatory-fields.*') ? 'active' : '' }}">
                             <i class="fas fa-asterisk fa-fw me-2"></i> Mandatory Fields
                         </a>
+                        @if(auth()->user()->hasRole('Super Admin'))
+                            <a href="{{ route('deployments.index') }}"
+                                class="menu-link {{ request()->routeIs('deployments.*') ? 'active' : '' }}">
+                                <i class="fas fa-server fa-fw me-2"></i> {{ __('messages.deployments') ?? 'Deployments' }}
+                            </a>
+                        @endif
                     </div>
                 </div>
             @endcanany
