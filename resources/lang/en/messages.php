@@ -66,6 +66,16 @@ return [
     'offline' => 'Offline',
     'server_info' => 'Server Information',
     'deployment_frame_hint' => 'Use this frame to track all your application installations across different locations.',
+
+    // Activation Security Phase
+    'activation_required' => 'Activation Required',
+    'system_activation' => 'System Activation',
+    'activation_desc' => 'Please configure the core network layers to unlock this deployment instance.',
+    'master_server_address' => 'Master Server Address',
+    'master_server_hint' => 'The primary URL where the central database and main application are hosted.',
+    'deployment_url_hint' => 'The specific URL accessing this local/instance deployment right now.',
+    'activate_system' => 'Activate System',
+    'secure_connection' => 'Secure Setup Connection',
     'security_configuration' => 'Security Configuration',
     'admin_email_hint' => 'This email will be used to receive security codes for critical actions like Factory Reset.',
     'security_code' => 'Security Code',

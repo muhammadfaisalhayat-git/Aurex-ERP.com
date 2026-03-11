@@ -66,6 +66,16 @@ return [
     'offline' => 'غير متصل (أوفلاين)',
     'server_info' => 'معلومات الخادم',
     'deployment_frame_hint' => 'استخدم هذا الإطار لتتبع جميع عمليات تثبيت التطبيق الخاص بك في مواقع مختلفة.',
+
+    // Activation Security Phase
+    'activation_required' => 'التفعيل مطلوب',
+    'system_activation' => 'تفعيل النظام',
+    'activation_desc' => 'الرجاء تكوين طبقات الشبكة الأساسية لفتح مثيل النشر هذا.',
+    'master_server_address' => 'عنوان الخادم الرئيسي',
+    'master_server_hint' => 'الرابط الأساسي حيث يتم استضافة قاعدة البيانات المركزية والتطبيق الرئيسي.',
+    'deployment_url_hint' => 'الرابط المحدد للوصول إلى هذا النشر المحلي/المثيل الآن.',
+    'activate_system' => 'تفعيل النظام',
+    'secure_connection' => 'اتصال إعداد آمن',
     'security_configuration' => 'تكوين الأمان',
     'admin_email_hint' => 'سيتم استخدام هذا البريد الإلكتروني لتلقي رموز الأمان للإجراءات الهامة مثل إعادة ضبط المصنع.',
     'security_code' => 'رمز الأمان',

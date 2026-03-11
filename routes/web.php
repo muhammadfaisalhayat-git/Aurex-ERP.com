@@ -109,6 +109,10 @@ Route::get('/language/{locale}', [LanguageController::class, 'switch'])->name('l
 
 Route::middleware(['auth', 'set.locale'])->group(function () {
 
+    // Activation Routes (Must bypass EnsureAppIsActivated middleware)
+    Route::get('/activation', [\App\Http\Controllers\Admin\ActivationController::class, 'index'])->name('activation.index');
+    Route::post('/activation', [\App\Http\Controllers\Admin\ActivationController::class, 'store'])->name('activation.store');
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/widgets/reorder', [DashboardController::class, 'reorderWidgets'])->name('dashboard.widgets.reorder');
