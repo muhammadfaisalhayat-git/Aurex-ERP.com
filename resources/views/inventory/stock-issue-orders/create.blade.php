@@ -83,7 +83,8 @@
                                         <tr>
                                             <th style="width: 50%">{{ __('messages.product') }}</th>
                                             <th style="width: 25%">{{ __('messages.quantity') }} /
-                                                {{ __('messages.unit') ?? 'Unit' }}</th>
+                                                {{ __('messages.unit') ?? 'Unit' }}
+                                            </th>
                                             <th style="width: 20%">{{ __('messages.notes') }}</th>
                                             <th style="width: 10%"></th>
                                         </tr>
@@ -164,33 +165,33 @@
                 const newRow = document.createElement('tr');
                 newRow.className = 'item-row';
                 newRow.innerHTML = `
-                                        <td>
-                                            <select name="items[${rowCount}][product_id]" class="form-select product-select" required>
-                                                <option value="">{{ __('messages.select_product') }}</option>
-                                                @foreach(\App\Models\Product::with('units.measurementUnit')->get() as $product)
-                                                    <option value="{{ $product->id }}" data-units="{{ json_encode($product->units) }}">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <div class="input-group">
-                                                <span class="input-group-text p-0" style="width: 35%">
-                                                    <select class="form-select border-0 bg-transparent item-unit-dropdown" name="items[${rowCount}][measurement_unit_id]" required style="box-shadow: none; cursor: pointer;">
-                                                        <option value="">-</option>
+                                                <td>
+                                                    <select name="items[${rowCount}][product_id]" class="form-select product-select" required>
+                                                        <option value="">{{ __('messages.select_product') }}</option>
+                                                        @foreach(\App\Models\Product::with('units.measurementUnit')->get() as $product)
+                                                            <option value="{{ $product->id }}" data-units="{{ json_encode($product->units) }}">{{ $product->name }} ({{ __('messages.stock') }}: {{ $product->available_stock }})</option>
+                                                        @endforeach
                                                     </select>
-                                                </span>
-                                                <input type="number" name="items[${rowCount}][quantity]" class="form-control" step="0.001" min="0.001" required>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <input type="text" name="items[${rowCount}][notes]" class="form-control">
-                                        </td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeRow(this)">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    `;
+                                                </td>
+                                                <td>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text p-0" style="width: 35%">
+                                                            <select class="form-select border-0 bg-transparent item-unit-dropdown" name="items[${rowCount}][measurement_unit_id]" required style="box-shadow: none; cursor: pointer;">
+                                                                <option value="">-</option>
+                                                            </select>
+                                                        </span>
+                                                        <input type="number" name="items[${rowCount}][quantity]" class="form-control" step="0.001" min="0.001" required>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="items[${rowCount}][notes]" class="form-control">
+                                                </td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeRow(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            `;
                 tbody.appendChild(newRow);
                 if (window.initGlobalSelect2) window.initGlobalSelect2(newRow);
                 rowCount++;
@@ -205,21 +206,66 @@
                     const selectedOption = e.target.options[e.target.selectedIndex];
                     const unitsStr = selectedOption.getAttribute('data-units');
                     const units = unitsStr ? JSON.parse(unitsStr) : [];
+                    const stock = selectedOption.text.match(/Stock: ([\d.]+)/)?.[1] || 0;
 
                     const row = e.target.closest('tr');
+                    row.dataset.availableStock = stock;
                     const unitDropdown = row.querySelector('.item-unit-dropdown');
                     unitDropdown.innerHTML = '';
 
                     if (units && units.length > 0) {
                         units.forEach(u => {
                             const unitName = u.measurement_unit ? u.measurement_unit.name : (u.name || (u.measurementUnit ? u.measurementUnit.name : ''));
-                            unitDropdown.add(new Option(unitName, u.measurement_unit_id));
+                            const option = new Option(unitName, u.measurement_unit_id);
+                            option.dataset.package = u.package;
+                            unitDropdown.add(option);
                         });
                     } else {
                         unitDropdown.add(new Option('-', ''));
                     }
+                    calculateRow(row);
+                }
+
+                if (e.target && e.target.classList.contains('item-unit-dropdown')) {
+                    calculateRow(e.target.closest('tr'));
                 }
             });
+
+            document.addEventListener('input', function (e) {
+                if (e.target && e.target.name && e.target.name.includes('[quantity]')) {
+                    calculateRow(e.target.closest('tr'));
+                }
+            });
+
+            function calculateRow(row) {
+                const qEl = row.querySelector('input[name*="[quantity]"]');
+                const qty = parseFloat(qEl.value) || 0;
+                const availableStockInBaseUnit = parseFloat(row.dataset.availableStock) || 0;
+                const unitEl = row.querySelector('.item-unit-dropdown');
+
+                let packageMultiplier = 1;
+                if (unitEl && unitEl.options[unitEl.selectedIndex]) {
+                    packageMultiplier = parseFloat(unitEl.options[unitEl.selectedIndex].dataset.package) || 1;
+                }
+
+                const quantityInBaseUnit = qty * packageMultiplier;
+
+                if (quantityInBaseUnit > availableStockInBaseUnit && availableStockInBaseUnit > 0) {
+                    if (!row._isAlerting) {
+                        row._isAlerting = true;
+                        const availableInSelectedUnit = (availableStockInBaseUnit / packageMultiplier).toFixed(2);
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
+                            text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableInSelectedUnit})`,
+                            confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
+                        }).then(() => {
+                            row._isAlerting = false;
+                        });
+                        qEl.value = Math.floor(availableInSelectedUnit * 100) / 100;
+                    }
+                }
+            }
         </script>
     @endpush
 @endsection

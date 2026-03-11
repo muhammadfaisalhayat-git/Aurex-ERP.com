@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\StockLedger;
 use App\Models\StockBalance;
+use App\Models\ProductUnit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
@@ -25,13 +26,23 @@ class StockManagementService
                 'warehouse_id' => $data['warehouse_id'],
             ]);
 
-            $qtyChange = ($data['movement_type'] === 'in') ? $data['quantity'] : -$data['quantity'];
+            $package = 1;
+            if (isset($data['measurement_unit_id']) && isset($data['product_id'])) {
+                $productUnit = ProductUnit::where('product_id', $data['product_id'])
+                    ->where('measurement_unit_id', $data['measurement_unit_id'])
+                    ->first();
+                $package = $productUnit ? (float) $productUnit->package : 1;
+            }
+
+            $quantityInBase = (float) $data['quantity'] * $package;
+            $qtyChange = ($data['movement_type'] === 'in') ? $quantityInBase : -$quantityInBase;
 
             // Average Cost Calculation logic (Simplified)
             if ($data['movement_type'] === 'in' && isset($data['unit_cost'])) {
                 $currentTotalValue = $balance->quantity * $balance->average_cost;
-                $newIncomingValue = $data['quantity'] * $data['unit_cost'];
-                $newTotalQty = $balance->quantity + $data['quantity'];
+                $baseUnitCost = (float) $data['unit_cost'] / ($package > 0 ? $package : 1);
+                $newIncomingValue = $quantityInBase * $baseUnitCost;
+                $newTotalQty = $balance->quantity + $quantityInBase;
 
                 if ($newTotalQty > 0) {
                     $balance->average_cost = ($currentTotalValue + $newIncomingValue) / $newTotalQty;

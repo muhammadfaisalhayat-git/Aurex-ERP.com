@@ -16,5 +16,8 @@
         "bold": "Helvetica-Bold",
         "italic": "Helvetica-Oblique",
         "bold_italic": "Helvetica-BoldOblique"
+    },
+    "dejavu sans bold": {
+        "bold": "dejavu_sans_bold_bold_cca017e92b12b7cd3f91c4a8e2aeda4d"
     }
 }
