@@ -262,7 +262,7 @@
                     tr.classList.add('item-row');
 
                     const selectedProduct = data ? products.find(p => p.id == data.product_id) : null;
-                    const productName = selectedProduct ? ({{ app()->getLocale() === 'ar' ? 'selectedProduct.name_ar || selectedProduct.name_en' : 'selectedProduct.name_en || selectedProduct.name_ar' }}): '';
+                    const productName = selectedProduct ? (selectedProduct.name_{{ app()->getLocale() === 'ar' ? 'ar' : 'en' }} || selectedProduct.name_{{ app()->getLocale() === 'ar' ? 'en' : 'ar' }}) : '';
                     const productId = data ? data.product_id : '';
                     const taxRate = taxSetting.tax_enabled ? taxSetting.default_tax_rate : 0;
 
@@ -277,7 +277,6 @@
                         });
                     }
 
-                    tr.innerHTML = `
                     tr.innerHTML = `
                         <td>
                             <div class="position-relative product-search-container">

@@ -407,6 +407,7 @@
                                     const stockLabel = '{{ __("messages.stock") ?? "Stock" }}';
 
                                     return `
+<<<<<<< HEAD
                                     return `
                                         <div class="search-result-item p-2 border-bottom" 
                                             data-id="${p.id}" 
@@ -433,6 +434,33 @@
                                             </div>
                                         </div>
                                     `;
+=======
+                                                                                    <div class="search-result-item p-2 border-bottom" 
+                                                                                        data-id="${p.id}" 
+                                                                                        data-name="${currentName}" 
+                                                                                        data-price="${p.sale_price || 0}" 
+                                                                                        data-tax="${p.tax_rate || 15}"
+                                                                                        data-cost="${p.cost_price || 0}"
+                                                                                        data-stock="${p.available_quantity || 0}"
+                                                                                        data-units='${JSON.stringify(p.units || []).replace(/'/g, "&apos;")}'
+                                                                                        style="cursor: pointer;">
+                                                                                        <div class="d-flex justify-content-between align-items-start">
+                                                                                            <div class="result-content">
+                                                                                                <div class="fw-bold d-flex align-items-center gap-2 flex-wrap">
+                                                                                                    ${p.code ? `<span style="background:#e9f0ff;color:#3d6bc7;font-size:0.7rem;font-weight:700;padding:1px 7px;border-radius:10px;flex-shrink:0;">${p.code}</span>` : ''}
+                                                                                                    <span>${currentName}</span>
+                                                                                                </div>
+                                                                                                ${subName && subName !== currentName ? `<div class="small text-muted">${subName}</div>` : ''}
+                                                                                                <small class="${stockColor} fw-bold"><i class="fas fa-boxes" style="font-size:0.65rem;"></i> ${stockLabel}: ${parseFloat(p.available_quantity || 0).toFixed(2)}</small>
+                                                                                            </div>
+                                                                                            <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0 ms-2 small">
+                                                                                                <span style="color:#198754; font-weight:600;" title="Sale Price">{{ __('messages.sale_price') }}: ${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+                                                                                                <span style="color:#6c757d; font-weight:600;" title="Cost Price">{{ __('messages.cost_price') }}: ${parseFloat(p.cost_price || 0).toFixed(2)}</span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                `;
+>>>>>>> a8ee0f66a53690a1b0bfb19ba79e7982bf347ecf
                                 }).join('');
                                 resultsDiv.style.display = 'block';
 
@@ -558,21 +586,30 @@
             function calculateRow(row) {
                 const qEl = row.find('.quantity-input');
                 const quantity = parseFloat(qEl.val()) || 0;
-                const availableStock = parseFloat(row.attr('data-available-stock')) || parseFloat(row.get(0).dataset.availableStock) || 0;
+                const availableStockInBaseUnit = parseFloat(row.attr('data-available-stock')) || parseFloat(row.get(0).dataset.availableStock) || 0;
+                const unitEl = row.find('.item-unit-dropdown');
 
-                if (quantity > availableStock && availableStock > 0) {
+                let packageMultiplier = 1;
+                if (unitEl.length && unitEl.val()) {
+                    packageMultiplier = parseFloat(unitEl.find('option:selected').data('package')) || 1;
+                }
+
+                const quantityInBaseUnit = quantity * packageMultiplier;
+
+                if (quantityInBaseUnit > availableStockInBaseUnit && availableStockInBaseUnit > 0) {
                     const tr = row.get(0);
                     if (!tr._isAlerting) {
                         tr._isAlerting = true;
+                        const availableInSelectedUnit = (availableStockInBaseUnit / packageMultiplier).toFixed(2);
                         Swal.fire({
                             icon: 'warning',
                             title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
-                            text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
+                            text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableInSelectedUnit})`,
                             confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
                         }).then(() => {
                             tr._isAlerting = false;
                         });
-                        qEl.val(availableStock);
+                        qEl.val(Math.floor(availableInSelectedUnit * 100) / 100);
                     }
                     return calculateRow(row);
                 }

@@ -216,6 +216,7 @@ class SalesInvoice extends Model
         foreach ($this->items as $item) {
             $issueOrder->items()->create([
                 'product_id' => $item->product_id,
+                'measurement_unit_id' => $item->measurement_unit_id,
                 'quantity' => $item->quantity,
                 'notes' => null,
             ]);

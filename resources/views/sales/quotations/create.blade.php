@@ -573,20 +573,29 @@
             function calculateRow(tr) {
                 const qEl = tr.querySelector('.quantity-input');
                 const qty = parseFloat(qEl.value) || 0;
-                const availableStock = parseFloat(tr.dataset.availableStock) || 0;
+                const availableStockInBaseUnit = parseFloat(tr.dataset.availableStock) || 0;
+                const unitEl = tr.querySelector('.item-unit-dropdown');
 
-                if (qty > availableStock && availableStock > 0) {
+                let packageMultiplier = 1;
+                if (unitEl && unitEl.options[unitEl.selectedIndex]) {
+                    packageMultiplier = parseFloat(unitEl.options[unitEl.selectedIndex].dataset.package) || 1;
+                }
+
+                const quantityInBaseUnit = qty * packageMultiplier;
+
+                if (quantityInBaseUnit > availableStockInBaseUnit && availableStockInBaseUnit > 0) {
                     if (!tr._isAlerting) {
                         tr._isAlerting = true;
+                        const availableInSelectedUnit = (availableStockInBaseUnit / packageMultiplier).toFixed(2);
                         Swal.fire({
                             icon: 'warning',
                             title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
-                            text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
+                            text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableInSelectedUnit})`,
                             confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
                         }).then(() => {
                             tr._isAlerting = false;
                         });
-                        qEl.value = availableStock;
+                        qEl.value = Math.floor(availableInSelectedUnit * 100) / 100;
                     }
                     return calculateRow(tr);
                 }

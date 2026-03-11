@@ -507,6 +507,11 @@
                     const warehouseId = warehouseSelect.value;
                     const branchId = branchSelect.value;
                     
+                    if (search.length < 1) {
+                        results.style.display = 'none';
+                        return;
+                    }
+
                     if (!warehouseId) {
                         if (!row._isAlerting) {
                             row._isAlerting = true;
@@ -521,11 +526,6 @@
                             this.value = '';
                             results.style.display = 'none';
                         }
-                        return;
-                    }
-
-                    if (search.length < 1) {
-                        results.style.display = 'none';
                         return;
                     }
 
@@ -574,11 +574,9 @@
                 });
 
                 input.addEventListener('focus', function() {
-                    this.dispatchEvent(new Event('input'));
-                });
-
-                input.addEventListener('click', function() {
-                    this.dispatchEvent(new Event('input'));
+                    if (this.value.length > 0) {
+                        this.dispatchEvent(new Event('input'));
+                    }
                 });
             }
 
@@ -679,27 +677,36 @@
                 const pEl = row.querySelector('.price-input');
                 const dEl = row.querySelector('.discount-input');
                 const trEl = row.querySelector('.tax-rate-input');
+                const unitEl = row.querySelector('.item-unit-dropdown');
 
                 if (!qEl || !pEl) return;
 
                 const quantity = parseFloat(qEl.value) || 0;
-                const availableStock = parseFloat(row.dataset.availableStock) || 0;
+                const availableStockInBaseUnit = parseFloat(row.dataset.availableStock) || 0;
                 const price = parseFloat(pEl.value) || 0;
                 const discountPercent = parseFloat(dEl ? dEl.value : 0) || 0;
                 const taxRate = parseFloat(trEl ? trEl.value : 0) || 0;
 
-                if (quantity > availableStock && availableStock > 0) {
+                let packageMultiplier = 1;
+                if (unitEl && unitEl.options[unitEl.selectedIndex]) {
+                    packageMultiplier = parseFloat(unitEl.options[unitEl.selectedIndex].dataset.package) || 1;
+                }
+
+                const quantityInBaseUnit = quantity * packageMultiplier;
+
+                if (quantityInBaseUnit > availableStockInBaseUnit && availableStockInBaseUnit > 0) {
                     if (!row._isAlerting) {
                         row._isAlerting = true;
+                        const availableInSelectedUnit = (availableStockInBaseUnit / packageMultiplier).toFixed(2);
                         Swal.fire({
                             icon: 'warning',
                             title: '{{ __("messages.stock_shortage") ?? "Stock Shortage" }}',
-                            text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableStock})`,
+                            text: `{{ __('messages.quantity_exceeds_available_stock') ?? 'Quantity exceeds available stock' }} (${availableInSelectedUnit})`,
                             confirmButtonText: '{{ __("messages.ok") ?? "OK" }}'
                         }).then(() => {
                             row._isAlerting = false;
                         });
-                        qEl.value = availableStock;
+                        qEl.value = Math.floor(availableInSelectedUnit * 100) / 100; // Avoid rounding up beyond stock
                     }
                     return calculateRow(row); // Recalculate with corrected value
                 }

@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            \App\Http\Middleware\EnsureAppIsActivated::class,
             \App\Http\Middleware\IdentifyTenant::class,
             \App\Http\Middleware\SecurityHeaders::class,
         ]);

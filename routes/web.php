@@ -109,6 +109,10 @@ Route::get('/language/{locale}', [LanguageController::class , 'switch'])->name('
 
 Route::middleware(['auth', 'set.locale'])->group(function () {
 
+    // Activation Routes (Must bypass EnsureAppIsActivated middleware)
+    Route::get('/activation', [\App\Http\Controllers\Admin\ActivationController::class , 'index'])->name('activation.index');
+    Route::post('/activation', [\App\Http\Controllers\Admin\ActivationController::class , 'store'])->name('activation.store');
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class , 'index'])->name('dashboard');
     Route::post('/dashboard/widgets/reorder', [DashboardController::class , 'reorderWidgets'])->name('dashboard.widgets.reorder');
@@ -175,6 +179,10 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
                     // Utilities
                     Route::get('settings', [SettingController::class , 'index'])->name('settings.index');
                     Route::post('settings', [SettingController::class , 'update'])->name('settings.update');
+                    Route::post('settings/factory-reset', [SettingController::class , 'factoryReset'])->name('settings.factory-reset');
+                    Route::post('settings/send-reset-code', [SettingController::class , 'sendResetCode'])->name('settings.send-reset-code');
+                    Route::post('settings/deployments', [SettingController::class , 'storeDeployment'])->name('settings.deployments.store');
+                    Route::delete('settings/deployments/{deployment}', [SettingController::class , 'deleteDeployment'])->name('settings.deployments.delete');
                     Route::resource('dashboard-layouts', DashboardLayoutController::class);
 
                     // Backup & Restore
@@ -295,6 +303,33 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             Route::post('customer-registrations/{customerRegistration}/reject', [CustomerRegistrationController::class , 'reject'])->name('customer-registrations.reject');
             Route::post('customer-registrations/{customerRegistration}/convert', [CustomerRegistrationController::class , 'convertToCustomer'])->name('customer-registrations.convert');
             Route::delete('customer-registrations/documents/{document}', [CustomerRegistrationController::class , 'deleteDocument'])->name('customer-registrations.documents.delete');
+        }
+        );
+
+        /*
+     |--------------------------------------------------------------------------
+     | CRM Routes
+     |--------------------------------------------------------------------------
+     */
+
+        Route::group(['prefix' => 'crm', 'as' => 'crm.'], function () {
+            // Pipeline
+            Route::get('pipeline', [App\Http\Controllers\Crm\PipelineController::class , 'index'])->name('pipeline.index');
+            Route::post('pipeline/opportunity/stage', [App\Http\Controllers\Crm\PipelineController::class , 'updateOpportunityStage'])->name('pipeline.opportunity.update-stage');
+            Route::get('pipeline/stages', [App\Http\Controllers\Crm\PipelineController::class , 'stages'])->name('pipeline.stages');
+            Route::post('pipeline/stages', [App\Http\Controllers\Crm\PipelineController::class , 'storeStage'])->name('pipeline.stages.store');
+            Route::put('pipeline/stages/{stage}', [App\Http\Controllers\Crm\PipelineController::class , 'updateStage'])->name('pipeline.stages.update');
+            Route::delete('pipeline/stages/{stage}', [App\Http\Controllers\Crm\PipelineController::class , 'destroyStage'])->name('pipeline.stages.destroy');
+            Route::post('pipeline/stages/reorder', [App\Http\Controllers\Crm\PipelineController::class , 'updateOrder'])->name('pipeline.stages.reorder');
+
+            // Leads
+            Route::resource('leads', App\Http\Controllers\Crm\LeadController::class);
+
+            // Opportunities
+            Route::resource('opportunities', App\Http\Controllers\Crm\OpportunityController::class);
+
+            // Activities
+            Route::resource('activities', App\Http\Controllers\Crm\ActivityController::class);
         }
         );
 
