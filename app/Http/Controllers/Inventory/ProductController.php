@@ -425,7 +425,7 @@ class ProductController extends Controller
         $warehouseId = $request->get('warehouse_id');
         $branchId = $request->get('branch_id');
 
-        $products = Product::where('is_sellable', true)
+        $products = Product::where('is_active', true)
             ->with([
                 'units' => function ($query) {
                     $query->orderBy('package', 'asc')->with('measurementUnit');
