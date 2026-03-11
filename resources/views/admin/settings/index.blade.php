@@ -37,6 +37,9 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance" type="button" role="tab">{{ __('messages.maintenance') }}</button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="deployments-tab" data-bs-toggle="tab" data-bs-target="#deployments" type="button" role="tab">{{ __('messages.deployments') }}</button>
+                </li>
             </ul>
         </div>
         <div class="card-body">
@@ -229,6 +232,135 @@
                                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#factoryResetModal">
                                             {{ __('messages.perform_factory_reset') }}
                                         </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Deployment Management (The Frame) -->
+                    <div class="tab-pane fade" id="deployments" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-header bg-primary text-white py-3">
+                                        <h6 class="mb-0 fw-bold"><i class="fas fa-server me-2"></i> {{ __('messages.server_info') }}</h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <table class="table table-sm mb-0">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="ps-3 border-0 py-2 muted small">Environment</td>
+                                                    <td class="text-end pe-3 border-0 py-2 fw-bold small text-uppercase">{{ app()->environment() }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="ps-3 py-2 muted small">PHP Version</td>
+                                                    <td class="text-end pe-3 py-2 fw-bold small">{{ PHP_VERSION }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="ps-3 py-2 muted small">Database</td>
+                                                    <td class="text-end pe-3 py-2 fw-bold small text-uppercase text-primary">{{ config('database.default') }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="ps-3 py-2 muted small">App URL</td>
+                                                    <td class="text-end pe-3 py-2 small fw-semibold text-truncate" style="max-width: 150px;">{{ config('app.url') }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-dark text-white py-3">
+                                        <h6 class="mb-0 fw-bold"><i class="fas fa-plus me-2"></i> {{ __('messages.add_deployment') }}</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <form action="{{ route('acp.system.settings.deployments.store') }}" method="POST">
+                                            @csrf
+                                            <div class="mb-2">
+                                                <label class="form-label small mb-1">{{ __('messages.instance_name') }}</label>
+                                                <input type="text" name="name" class="form-control form-control-sm" required placeholder="e.g. Cloud Server">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small mb-1">{{ __('messages.deployment_url') }}</label>
+                                                <input type="url" name="url" class="form-control form-control-sm" placeholder="https://example.com">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small mb-1">{{ __('messages.deployment_type') }}</label>
+                                                <select name="type" class="form-select form-select-sm">
+                                                    <option value="online">{{ __('messages.online') }}</option>
+                                                    <option value="offline">{{ __('messages.offline') }}</option>
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-sm w-100">{{ __('messages.save') }}</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-8">
+                                <div class="card border-0 shadow-sm min-vh-50">
+                                    <div class="card-header bg-light py-3 border-bottom-0">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0 fw-bold"><i class="fas fa-network-wired me-2"></i> {{ __('messages.instance_tracker') }}</h6>
+                                            <span class="badge bg-secondary rounded-pill small">{{ $deployments->count() }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-muted small mb-4">{{ __('messages.deployment_frame_hint') }}</p>
+
+                                        @if($deployments->isEmpty())
+                                            <div class="text-center py-5">
+                                                <img src="https://illustrations.popsy.co/amber/setup.svg" alt="Empty" style="width: 150px;" class="mb-3 opacity-50">
+                                                <p class="text-muted">{{ __('messages.no_data_found') }}</p>
+                                            </div>
+                                        @else
+                                            <div class="table-responsive">
+                                                <table class="table table-hover align-middle">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>{{ __('messages.instance_name') }}</th>
+                                                            <th>{{ __('messages.type') }}</th>
+                                                            <th>{{ __('messages.url') }}</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($deployments as $deployment)
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="fw-bold">{{ $deployment->name }}</div>
+                                                                    <div class="small text-muted">{{ $deployment->location }}</div>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="badge {{ $deployment->type == 'online' ? 'bg-success' : 'bg-warning' }} rounded-pill small">
+                                                                        {{ __('messages.' . $deployment->type) }}
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    @if($deployment->url)
+                                                                        <a href="{{ $deployment->url }}" target="_blank" class="small text-decoration-none">
+                                                                            {{ $deployment->url }} <i class="fas fa-external-link-alt ms-1 small"></i>
+                                                                        </a>
+                                                                    @else
+                                                                        <span class="text-muted small">-</span>
+                                                                    @endif
+                                                                </td>
+                                                                <td class="text-end">
+                                                                    <form action="{{ route('acp.system.settings.deployments.delete', $deployment) }}" method="POST" onsubmit="return confirm('Are you sure?')">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit" class="btn btn-link text-danger p-0" title="{{ __('messages.delete') }}">
+                                                                            <i class="fas fa-trash-alt"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

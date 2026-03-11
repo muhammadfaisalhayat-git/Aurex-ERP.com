@@ -175,6 +175,8 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
             Route::post('settings/factory-reset', [SettingController::class, 'factoryReset'])->name('settings.factory-reset');
             Route::post('settings/send-reset-code', [SettingController::class, 'sendResetCode'])->name('settings.send-reset-code');
+            Route::post('settings/deployments', [SettingController::class, 'storeDeployment'])->name('settings.deployments.store');
+            Route::delete('settings/deployments/{deployment}', [SettingController::class, 'deleteDeployment'])->name('settings.deployments.delete');
             Route::resource('dashboard-layouts', DashboardLayoutController::class);
 
             // Backup & Restore

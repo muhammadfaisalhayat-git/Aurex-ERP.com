@@ -13,14 +13,16 @@ class SettingController extends Controller
 {
     public function index()
     {
-        $taxSettings = TaxSetting::getCurrent();
-        $systemSettings = SystemSetting::withoutGlobalScope('tenant')
+        $taxSettings = \App\Models\TaxSetting::getCurrent();
+        $systemSettings = \App\Models\SystemSetting::withoutGlobalScope('tenant')
             ->orderBy('group')
             ->orderBy('key')
             ->get()
             ->groupBy('group');
 
-        return view('admin.settings.index', compact('taxSettings', 'systemSettings'));
+        $deployments = \App\Models\Deployment::orderBy('name')->get();
+
+        return view('admin.settings.index', compact('taxSettings', 'systemSettings', 'deployments'));
     }
 
     public function update(Request $request)
@@ -199,5 +201,26 @@ class SettingController extends Controller
                 'message' => 'Error sending code: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function storeDeployment(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'url' => 'nullable|url|max:255',
+            'type' => 'required|in:online,offline',
+            'location' => 'nullable|string|max:255',
+            'notes' => 'nullable|string',
+        ]);
+
+        \App\Models\Deployment::create($request->all());
+
+        return back()->with('success', 'Deployment instance added successfully.');
+    }
+
+    public function deleteDeployment(\App\Models\Deployment $deployment)
+    {
+        $deployment->delete();
+        return back()->with('success', 'Deployment instance removed successfully.');
     }
 }
