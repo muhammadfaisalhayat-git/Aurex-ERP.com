@@ -507,6 +507,11 @@
                     const warehouseId = warehouseSelect.value;
                     const branchId = branchSelect.value;
                     
+                    if (search.length < 1) {
+                        results.style.display = 'none';
+                        return;
+                    }
+
                     if (!warehouseId) {
                         if (!row._isAlerting) {
                             row._isAlerting = true;
@@ -521,11 +526,6 @@
                             this.value = '';
                             results.style.display = 'none';
                         }
-                        return;
-                    }
-                    
-                    if (search.length < 1) {
-                        results.style.display = 'none';
                         return;
                     }
 
@@ -574,11 +574,9 @@
                 });
 
                 input.addEventListener('focus', function() {
-                    this.dispatchEvent(new Event('input'));
-                });
-
-                input.addEventListener('click', function() {
-                    this.dispatchEvent(new Event('input'));
+                    if (this.value.length > 0) {
+                        this.dispatchEvent(new Event('input'));
+                    }
                 });
             }
 
