@@ -30,4 +30,9 @@ return [
     'scan_complete' => 'Scan Complete',
     'scan_success_msg' => 'Invoice details extracted successfully.',
     'scan_failed' => 'Failed to scan invoice. Please try again.',
+    'title' => 'Local Purchase',
+    'document_number' => 'Document Number',
+    'gross_amount' => 'Gross Amount',
+    'status' => 'Status',
+    'no_records' => 'No records found.',
 ];

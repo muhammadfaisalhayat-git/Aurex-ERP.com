@@ -136,6 +136,35 @@
             @endcanany
         @endif
 
+        @if($checkVisibility('module_crm'))
+            @canany(['view crm leads', 'view crm opportunities', 'view crm pipeline'])
+                <!-- CRM Section -->
+                <div class="menu-section">{{ __('crm.crm') }}</div>
+
+                <div class="menu-item {{ request()->routeIs('crm.*') ? 'open' : '' }}">
+                    <button type="button" class="menu-link" data-submenu data-turbo="false">
+                        <i class="fas fa-handshake fa-fw"></i>
+                        <span>{{ __('crm.crm') }}</span>
+                        <i class="fas fa-chevron-down menu-arrow"></i>
+                    </button>
+                    <div class="submenu">
+                        <a href="{{ route('crm.pipeline.index') }}"
+                            class="menu-link {{ request()->routeIs('crm.pipeline.*') ? 'active' : '' }}">
+                            <i class="fas fa-th-large fa-fw me-2"></i> {{ __('crm.pipeline') }}
+                        </a>
+                        <a href="{{ route('crm.leads.index') }}"
+                            class="menu-link {{ request()->routeIs('crm.leads.*') ? 'active' : '' }}">
+                            <i class="fas fa-user-tag fa-fw me-2"></i> {{ __('crm.leads') }}
+                        </a>
+                        <a href="{{ route('crm.opportunities.index') }}"
+                            class="menu-link {{ request()->routeIs('crm.opportunities.*') ? 'active' : '' }}">
+                            <i class="fas fa-lightbulb fa-fw me-2"></i> {{ __('crm.opportunities') }}
+                        </a>
+                    </div>
+                </div>
+            @endcanany
+        @endif
+
         @if($checkVisibility('module_sales'))
             @canany(['view customers', 'view quotations', 'view invoices', 'view returns', 'view commissions', 'view customer_registration'])
                 <!-- Sales Section -->

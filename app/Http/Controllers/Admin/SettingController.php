@@ -68,11 +68,136 @@ class SettingController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('admin.settings.index')->with('success', __('messages.settings_updated'));
+            return redirect()->route('acp.system.settings.index')->with('success', __('messages.settings_updated'));
 
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error updating settings: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function factoryReset(Request $request)
+    {
+        $request->validate([
+            'confirm_reset' => 'required|string|in:RESET',
+            'password' => 'required|string',
+            'security_code' => 'required|string',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->password, auth()->user()->password)) {
+            return back()->with('error', __('messages.invalid_password'));
+        }
+
+        $sessionCode = session('factory_reset_code');
+        $sessionCodeExpires = session('factory_reset_code_expires');
+
+        if (!$sessionCode || $sessionCode !== $request->security_code || now()->greaterThan($sessionCodeExpires)) {
+            return back()->with('error', __('messages.invalid_security_code'));
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Tables to truncate (Transactional and User-entered master data)
+            $tables = [
+                'leads',
+                'opportunities',
+                'crm_activities',
+                'customer_requests',
+                'quotations',
+                'sales_orders',
+                'sales_invoices',
+                'sales_returns',
+                'commission_runs',
+                'commission_rules',
+                'supply_orders',
+                'purchase_invoices',
+                'local_purchases',
+                'products',
+                'stock_ledger_entries',
+                'stock_supplies',
+                'stock_receivings',
+                'stock_transfers',
+                'stock_transfer_requests',
+                'stock_issue_orders',
+                'composite_assemblies',
+                'employees',
+                'attendances',
+                'leave_requests',
+                'salaries',
+                'designations',
+                'departments',
+                'budgets',
+                'fixed_assets',
+                'asset_categories',
+                'payment_vouchers',
+                'receipt_vouchers',
+                'bank_accounts',
+                'journal_vouchers',
+                'journal_voucher_details',
+                'cost_centers',
+                'letter_of_credits',
+                'patients',
+                'doctors',
+                'appointments',
+                'medical_services',
+                'trailers',
+                'transport_orders',
+                'transport_contracts',
+                'transport_claims',
+                'fuel_logs',
+                'delivery_vehicles',
+                'maintenance_vouchers',
+                'maintenance_workshops',
+                'audit_logs',
+                'notifications',
+                'failed_jobs'
+            ];
+
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+            foreach ($tables as $table) {
+                if (DB::getSchemaBuilder()->hasTable($table)) {
+                    DB::table($table)->truncate();
+                }
+            }
+
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+            DB::commit();
+            return redirect()->route('acp.system.settings.index')->with('success', __('messages.factory_reset_success'));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            return back()->with('error', 'Error during factory reset: ' . $e->getMessage());
+        }
+    }
+
+    public function sendResetCode(Request $request)
+    {
+        try {
+            $code = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            $user = auth()->user();
+
+            $adminEmail = \App\Models\SystemSetting::where('key', 'admin_primary_email')->value('value') ?? $user->email;
+
+            session([
+                'factory_reset_code' => $code,
+                'factory_reset_code_expires' => now()->addMinutes(10)
+            ]);
+
+            \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\FactoryResetCodeMail($code, $user));
+
+            return response()->json([
+                'success' => true,
+                'message' => __('messages.code_sent_success')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error sending code: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

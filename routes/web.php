@@ -173,6 +173,8 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             // Utilities
             Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
             Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
+            Route::post('settings/factory-reset', [SettingController::class, 'factoryReset'])->name('settings.factory-reset');
+            Route::post('settings/send-reset-code', [SettingController::class, 'sendResetCode'])->name('settings.send-reset-code');
             Route::resource('dashboard-layouts', DashboardLayoutController::class);
 
             // Backup & Restore
@@ -293,6 +295,32 @@ Route::middleware(['auth', 'set.locale'])->group(function () {
             Route::delete('customer-registrations/documents/{document}', [CustomerRegistrationController::class, 'deleteDocument'])->name('customer-registrations.documents.delete');
         }
     );
+
+    /*
+     |--------------------------------------------------------------------------
+     | CRM Routes
+     |--------------------------------------------------------------------------
+     */
+
+    Route::group(['prefix' => 'crm', 'as' => 'crm.'], function () {
+        // Pipeline
+        Route::get('pipeline', [App\Http\Controllers\Crm\PipelineController::class, 'index'])->name('pipeline.index');
+        Route::post('pipeline/opportunity/stage', [App\Http\Controllers\Crm\PipelineController::class, 'updateOpportunityStage'])->name('pipeline.opportunity.update-stage');
+        Route::get('pipeline/stages', [App\Http\Controllers\Crm\PipelineController::class, 'stages'])->name('pipeline.stages');
+        Route::post('pipeline/stages', [App\Http\Controllers\Crm\PipelineController::class, 'storeStage'])->name('pipeline.stages.store');
+        Route::put('pipeline/stages/{stage}', [App\Http\Controllers\Crm\PipelineController::class, 'updateStage'])->name('pipeline.stages.update');
+        Route::delete('pipeline/stages/{stage}', [App\Http\Controllers\Crm\PipelineController::class, 'destroyStage'])->name('pipeline.stages.destroy');
+        Route::post('pipeline/stages/reorder', [App\Http\Controllers\Crm\PipelineController::class, 'updateOrder'])->name('pipeline.stages.reorder');
+
+        // Leads
+        Route::resource('leads', App\Http\Controllers\Crm\LeadController::class);
+
+        // Opportunities
+        Route::resource('opportunities', App\Http\Controllers\Crm\OpportunityController::class);
+
+        // Activities
+        Route::resource('activities', App\Http\Controllers\Crm\ActivityController::class);
+    });
 
     /*
  |--------------------------------------------------------------------------
