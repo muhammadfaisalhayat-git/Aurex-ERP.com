@@ -53,8 +53,8 @@
         <div class="container">
             <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 4rem; margin-bottom: 80px;">
                 <div>
-                    <a href="#" class="logo" style="margin-bottom: 2rem; display: inline-flex;">
-                        <img src="{{ asset('images/landing/logo.png') }}" alt="Aurex ERP Logo" style="height: 80px;">
+                    <a href="#" class="logo" style="margin-bottom: 1rem; display: inline-flex;">
+                        <img src="{{ asset('images/landing/logo.png') }}" alt="Aurex ERP Logo" style="height: 150px;">
                     </a>
                     <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem; max-width: 400px;">
                         The intelligent engine driving modern enterprises. Unify your operations with our next-generation ERP platform.
