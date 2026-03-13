@@ -94,13 +94,15 @@ body {
     width: 100%;
 }
 
-.logo {
-    font-size: 1.6rem;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.logo img {
+    height: 70px;
+    width: auto;
+    object-fit: contain;
+    transition: var(--transition-fast);
+}
+
+.scrolled .logo img {
+    height: 55px;
 }
 
 .logo i {

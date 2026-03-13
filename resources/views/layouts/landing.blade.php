@@ -28,7 +28,7 @@
     <nav class="navbar">
         <div class="container">
             <a href="{{ route('landing.home') }}" class="logo">
-                <i class="fas fa-rocket"></i> Aurex ERP
+                <img src="{{ asset('images/landing/logo.png') }}" alt="Aurex ERP Logo">
             </a>
             
             <ul class="nav-links">
@@ -54,7 +54,7 @@
             <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 4rem; margin-bottom: 80px;">
                 <div>
                     <a href="#" class="logo" style="margin-bottom: 2rem; display: inline-flex;">
-                        <i class="fas fa-rocket"></i> Aurex ERP
+                        <img src="{{ asset('images/landing/logo.png') }}" alt="Aurex ERP Logo" style="height: 80px;">
                     </a>
                     <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem; max-width: 400px;">
                         The intelligent engine driving modern enterprises. Unify your operations with our next-generation ERP platform.
