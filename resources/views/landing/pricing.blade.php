@@ -1,74 +1,123 @@
 @extends('layouts.landing')
 
-@section('title', 'Pricing - Scale Your Enterprise with Aurex')
+@section('title', 'Pricing — Aurex ERP')
+@section('meta_description', 'Simple, transparent pricing for Aurex ERP. Starter, Business, and Enterprise plans for teams of all sizes.')
 
 @section('content')
-<section style="padding-top: 180px; position: relative;">
-    <div class="container">
-        <div style="text-align: center; max-width: 800px; margin: 0 auto 6rem;" data-aos>
-            <span class="section-tag">Investment for Growth</span>
-            <h1 style="font-size: 4rem; line-height: 1.1; font-weight: 800; letter-spacing: -2px; margin-bottom: 2rem; background: linear-gradient(to bottom right, #FFFFFF 50%, #94A3B8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                Predictable Pricing for <br>Global Ambition
+
+{{-- Hero --}}
+<section class="hero" style="min-height: 55vh; padding-top: 120px; padding-bottom: 60px;">
+    <div class="hero-glow"></div>
+    <div class="container" style="text-align: center;">
+        <div data-aos>
+            <span class="section-tag">Pricing</span>
+            <h1 class="hero-title" style="font-size: clamp(2rem, 4vw, 3.5rem);">
+                Simple, Transparent Pricing.<br>
+                <span class="gradient-text">No Surprises.</span>
             </h1>
-            <p style="color: var(--text-muted); font-size: 1.3rem;">From lean startups to multinational conglomerates, our plans scale with your complexity.</p>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 80px;">
-            <!-- Starter -->
-            <div class="bento-item" style="height: auto; padding: 3.5rem; justify-content: flex-start;" data-aos>
-                <h3 style="color: var(--text-muted); font-size: 1.25rem; margin-bottom: 0.5rem;">Starter</h3>
-                <div style="font-size: 4rem; font-weight: 800; color: white; margin-bottom: 1.5rem;">$49<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
-                <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Ideal for retail boutiques and micro-businesses.</p>
-                <div style="height: 1px; background: var(--glass-border); margin-bottom: 2.5rem;"></div>
-                <ul style="list-style: none; color: var(--text-muted); margin-bottom: 3rem; line-height: 2.5;">
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> Core Ledger & Taxes</li>
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> Individual POS Session</li>
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> Basic Stock Tracking</li>
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> Email Support</li>
-                </ul>
-                <a href="{{ route('landing.demo') }}" class="btn btn-secondary" style="width: 100%; text-align: center;">Begin Journey</a>
-            </div>
-
-            <!-- Pro -->
-            <div class="bento-item" style="height: auto; padding: 3.5rem; border: 2px solid var(--accent); scale: 1.05; z-index: 10; justify-content: flex-start;" data-aos style="transition-delay: 0.1s">
-                <div style="position: absolute; top: 1.5rem; right: 1.5rem; background: var(--accent); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">RECOMMENDED</div>
-                <h3 style="color: var(--accent); font-size: 1.25rem; margin-bottom: 0.5rem;">Professional</h3>
-                <div style="font-size: 4rem; font-weight: 800; color: white; margin-bottom: 1.5rem;">$149<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
-                <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Advanced features for multi-branch companies.</p>
-                <div style="height: 1px; background: var(--glass-border); margin-bottom: 2.5rem;"></div>
-                <ul style="list-style: none; color: var(--text-main); margin-bottom: 3rem; line-height: 2.5;">
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> Everything in Starter</li>
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> Multi-Branch Sync</li>
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> Procurement Module</li>
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> API Data Access</li>
-                </ul>
-                <a href="{{ route('landing.demo') }}" class="btn btn-accent" style="width: 100%; text-align: center;">Execute Growth</a>
-            </div>
-
-            <!-- Enterprise -->
-            <div class="bento-item" style="height: auto; padding: 3.5rem; justify-content: flex-start;" data-aos style="transition-delay: 0.2s">
-                <h3 style="color: var(--text-muted); font-size: 1.25rem; margin-bottom: 0.5rem;">Enterprise</h3>
-                <div style="font-size: 3.5rem; font-weight: 800; color: white; margin-bottom: 1.5rem;">Custom</div>
-                <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Limitless potential for global enterprises.</p>
-                <div style="height: 1px; background: var(--glass-border); margin-bottom: 2.5rem;"></div>
-                <ul style="list-style: none; color: var(--text-muted); margin-bottom: 3rem; line-height: 2.5;">
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> Unlimited Scale</li>
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> Dedicated Cloud Instance</li>
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> Custom Integrations</li>
-                    <li><i class="fas fa-check" style="color: var(--accent); margin-right: 12px;"></i> 24/7 Strategic Support</li>
-                </ul>
-                <a href="{{ route('landing.demo') }}" class="btn btn-secondary" style="width: 100%; text-align: center;">Contact Syndicate</a>
-            </div>
+            <p class="hero-subtitle" style="margin: 1.5rem auto; max-width: 600px;">
+                Every plan includes the full Aurex ERP platform. You pay for users, not modules.
+                No lock-in. Cancel any time.
+            </p>
         </div>
     </div>
 </section>
 
-<!-- Comparison Table Link / CTA -->
-<section style="padding-bottom: 120px;">
+{{-- Pricing Cards --}}
+<section class="section">
     <div class="container">
-        <div style="text-align: center; color: var(--text-muted);" data-aos>
-            <p>Need a more granular breakdown? <a href="{{ route('landing.features') }}" style="color: var(--accent); font-weight: 600;">View Feature Matrix →</a></p>
+        <div class="pricing-grid" data-aos>
+            {{-- Starter --}}
+            <div class="pricing-card">
+                <div class="pricing-plan">Starter</div>
+                <div class="pricing-price"><sup>$</sup>49<span>/mo</span></div>
+                <div class="pricing-desc">For small teams ready to replace spreadsheets with a real system.</div>
+                <div class="pricing-divider"></div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check check"></i> Up to 5 users</li>
+                    <li><i class="fas fa-check check"></i> Finance & Accounting</li>
+                    <li><i class="fas fa-check check"></i> Inventory (1 warehouse)</li>
+                    <li><i class="fas fa-check check"></i> Sales module</li>
+                    <li><i class="fas fa-check check"></i> Standard reports</li>
+                    <li><i class="fas fa-check check"></i> Email support</li>
+                    <li><i class="fas fa-check check"></i> 10 GB storage</li>
+                    <li class="muted"><i class="fas fa-times cross"></i> HR & Payroll</li>
+                    <li class="muted"><i class="fas fa-times cross"></i> POS</li>
+                    <li class="muted"><i class="fas fa-times cross"></i> Multi-branch</li>
+                    <li class="muted"><i class="fas fa-times cross"></i> API access</li>
+                </ul>
+                <a href="{{ route('landing.demo') }}" class="btn btn-outline" style="width:100%; justify-content:center;">Get Started</a>
+            </div>
+
+            {{-- Business --}}
+            <div class="pricing-card featured">
+                <div class="pricing-badge">Most Popular</div>
+                <div class="pricing-plan">Business</div>
+                <div class="pricing-price"><sup>$</sup>149<span>/mo</span></div>
+                <div class="pricing-desc">The complete ERP for growing businesses. Everything included, nothing held back.</div>
+                <div class="pricing-divider"></div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check check"></i> Up to 25 users</li>
+                    <li><i class="fas fa-check check"></i> All Finance modules</li>
+                    <li><i class="fas fa-check check"></i> Inventory (3 warehouses)</li>
+                    <li><i class="fas fa-check check"></i> Sales & CRM</li>
+                    <li><i class="fas fa-check check"></i> Purchases & Vendors</li>
+                    <li><i class="fas fa-check check"></i> HR & Payroll</li>
+                    <li><i class="fas fa-check check"></i> POS module</li>
+                    <li><i class="fas fa-check check"></i> Projects & Operations</li>
+                    <li><i class="fas fa-check check"></i> Advanced reports</li>
+                    <li><i class="fas fa-check check"></i> 100 GB storage</li>
+                    <li class="muted"><i class="fas fa-times cross"></i> Custom workflows</li>
+                    <li class="muted"><i class="fas fa-times cross"></i> API access</li>
+                </ul>
+                <a href="{{ route('landing.demo') }}" class="btn btn-primary" style="width:100%; justify-content:center;">Start Free Trial</a>
+            </div>
+
+            {{-- Enterprise --}}
+            <div class="pricing-card">
+                <div class="pricing-plan">Enterprise</div>
+                <div class="pricing-price" style="font-size:2.2rem; letter-spacing:-1px;">Custom</div>
+                <div class="pricing-desc">For large organizations that need unlimited scale, security, and dedicated support.</div>
+                <div class="pricing-divider"></div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check check"></i> Unlimited users</li>
+                    <li><i class="fas fa-check check"></i> All Business plan features</li>
+                    <li><i class="fas fa-check check"></i> Unlimited warehouses</li>
+                    <li><i class="fas fa-check check"></i> Multi-branch management</li>
+                    <li><i class="fas fa-check check"></i> Custom workflows</li>
+                    <li><i class="fas fa-check check"></i> Full API access</li>
+                    <li><i class="fas fa-check check"></i> Custom integrations</li>
+                    <li><i class="fas fa-check check"></i> Dedicated account manager</li>
+                    <li><i class="fas fa-check check"></i> 99.9% SLA guarantee</li>
+                    <li><i class="fas fa-check check"></i> On-premise option</li>
+                    <li><i class="fas fa-check check"></i> Unlimited storage</li>
+                </ul>
+                <a href="{{ route('landing.demo') }}" class="btn btn-ghost" style="width:100%; justify-content:center;">Contact Sales</a>
+            </div>
+        </div>
+
+        {{-- Feature comparison note --}}
+        <div style="text-align:center; margin-top: 4rem; color: var(--text-secondary); font-size: 0.9rem;" data-aos>
+            <p>All plans include a <strong style="color: var(--text-primary);">14-day free trial</strong> with no credit card required. 
+            Need help choosing? <a href="{{ route('landing.demo') }}" style="color: var(--brand-primary);">Talk to our team →</a></p>
         </div>
     </div>
 </section>
+
+{{-- CTA --}}
+<section class="section-sm">
+    <div class="container">
+        <div class="cta-block" data-aos>
+            <h2>Start Your Free Trial Today</h2>
+            <p>No credit card required. Get up and running in minutes with your 14-day free Business trial.</p>
+            <div class="cta-actions">
+                <a href="{{ route('landing.demo') }}" class="btn btn-accent btn-lg">
+                    <i class="fas fa-rocket"></i> Book a Demo
+                </a>
+                <a href="{{ route('login') }}" class="btn btn-ghost btn-lg">Go to Portal</a>
+            </div>
+        </div>
+    </div>
+</section>
+
 @endsection
