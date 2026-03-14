@@ -533,6 +533,37 @@ body {
   50%       { transform: translateY(-10px); }
 }
 
+:root {
+    --bg-main: #060913;
+    --bg-card: #0F1528;
+    --brand-primary: #6366F1;
+    --brand-glow: rgba(99, 102, 241, 0.4);
+    --brand-accent: #EC4899;
+    --text-primary: #F8FAFC;
+    --text-secondary: #A1A1AA;
+    --border-soft: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(15, 21, 40, 0.5);
+    
+    --transition-premium: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.15);
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.05); }
+}
+
+@keyframes float-smooth {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
 /* =================================================================
    TRUST STRIP
    ================================================================= */

@@ -55,6 +55,14 @@ class LandingController extends Controller
     }
 
     /**
+     * Display the privacy policy page.
+     */
+    public function privacy()
+    {
+        return view('landing.privacy');
+    }
+
+    /**
      * Handle demo request form submission.
      */
     public function submitDemoRequest(Request $request)
