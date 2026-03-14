@@ -132,8 +132,8 @@
                             <i class="fas fa-asterisk fa-fw me-2"></i> Mandatory Fields
                         </a>
                         @if(auth()->user()->hasRole('Super Admin'))
-                            <a href="{{ route('deployments.index') }}"
-                                class="menu-link {{ request()->routeIs('deployments.*') ? 'active' : '' }}">
+                            <a href="{{ route('acp.system.deployments.index') }}"
+                                class="menu-link {{ request()->routeIs('acp.system.deployments.*') ? 'active' : '' }}">
                                 <i class="fas fa-server fa-fw me-2"></i> {{ __('messages.deployments') ?? 'Deployments' }}
                             </a>
                         @endif
@@ -478,6 +478,14 @@
                                             </a>
                                         @endcan
                                     @endif
+
+                                    @can('view leave requests')
+                                        <a href="{{ route('hr.leaves.index') }}"
+                                            class="menu-link {{ request()->routeIs('hr.leaves.*') ? 'active' : '' }}">
+                                            <i class="fas fa-calendar-check fa-fw me-2"></i>
+                                            {{ __('messages.leave_management') }}
+                                        </a>
+                                    @endcan
                                 </div>
                             </div>
                         @endcanany

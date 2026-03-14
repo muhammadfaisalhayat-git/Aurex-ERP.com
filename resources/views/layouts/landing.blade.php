@@ -22,6 +22,7 @@
 
     <!-- Ambient Background -->
     <div class="site-bg"></div>
+    <div class="bg-grid"></div>
 
     <!-- ===================== NAVBAR ===================== -->
     <nav class="navbar" id="main-navbar">
@@ -92,7 +93,7 @@
                         <li><a href="#">About</a></li>
                         <li><a href="#">Careers</a></li>
                         <li><a href="#">Contact</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="{{ route('landing.privacy') }}">Privacy Policy</a></li>
                         <li><a href="#">Security</a></li>
                     </ul>
                 </div>
@@ -102,7 +103,7 @@
                 <span>&copy; {{ date('Y') }} Aurex ERP Solutions. All rights reserved.</span>
                 <div style="display:flex; gap:1.5rem;">
                     <a href="#" style="color:inherit; text-decoration:none;">Terms of Service</a>
-                    <a href="#" style="color:inherit; text-decoration:none;">Privacy</a>
+                    <a href="{{ route('landing.privacy') }}" style="color:inherit; text-decoration:none;">Privacy</a>
                     <a href="#" style="color:inherit; text-decoration:none;">Cookies</a>
                 </div>
             </div>

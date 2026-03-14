@@ -97,6 +97,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/pricing', [LandingController::class, 'pricing'])->name('landing.pricing');
     Route::get('/docs', [LandingController::class, 'docs'])->name('landing.docs');
     Route::get('/demo', [LandingController::class, 'demo'])->name('landing.demo');
+    Route::get('/privacy', [LandingController::class, 'privacy'])->name('landing.privacy');
 });
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');

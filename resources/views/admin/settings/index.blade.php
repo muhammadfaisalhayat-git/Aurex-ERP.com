@@ -43,126 +43,126 @@
             </ul>
         </div>
         <div class="card-body">
-            <form action="{{ route('acp.system.settings.update') }}" method="POST">
-                @csrf
                 <div class="tab-content" id="settingsTabsContent">
                     <!-- General Settings -->
                     <div class="tab-pane fade show active" id="general" role="tabpanel">
-                        <div class="row">
-                            @php
-                                $generalSettings = $systemSettings->reject(fn($val, $key) => $key === 'module_visibility');
-                            @endphp
+                        <form action="{{ route('acp.system.settings.update') }}" method="POST">
+                            @csrf
+                            <div class="row">
+                                @php
+                                    $generalSettings = $systemSettings->reject(fn($val, $key) => $key === 'module_visibility');
+                                @endphp
 
-                            @forelse($generalSettings as $group => $settings)
-                                <div class="col-12 mb-4">
-                                    <h5 class="fw-bold border-bottom pb-2">{{ ucfirst($group) }}</h5>
-                                    <div class="row">
-                                        @foreach($settings as $setting)
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label fw-semibold">
-                                                    {{ app()->getLocale() == 'ar' ? $setting->display_name_ar : $setting->display_name_en }}
-                                                </label>
-                                                @if($setting->type == 'boolean')
-                                                    <div class="form-check form-switch">
-                                                        <input type="hidden" name="settings[{{ $setting->id }}]" value="0">
-                                                        <input class="form-check-input" type="checkbox" name="settings[{{ $setting->id }}]" value="1" {{ $setting->value ? 'checked' : '' }} {{ !$setting->is_editable ? 'disabled' : '' }}>
-                                                    </div>
-                                                @elseif($setting->type == 'text' || $setting->type == 'string')
-                                                    <input type="text" class="form-control" name="settings[{{ $setting->id }}]" value="{{ $setting->value }}" {{ !$setting->is_editable ? 'readonly' : '' }}>
-                                                @elseif($setting->type == 'integer' || $setting->type == 'float')
-                                                    <input type="number" step="any" class="form-control" name="settings[{{ $setting->id }}]" value="{{ $setting->value }}" {{ !$setting->is_editable ? 'readonly' : '' }}>
-                                                @endif
-                                                @if($setting->description)
-                                                    <div class="form-text mt-1 small text-muted">{{ $setting->description }}</div>
-                                                @endif
-                                            </div>
-                                        @endforeach
+                                @forelse($generalSettings as $group => $settings)
+                                    <div class="col-12 mb-4">
+                                        <h5 class="fw-bold border-bottom pb-2">{{ ucfirst($group) }}</h5>
+                                        <div class="row">
+                                            @foreach($settings as $setting)
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label fw-semibold">
+                                                        {{ app()->getLocale() == 'ar' ? $setting->display_name_ar : $setting->display_name_en }}
+                                                    </label>
+                                                    @if($setting->type == 'boolean')
+                                                        <div class="form-check form-switch">
+                                                            <input type="hidden" name="settings[{{ $setting->id }}]" value="0">
+                                                            <input class="form-check-input" type="checkbox" name="settings[{{ $setting->id }}]" value="1" {{ $setting->value ? 'checked' : '' }} {{ !$setting->is_editable ? 'disabled' : '' }}>
+                                                        </div>
+                                                    @elseif($setting->type == 'text' || $setting->type == 'string')
+                                                        <input type="text" class="form-control" name="settings[{{ $setting->id }}]" value="{{ $setting->value }}" {{ !$setting->is_editable ? 'readonly' : '' }}>
+                                                    @elseif($setting->type == 'integer' || $setting->type == 'float')
+                                                        <input type="number" step="any" class="form-control" name="settings[{{ $setting->id }}]" value="{{ $setting->value }}" {{ !$setting->is_editable ? 'readonly' : '' }}>
+                                                    @endif
+                                                    @if($setting->description)
+                                                        <div class="form-text mt-1 small text-muted">{{ $setting->description }}</div>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
-                                </div>
-                            @empty
-                                <div class="col-12 text-center py-5">
-                                    <div class="text-muted">No general system settings found.</div>
-                                </div>
-                            @endforelse
-                        </div>
+                                @empty
+                                    <div class="col-12 text-center py-5">
+                                        <div class="text-muted">No general system settings found.</div>
+                                    </div>
+                                @endforelse
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                    <i class="fas fa-save me-2"></i> {{ __('messages.save_changes') }}
+                                </button>
+                            </div>
+                        </form>
                     </div>
 
                     <!-- Tax Settings -->
                     <div class="tab-pane fade" id="tax" role="tabpanel">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check form-switch">
-                                    <input type="hidden" name="tax[tax_enabled]" value="0">
-                                    <input class="form-check-input" type="checkbox" id="tax_enabled" name="tax[tax_enabled]" value="1" {{ $taxSettings->tax_enabled ? 'checked' : '' }}>
-                                    <label class="form-check-label fw-semibold" for="tax_enabled">{{ __('messages.tax_enabled') }}</label>
+                        <form action="{{ route('acp.system.settings.update') }}" method="POST">
+                            @csrf
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="tax[tax_enabled]" value="0">
+                                        <input class="form-check-input" type="checkbox" id="tax_enabled" name="tax[tax_enabled]" value="1" {{ $taxSettings->tax_enabled ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-semibold" for="tax_enabled">{{ __('messages.tax_enabled') }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="default_tax_rate" class="form-label fw-semibold">{{ __('messages.default_tax_rate') }} (%)</label>
+                                    <input type="number" step="0.01" class="form-control" id="default_tax_rate" name="tax[default_tax_rate]" value="{{ $taxSettings->default_tax_rate }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="tax_name_en" class="form-label fw-semibold">{{ __('messages.tax_name') }} (EN)</label>
+                                    <input type="text" class="form-control" id="tax_name_en" name="tax[tax_name_en]" value="{{ $taxSettings->tax_name_en }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="tax_name_ar" class="form-label fw-semibold">{{ __('messages.tax_name') }} (AR)</label>
+                                    <input type="text" class="form-control text-end" id="tax_name_ar" name="tax[tax_name_ar]" value="{{ $taxSettings->tax_name_ar }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="tax_number" class="form-label fw-semibold">{{ __('messages.tax_number') }}</label>
+                                    <input type="text" class="form-control" id="tax_number" name="tax[tax_number]" value="{{ $taxSettings->tax_number }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-semibold">{{ __('messages.rounding_mode') }}</label>
+                                    <select class="form-select" name="tax[rounding_mode]" required>
+                                        <option value="per_line" {{ $taxSettings->rounding_mode == 'per_line' ? 'selected' : '' }}>Per Line</option>
+                                        <option value="per_total" {{ $taxSettings->rounding_mode == 'per_total' ? 'selected' : '' }}>Per Total</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="default_tax_rate" class="form-label fw-semibold">{{ __('messages.default_tax_rate') }} (%)</label>
-                                <input type="number" step="0.01" class="form-control" id="default_tax_rate" name="tax[default_tax_rate]" value="{{ $taxSettings->default_tax_rate }}" required>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                    <i class="fas fa-save me-2"></i> {{ __('messages.save_changes') }}
+                                </button>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="tax_name_en" class="form-label fw-semibold">{{ __('messages.tax_name') }} (EN)</label>
-                                <input type="text" class="form-control" id="tax_name_en" name="tax[tax_name_en]" value="{{ $taxSettings->tax_name_en }}" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="tax_name_ar" class="form-label fw-semibold">{{ __('messages.tax_name') }} (AR)</label>
-                                <input type="text" class="form-control text-end" id="tax_name_ar" name="tax[tax_name_ar]" value="{{ $taxSettings->tax_name_ar }}" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="tax_number" class="form-label fw-semibold">{{ __('messages.tax_number') }}</label>
-                                <input type="text" class="form-control" id="tax_number" name="tax[tax_number]" value="{{ $taxSettings->tax_number }}">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold">{{ __('messages.rounding_mode') }}</label>
-                                <select class="form-select" name="tax[rounding_mode]" required>
-                                    <option value="per_line" {{ $taxSettings->rounding_mode == 'per_line' ? 'selected' : '' }}>Per Line</option>
-                                    <option value="per_total" {{ $taxSettings->rounding_mode == 'per_total' ? 'selected' : '' }}>Per Total</option>
-                                </select>
-                            </div>
-                        </div>
+                        </form>
                     </div>
 
                     <!-- Module Visibility Settings -->
                     <div class="tab-pane fade" id="visibility" role="tabpanel">
-                        <div class="row">
-                            @if(isset($systemSettings['module_visibility']))
-                                <div class="col-12 mb-4">
-                                    <div class="alert alert-info border-0 shadow-sm glassy">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        {{ __('messages.module_visibility_description') }}
-                                    </div>
-                                </div>
-                                
-                                @php
-                                    $visibilitySettings = $systemSettings['module_visibility'];
-                                    $sections = $visibilitySettings->filter(fn($s) => str_starts_with($s->key, 'module_'));
-                                    $options = $visibilitySettings->filter(fn($s) => str_starts_with($s->key, 'sidebar_'));
-                                @endphp
-
-                                <div class="col-md-6 mb-4">
-                                    <h5 class="fw-bold border-bottom pb-2">{{ __('messages.sidebar_sections_visibility') }}</h5>
-                                    @foreach($sections as $setting)
-                                        <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-2 rounded">
-                                            <label class="form-label fw-semibold mb-0">
-                                                {{ app()->getLocale() == 'ar' ? $setting->display_name_ar : $setting->display_name_en }}
-                                            </label>
-                                            <div class="form-check form-switch">
-                                                <input type="hidden" name="settings[{{ $setting->id }}]" value="0">
-                                                <input class="form-check-input" type="checkbox" name="settings[{{ $setting->id }}]" value="1" {{ $setting->value ? 'checked' : '' }}>
-                                            </div>
+                        <form action="{{ route('acp.system.settings.update') }}" method="POST">
+                            @csrf
+                            <div class="row">
+                                @if(isset($systemSettings['module_visibility']))
+                                    <div class="col-12 mb-4">
+                                        <div class="alert alert-info border-0 shadow-sm glassy">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            {{ __('messages.module_visibility_description') }}
                                         </div>
-                                    @endforeach
-                                </div>
+                                    </div>
+                                    
+                                    @php
+                                        $visibilitySettings = $systemSettings['module_visibility'];
+                                        $sections = $visibilitySettings->filter(fn($s) => str_starts_with($s->key, 'module_'));
+                                        $options = $visibilitySettings->filter(fn($s) => str_starts_with($s->key, 'sidebar_'));
+                                    @endphp
 
-                                <div class="col-md-6 mb-4">
-                                    <h5 class="fw-bold border-bottom pb-2">{{ __('messages.sidebar_items_visibility') }}</h5>
-                                    <div class="visibility-options-grid" style="max-height: 500px; overflow-y: auto; padding-right: 10px;">
-                                        @foreach($options as $setting)
-                                            <div class="mb-2 d-flex justify-content-between align-items-center border-bottom pb-2">
-                                                <span class="small">
+                                    <div class="col-md-6 mb-4">
+                                        <h5 class="fw-bold border-bottom pb-2">{{ __('messages.sidebar_sections_visibility') }}</h5>
+                                        @foreach($sections as $setting)
+                                            <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-2 rounded">
+                                                <label class="form-label fw-semibold mb-0">
                                                     {{ app()->getLocale() == 'ar' ? $setting->display_name_ar : $setting->display_name_en }}
-                                                </span>
+                                                </label>
                                                 <div class="form-check form-switch">
                                                     <input type="hidden" name="settings[{{ $setting->id }}]" value="0">
                                                     <input class="form-check-input" type="checkbox" name="settings[{{ $setting->id }}]" value="1" {{ $setting->value ? 'checked' : '' }}>
@@ -170,72 +170,102 @@
                                             </div>
                                         @endforeach
                                     </div>
-                                </div>
-                            @else
-                                <div class="col-12 text-center py-5">
-                                    <div class="text-muted">No visibility settings found.</div>
-                                </div>
-                            @endif
-                        </div>
+
+                                    <div class="col-md-6 mb-4">
+                                        <h5 class="fw-bold border-bottom pb-2">{{ __('messages.sidebar_items_visibility') }}</h5>
+                                        <div class="visibility-options-grid" style="max-height: 500px; overflow-y: auto; padding-right: 10px;">
+                                            @foreach($options as $setting)
+                                                <div class="mb-2 d-flex justify-content-between align-items-center border-bottom pb-2">
+                                                    <span class="small">
+                                                        {{ app()->getLocale() == 'ar' ? $setting->display_name_ar : $setting->display_name_en }}
+                                                    </span>
+                                                    <div class="form-check form-switch">
+                                                        <input type="hidden" name="settings[{{ $setting->id }}]" value="0">
+                                                        <input class="form-check-input" type="checkbox" name="settings[{{ $setting->id }}]" value="1" {{ $setting->value ? 'checked' : '' }}>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="col-12 text-center py-5">
+                                        <div class="text-muted">No visibility settings found.</div>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                    <i class="fas fa-save me-2"></i> {{ __('messages.save_changes') }}
+                                </button>
+                            </div>
+                        </form>
                     </div>
 
                     <!-- Maintenance Settings -->
                     <div class="tab-pane fade" id="maintenance" role="tabpanel">
-                        <div class="row">
-                            @if(isset($systemSettings['maintenance']))
-                                <div class="col-12 mb-4">
-                                    <h5 class="fw-bold border-bottom pb-2">{{ __('messages.security_configuration') }}</h5>
-                                    <div class="row">
-                                        @foreach($systemSettings['maintenance'] as $setting)
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label fw-semibold">
-                                                    {{ app()->getLocale() == 'ar' ? $setting->display_name_ar : $setting->display_name_en }}
-                                                </label>
-                                                @if($setting->type == 'text' || $setting->type == 'string')
-                                                    <input type="text" class="form-control" name="settings[{{ $setting->id }}]" value="{{ $setting->value }}" {{ !$setting->is_editable ? 'readonly' : '' }}>
-                                                @endif
-                                                @if($setting->description)
-                                                    <div class="form-text mt-1 small text-muted">{{ $setting->description }}</div>
-                                                @endif
-                                            </div>
-                                        @endforeach
+                        <form action="{{ route('acp.system.settings.update') }}" method="POST">
+                            @csrf
+                            <div class="row">
+                                @if(isset($systemSettings['maintenance']))
+                                    <div class="col-12 mb-4">
+                                        <h5 class="fw-bold border-bottom pb-2">{{ __('messages.security_configuration') }}</h5>
+                                        <div class="row">
+                                            @foreach($systemSettings['maintenance'] as $setting)
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label fw-semibold">
+                                                        {{ app()->getLocale() == 'ar' ? $setting->display_name_ar : $setting->display_name_en }}
+                                                    </label>
+                                                    @if($setting->type == 'text' || $setting->type == 'string')
+                                                        <input type="text" class="form-control" name="settings[{{ $setting->id }}]" value="{{ $setting->value }}" {{ !$setting->is_editable ? 'readonly' : '' }}>
+                                                    @endif
+                                                    @if($setting->description)
+                                                        <div class="form-text mt-1 small text-muted">{{ $setting->description }}</div>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                        <div class="alert alert-info border-0 shadow-sm glassy small mb-4">
+                                            <i class="fas fa-info-circle me-2"></i> {{ __('messages.admin_email_hint') }}
+                                        </div>
                                     </div>
-                                    <div class="alert alert-info border-0 shadow-sm glassy small mb-4">
-                                        <i class="fas fa-info-circle me-2"></i> {{ __('messages.admin_email_hint') }}
-                                    </div>
-                                </div>
-                            @endif
+                                @endif
 
-                            <div class="col-12 mb-4">
-                                <div class="alert alert-warning border-0 shadow-sm glassy">
-                                    <div class="d-flex">
-                                        <div class="me-3">
-                                            <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                                <div class="col-12 mb-4">
+                                    <div class="alert alert-warning border-0 shadow-sm glassy">
+                                        <div class="d-flex">
+                                            <div class="me-3">
+                                                <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="fw-bold mb-1">{{ __('messages.danger_zone') }}</h5>
+                                                <p class="mb-0 text-muted small">{{ __('messages.factory_reset_description') }}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h5 class="fw-bold mb-1">{{ __('messages.danger_zone') }}</h5>
-                                            <p class="mb-0 text-muted small">{{ __('messages.factory_reset_description') }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="card border-danger border-opacity-25 shadow-sm h-100">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold text-danger mb-3">
+                                                <i class="fas fa-trash-alt me-2"></i> {{ __('messages.factory_reset') }}
+                                            </h6>
+                                            <p class="small text-muted mb-4">
+                                                {{ __('messages.factory_reset_warning') }}
+                                            </p>
+                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#factoryResetModal">
+                                                {{ __('messages.perform_factory_reset') }}
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="col-md-6">
-                                <div class="card border-danger border-opacity-25 shadow-sm h-100">
-                                    <div class="card-body">
-                                        <h6 class="fw-bold text-danger mb-3">
-                                            <i class="fas fa-trash-alt me-2"></i> {{ __('messages.factory_reset') }}
-                                        </h6>
-                                        <p class="small text-muted mb-4">
-                                            {{ __('messages.factory_reset_warning') }}
-                                        </p>
-                                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#factoryResetModal">
-                                            {{ __('messages.perform_factory_reset') }}
-                                        </button>
-                                    </div>
-                                </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                    <i class="fas fa-save me-2"></i> {{ __('messages.save_changes') }}
+                                </button>
                             </div>
-                        </div>
+                        </form>
                     </div>
 
                     <!-- Deployment Management (The Frame) -->
@@ -275,6 +305,16 @@
                                         <h6 class="mb-0 fw-bold"><i class="fas fa-plus me-2"></i> {{ __('messages.add_deployment') }}</h6>
                                     </div>
                                     <div class="card-body">
+                                        @if($errors->any())
+                                            <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm small mb-3">
+                                                <ul class="mb-0">
+                                                    @foreach($errors->all() as $error)
+                                                        <li>{{ $error }}</li>
+                                                    @endforeach
+                                                </ul>
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                            </div>
+                                        @endif
                                         <form action="{{ route('acp.system.settings.deployments.store') }}" method="POST">
                                             @csrf
                                             <div class="mb-2">
@@ -376,13 +416,8 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end mt-4 pt-3 border-top">
-                    <button type="submit" class="btn btn-primary px-4 py-2 shadow-sm">
-                        <i class="fas fa-save me-2"></i> {{ __('messages.save_changes') }}
-                    </button>
                 </div>
-            </form>
-        </div>
+            </div>
     </div>
 </div>
 

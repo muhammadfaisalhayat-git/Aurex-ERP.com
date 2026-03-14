@@ -6,16 +6,16 @@
 @section('content')
 
 {{-- Hero --}}
-<section class="hero" style="min-height: 55vh; padding-top: 120px; padding-bottom: 60px;">
+<section class="hero" style="min-height: 40vh; padding-top: 140px; padding-bottom: 80px; position: relative; z-index: 10;">
     <div class="hero-glow"></div>
     <div class="container" style="text-align: center;">
         <div data-aos>
             <span class="section-tag">Pricing</span>
-            <h1 class="hero-title" style="font-size: clamp(2rem, 4vw, 3.5rem);">
+            <h1 class="hero-title" style="font-size: clamp(2.5rem, 5vw, 4rem);">
                 Simple, Transparent Pricing.<br>
                 <span class="gradient-text">No Surprises.</span>
             </h1>
-            <p class="hero-subtitle" style="margin: 1.5rem auto; max-width: 600px;">
+            <p class="hero-subtitle" style="margin: 1.5rem auto; max-width: 640px; font-size: 1.15rem;">
                 Every plan includes the full Aurex ERP platform. You pay for users, not modules.
                 No lock-in. Cancel any time.
             </p>

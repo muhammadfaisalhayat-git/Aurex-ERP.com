@@ -232,7 +232,7 @@
                         @endcan
                         @if(auth()->user()->hasRole('Super Admin'))
                             <div class="col-6 col-md-4 col-lg-4">
-                                <a href="{{ route('deployments.index') }}" class="menu-card card-admin">
+                                <a href="{{ route('acp.system.deployments.index') }}" class="menu-card card-admin">
                                     <div class="icon-wrapper"><i class="fas fa-server"></i></div>
                                     <p class="menu-label">{{ __('messages.deployments') ?? 'Deployments' }}</p>
                                 </a>

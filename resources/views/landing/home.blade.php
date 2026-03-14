@@ -11,7 +11,7 @@
 <section class="hero section-lg">
     <div class="hero-glow"></div>
     <div class="container">
-        <div class="hero-inner">
+        <div class="hero-inner" style="position: relative; z-index: 10;">
 
             {{-- Left: Copy --}}
             <div data-aos>
@@ -68,17 +68,17 @@
 
                 {{-- Floating indicators --}}
                 <div class="hero-float-card card-1">
-                    <span style="color:var(--success); font-size:1.2rem;">●</span>
+                    <span style="color:var(--success); font-size:1.4rem;">●</span>
                     <div>
-                        <div style="font-weight:700; font-size:0.85rem;">Revenue Up 34%</div>
-                        <div style="color:var(--text-secondary); font-size:0.75rem;">vs last quarter</div>
+                        <div style="font-weight:700; font-size:0.9rem; color: var(--text-primary);">Revenue Up 34%</div>
+                        <div style="color:var(--text-secondary); font-size:0.8rem;">vs last quarter</div>
                     </div>
                 </div>
                 <div class="hero-float-card card-2">
-                    <span style="background:var(--grad-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:1.2rem; font-weight:800;">✓</span>
+                    <span style="background:var(--grad-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:1.4rem; font-weight:800;">✓</span>
                     <div>
-                        <div style="font-weight:700; font-size:0.85rem;">Approval Sent</div>
-                        <div style="color:var(--text-secondary); font-size:0.75rem;">Purchase Order #4821</div>
+                        <div style="font-weight:700; font-size:0.9rem; color: var(--text-primary);">Approval Sent</div>
+                        <div style="color:var(--text-secondary); font-size:0.8rem;">Purchase Order #4821</div>
                     </div>
                 </div>
             </div>
